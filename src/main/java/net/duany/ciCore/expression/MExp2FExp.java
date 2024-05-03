@@ -1,5 +1,7 @@
 package net.duany.ciCore.expression;
 
+import net.duany.ciCore.symbols.Functions;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
@@ -35,21 +37,48 @@ public class MExp2FExp {
                 index++;
                 continue;
             }
+            //引号跳过
+            if(s.charAt(index) == '\"') {
+                boolean flag = false;
+                try {
+                    flag = s.charAt(index - 1) != '\\';
+                }catch(StringIndexOutOfBoundsException ignore) {}
+                if(flag) {
+                    String tmp = "";
+                    while(true) {
+                        tmp += s.charAt(index);
+                        index++;
+                        try {
+                            if(s.charAt(index) == '\"' && s.charAt(index - 1) != '\\') {
+                                break;
+                            }
+                        }catch (StringIndexOutOfBoundsException ignore) {}
+                    }
+                    tmp += s.charAt(index);
+                    ls.add(tmp);
+                    index++;
+                    continue;
+                }
+            }
             //如果是一个非数字，就需要加入ls
-            if (((c = s.charAt(index)) < 48 || (c = s.charAt(index)) > 57)) {
+            if (((c = s.charAt(index)) < 48 || (c = s.charAt(index)) > 57) && !String.valueOf(s.charAt(index)).matches("\\w")) {
                 //转化为字符串
                 String tmp = "" + c;
-                if(s.charAt(index + 1) == '=') {
-                    tmp += '=';
-                    index++;
-                }
+                try {
+                    if (s.charAt(index + 1) == '=') {
+                        tmp += '=';
+                        index++;
+                    }
+                }catch(StringIndexOutOfBoundsException ignore){}
                 ls.add("" + tmp);
                 index++;
             } else {
                 //如果是数，需要考虑多位数的问题
                 //先将str置成空串
                 str = "";
-                while ((index < s.length()) && ((c = s.charAt(index)) >= 48) && ((c = s.charAt(index)) <= 57)) {
+                while ((index < s.length())
+                        && ((((c = s.charAt(index)) >= 48) && ((c = s.charAt(index)) <= 57))
+                        || String.valueOf(s.charAt(index)).matches("\\w"))) {
                     //'0'-> [48] ;'9'->[57]
                     //拼接字符串
                     str += c;
@@ -71,7 +100,7 @@ public class MExp2FExp {
         List<String> s2 = new ArrayList<String>();
 
         for (String item : ls) {
-            if (item.matches("\\w+")) {
+            if (Operation.getValue(item) == 0 && !item.matches("[()]")) {
                 //如果是一个数，直接加入S2
                 s2.add(item);
             } else if (item.equals("(")) {
@@ -104,6 +133,9 @@ public class MExp2FExp {
         //返回对应优先级的数字
         public static int getValue(String operation) {
             int result = 0;
+            if(Functions.funcList.get(operation) != null) {
+                return 15;
+            }
             switch (operation) {
                 case ",":
                     result = 1; break;
