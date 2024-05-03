@@ -151,7 +151,7 @@ public class MExp2FExp {
         //因为是存放到List,因此按顺序输出就是对应的后缀表达式对应的List
         return s2;
     }
-    class Operation {
+    public class Operation {
         //返回对应优先级的数字
         public static int getValue(String operation) {
             int result = 0;
@@ -209,7 +209,7 @@ public class MExp2FExp {
                 case "->":
                     result = 15; break;
                 default:
-                    System.out.println("不存在该运算符");
+//                    System.out.println("不存在该运算符");
                     break;
             }
             return result;

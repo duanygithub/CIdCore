@@ -1,5 +1,6 @@
 package net.duany.ciCore;
 
+import net.duany.ciCore.expression.MExp2FExp;
 import net.duany.ciCore.memory.MemOperator;
 import net.duany.ciCore.runtime.RtContext;
 import net.duany.ciCore.symbols.Functions;
@@ -15,6 +16,9 @@ public class CInterpreter {
     int codesAddr = -1;
     RtContext context;
     List<String> codeBlocks;
+    public  CInterpreter() {
+
+    }
     public CInterpreter(String f) throws IOException {
         File file = new File(f);
         if(!file.exists()) {
@@ -31,30 +35,55 @@ public class CInterpreter {
         codes = new String(tmp);
         codes = codes.trim();
     }
-    public int start()
-    {
+    public int start() {
         preProcess();
+        return runCode();
+    }
+    public int start(String c) {
+        codes = c;
+        preProcess();
+        return runCode();
+    }
+    private int runCode() {
         Stack<Integer> callDepth = new Stack<>();
         int i = Functions.codesIndex.get("main");
+        StringBuilder exp = new StringBuilder();
         do {
             if(codeBlocks.get(i).equals("{")) {
                 callDepth.add(0);
-                i++;
-                continue;
-            }
-            if(codeBlocks.get(i).equals("}")) {
+            }else if(codeBlocks.get(i).equals("}")) {
                 callDepth.pop();
+            }else if(!codeBlocks.get(i).equals(";")) {
+                exp.append(codeBlocks.get(i));
+            }else{
+                calcExpression(exp.toString());
+                exp.delete(0, exp.length());
+            }
+            i++;
+        } while(!callDepth.empty());
+        return 0;
+    }
+    private Object calcExpression(String exp) {
+        List<String> res = MExp2FExp.convert(exp);
+        Stack<String> stack = new Stack<>();
+        int i = 0;
+        stack.push(res.get(i));
+        while(!stack.empty()) {
+            if(MExp2FExp.Operation.getValue(stack.peek()) == 0) {
+                i++;
+                stack.push(res.get(i));
                 i++;
                 continue;
             }
-            switch(codeBlocks.get(i)) {
-                case "printf": {
-                    String content = codeBlocks.get(i + 2);
-                    System.out.println(content);
-                    i++;
+            String topEle = stack.pop();
+            if(Functions.funcList.get(topEle) != null) {
+                //函数调用
+                if(Functions.codesIndex.get(topEle) == -1) {
+                    Functions.NativeFunction.runNativeFunction_String1(topEle, stack.pop());
                 }
             }
-        } while(!callDepth.empty());
+            i++;
+        }
         return 0;
     }
 
@@ -97,7 +126,7 @@ public class CInterpreter {
                     if(Functions.funcList.getOrDefault("main", null) == null
                     && Functions.codesIndex.getOrDefault("main", null) == null) {
                         Functions.funcList.put("main", Keywords.Int);
-                        Functions.codesIndex.put("main", i + 4);
+                        Functions.codesIndex.put("main", i + 3);
                         break;
                     }
                 }
@@ -170,6 +199,8 @@ public class CInterpreter {
                 continue;
             } else if(c == ';' && !bInQua) {
                 //遇到分号提交一次
+                statements.add(sb.toString());
+                sb.delete(0, sb.length());
                 sb.append(c);
                 statements.add(sb.toString());
                 sb.delete(0, sb.length());
