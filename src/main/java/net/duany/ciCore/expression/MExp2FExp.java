@@ -9,7 +9,9 @@ import java.util.Stack;
 public class MExp2FExp {
     public static List<String> convert(String s) {
         List<String> tmp = toInfixExpressionList(s), result;
+        Stack<String> func = new Stack<>();
         for(int i = 0; i < tmp.size(); i++) {
+            //替换*和&使其更方便索引
             String n = tmp.get(i);
             if(n.equals("*") || n.equals("&")) {
                 if(Operation.getValue(tmp.get(i - 1)) != 0 || tmp.get(i - 1).equals("(")) {
@@ -18,7 +20,27 @@ public class MExp2FExp {
                     continue;
                 }
             }
+
+            //修改函数调用方便解析
+            //printf(a+b) -> (a+b)printf
+            try {
+                if (n.equals("(")) {
+                    if(Functions.funcList.get(tmp.get(i - 1)) != null) {
+                        func.push(tmp.get(i - 1));
+                        tmp.remove(i - 1);
+                        i--;
+                    }
+                    else func.push("");
+                } else if(n.equals(")")) {
+                    String peekStr = func.pop();
+                    if(Functions.funcList.get(peekStr) != null) {
+                        tmp.add(i + 1, peekStr);
+                    }
+                }
+            }catch(IndexOutOfBoundsException ignore){}
         }
+
+
         result = parseSuffixExpression(tmp);
         return result;
     }
