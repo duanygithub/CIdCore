@@ -5,6 +5,9 @@ import net.duany.ciCore.memory.MemOperator;
 import net.duany.ciCore.runtime.RtContext;
 import net.duany.ciCore.symbols.Functions;
 import net.duany.ciCore.symbols.Keywords;
+import net.duany.ciCore.symbols.Variables;
+import net.duany.ciCore.variable.CIdINT;
+import net.duany.ciCore.variable.Variable;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -53,6 +56,8 @@ public class CInterpreter {
                 callDepth.add(0);
             }else if(codeBlocks.get(i).equals("}")) {
                 callDepth.pop();
+            }else if(codeBlocks.get(i).equals("int")) {
+                Variables.vars.put(codeBlocks.get(i + 1), CIdINT.createINT(0));
             }else if(!codeBlocks.get(i).equals(";")) {
                 exp.append(codeBlocks.get(i));
             }else{
@@ -63,28 +68,62 @@ public class CInterpreter {
         } while(!callDepth.empty());
         return 0;
     }
-    private Object calcExpression(String exp) {
+    private String calcExpression(String exp) {
         List<String> res = MExp2FExp.convert(exp);
         Stack<String> stack = new Stack<>();
         int i = 0;
         stack.push(res.get(i));
+        i++;
         while(!stack.empty()) {
-            if(MExp2FExp.Operation.getValue(stack.peek()) == 0) {
-                i++;
-                stack.push(res.get(i));
-                i++;
-                continue;
-            }
-            String topEle = stack.pop();
+            String topEle = stack.peek();
             if(Functions.funcList.get(topEle) != null) {
                 //函数调用
                 if(Functions.codesIndex.get(topEle) == -1) {
-                    Functions.NativeFunction.runNativeFunction_String1(topEle, stack.pop());
+                    stack.pop();
+                    String newTop = stack.pop();
+                    Variable var = Variables.vars.get(newTop);
+                    if(var != null) {
+                        Functions.NativeFunction.runNativeFunction_String1(topEle, String.valueOf(var.getValue()));
+                    }
+                }
+            } else if(MExp2FExp.Operation.getValue(topEle) != 0) {
+                switch (topEle) {
+                    case "=": {
+                        stack.pop();
+                        String num1 = stack.pop();
+                        String num2 = stack.pop();
+                        Variable var = Variables.vars.get(num2);
+                        if(Variables.vars.get(num2) != null) {
+                            if(var.getType().equals(Keywords.Int)) {
+                                stack.push(Integer.toString(((CIdINT)var).setValue(Integer.parseInt(num1))));
+                            }
+                        }
+                        break;
+                    }
+                    case "+":
+                    case "-":
+                    case "*":
+                    case "/":
+                    case "&":
+                    case "|":
+                    case "^": {
+                        stack.pop();
+                        String num1 = stack.pop();
+                        String num2 = stack.pop();
+                        Variable var = Variables.vars.get(num2);
+                        if(Variables.vars.get(num2) != null) {
+                            if(var.getType().equals(Keywords.Int)) {
+                                stack.push(Integer.toString(((CIdINT)var).procOperation(CIdINT.createINT(num1), topEle).getValue().intValue()));
+                            }
+                        }
+                        break;
+                    }
                 }
             }
+            try{stack.push(res.get(i));}catch (IndexOutOfBoundsException exception){break;}
             i++;
         }
-        return 0;
+        return stack.empty() ? "" : stack.pop();
     }
 
     private int preProcess()

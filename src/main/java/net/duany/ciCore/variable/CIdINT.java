@@ -6,13 +6,16 @@ public class CIdINT implements Variable{
     int value;
     public CIdINT(int n) {
         value = n;
-
     }
-    public Variable createINT(String str) {
+    public static Variable createINT(String str) {
         return new CIdINT(Integer.parseInt(str));
     }
-    public Variable createINT(int n) {
+    public static Variable createINT(int n) {
         return new CIdINT(n);
+    }
+    public int setValue(int n) {
+        value = n;
+        return n;
     }
 
     @Override

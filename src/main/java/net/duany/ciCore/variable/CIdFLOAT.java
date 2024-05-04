@@ -13,6 +13,9 @@ public class CIdFLOAT implements Variable{
     public static Variable createFLOAT(float f) {
         return new CIdFLOAT(f);
     }
+    public  void setValue(float f) {
+        value = f;
+    }
 
     @Override
     public Number getValue() {
