@@ -55,19 +55,32 @@ public class MExp2FExp {
         char c;
         do {
             //空格跳过
-            if(s.charAt(index) == ' ') {
+            if (s.charAt(index) == ' ') {
                 index++;
                 continue;
             }
             //引号跳过
-            if(s.charAt(index) == '\"') {
+            if (s.charAt(index) == '\'') {
+                try {
+                    if (s.charAt(index + 2) == '\'') {
+                        String tmp = "";
+                        tmp += "'" + s.charAt(index + 1) + "'";
+                        ls.add(tmp);
+                        index += 3;
+                        continue;
+                    }
+                } catch (StringIndexOutOfBoundsException ignore) {
+                }
+            }
+            if (s.charAt(index) == '\"') {
                 boolean flag = false;
                 try {
                     flag = s.charAt(index - 1) != '\\';
-                }catch(StringIndexOutOfBoundsException ignore) {}
-                if(flag) {
+                } catch (StringIndexOutOfBoundsException ignore) {
+                }
+                if (flag) {
                     String tmp = "";
-                    while(true) {
+                    while (true) {
                         tmp += s.charAt(index);
                         index++;
                         try {
@@ -89,6 +102,14 @@ public class MExp2FExp {
                 try {
                     if (s.charAt(index + 1) == '=') {
                         tmp += '=';
+                        index++;
+                    }
+                    if (s.charAt(index + 1) == '>') {
+                        tmp += '>';
+                        index++;
+                    }
+                    if (s.charAt(index + 1) == '<') {
+                        tmp += '<';
                         index++;
                     }
                 }catch(StringIndexOutOfBoundsException ignore){}

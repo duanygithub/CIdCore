@@ -2,7 +2,6 @@ package net.duany.ciCore;
 
 import net.duany.ciCore.expression.MExp2FExp;
 import net.duany.ciCore.memory.MemOperator;
-import net.duany.ciCore.runtime.RtContext;
 import net.duany.ciCore.symbols.Functions;
 import net.duany.ciCore.symbols.Keywords;
 import net.duany.ciCore.symbols.Variables;
@@ -17,7 +16,6 @@ import java.util.Stack;
 public class CInterpreter {
     String codes;
     int codesAddr = -1;
-    RtContext context;
     List<String> codeBlocks;
     public  CInterpreter() {
 
@@ -106,14 +104,16 @@ public class CInterpreter {
                     case "/":
                     case "&":
                     case "|":
-                    case "^": {
+                    case "^":
+                    case ">>":
+                    case "<<": {
                         stack.pop();
                         String num1 = stack.pop();
                         String num2 = stack.pop();
                         Variable var = Variables.vars.get(num2);
-                        if(Variables.vars.get(num2) != null) {
-                            if(var.getType().equals(Keywords.Int)) {
-                                stack.push(Integer.toString(((CIdINT)var).procOperation(CIdINT.createINT(num1), topEle).getValue().intValue()));
+                        if (Variables.vars.get(num2) != null) {
+                            if (var.getType().equals(Keywords.Int)) {
+                                stack.push(Integer.toString(((CIdINT) var).procOperation(CIdINT.createINT(num1), topEle).getValue().intValue()));
                             }
                         }
                         break;
@@ -143,7 +143,6 @@ public class CInterpreter {
         if(codesAddr == -1) {
             return -1;
         }
-        context = new RtContext();
         Stack<Integer> tmp = new Stack<>();
         boolean bInQua = false;
         for(int i = 0; i < codeBlocks.size(); i++) {

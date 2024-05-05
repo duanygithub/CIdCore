@@ -58,4 +58,13 @@ public class CIdINT implements Variable{
             };
         } else return null;
     }
+
+    @Override
+    public int cmp(Variable var) {
+        float val = (float) var.getValue();
+        if (val > value) return 1;
+        else if (val < value) return -1;
+        else if (val == value) return 0;
+        throw new AssertionError();
+    }
 }
