@@ -1,4 +1,4 @@
-package net.duany.ciCore.expression;
+package net.duany.ciCore.gramma;
 
 import net.duany.ciCore.symbols.Functions;
 
