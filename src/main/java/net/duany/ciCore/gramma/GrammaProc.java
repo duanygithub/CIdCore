@@ -10,13 +10,68 @@ import java.util.Stack;
 
 public class GrammaProc {
     public List<String> codeBlocks = new ArrayList<>();
+    RootTreeNode root;
 
     public int analyze(String codes) {
         preProcess(codes);
+        root = new RootTreeNode(0, codeBlocks.size() - 1);
+        buildTree(root);
         return 0;
     }
 
-    public int preProcess(String codes) {
+    public void buildTree(TreeNode parentNode) {
+        int l = parentNode.lIndex;
+        int r = parentNode.rIndex;
+        for (int i = l; i <= r; i++) {
+            String str = codeBlocks.get(i);
+            switch (str) {
+                case "int", "float", "char" -> {
+                    if (codeBlocks.get(i + 1).matches("\\w+")) {
+                        if (codeBlocks.get(i + 2).equals("(")) {
+                            FunctionTreeNode functionTreeNode = new FunctionTreeNode(i, i + 1);
+                            parentNode.subNode.add(functionTreeNode);
+                            i += 3;
+                            int argStart = i;
+                            Stack<Integer> stack = new Stack<Integer>();
+                            stack.push(0);
+                            for (; !stack.empty(); i++) {
+                                if (codeBlocks.get(i).equals("(")) stack.push(0);
+                                else if (codeBlocks.get(i).equals(")")) stack.pop();
+                            }
+                            ArgTreeNode argTreeNode = new ArgTreeNode(argStart, i - 1);
+                            buildTree(argTreeNode);
+                            functionTreeNode.subNode.add(argTreeNode);
+                            stack.push(0);
+                            int blockStart = i;
+                            i++;
+                            for (; !stack.empty(); i++) {
+                                if (codeBlocks.get(i).equals("{")) stack.push(0);
+                                else if (codeBlocks.get(i).equals("}")) stack.pop();
+                            }
+                            BlockTreeNode blockTreeNode = new BlockTreeNode(blockStart, i - 1);
+                            buildTree(blockTreeNode);
+                            functionTreeNode.subNode.add(blockTreeNode);
+                        } else {
+                            int varStart = i;
+                            for (; !codeBlocks.get(i).matches("[;,]"); i++) {
+                            }
+                            int varEnd = i;
+                            VarTreeNode varTreeNode = new VarTreeNode(varStart, varEnd);
+                            parentNode.subNode.add(new VarTreeNode(varStart, i));
+                            if (i - varStart > 1) {
+                                i = varStart + 1;
+                                StatementTreeNode statementTreeNode = new StatementTreeNode(i, varEnd);
+                                buildTree(statementTreeNode);
+                                parentNode.subNode.add(statementTreeNode);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private int preProcess(String codes) {
         //先把代码分割一遍
         codeBlocks = splitCodes(codes);
         //计算代码块总数
