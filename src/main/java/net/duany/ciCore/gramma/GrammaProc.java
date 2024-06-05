@@ -3,6 +3,7 @@ package net.duany.ciCore.gramma;
 import net.duany.ciCore.memory.MemOperator;
 import net.duany.ciCore.symbols.Functions;
 import net.duany.ciCore.symbols.Keywords;
+import net.duany.ciCore.symbols.TypeLookup;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,10 +23,13 @@ public class GrammaProc {
     public void buildTree(TreeNode parentNode) {
         int l = parentNode.lIndex;
         int r = parentNode.rIndex;
+        if (r <= l) return;
+        int lastSplitPoint = l - 1;
+        int viewedR = l - 1;
         for (int i = l; i <= r; i++) {
             String str = codeBlocks.get(i);
-            switch (str) {
-                case "int", "float", "char" -> {
+            switch (TypeLookup.lookup(str)) {
+                case TypeLookup.BASICTYPE -> {
                     if (codeBlocks.get(i + 1).matches("\\w+")) {
                         if (codeBlocks.get(i + 2).equals("(")) {
                             FunctionTreeNode functionTreeNode = new FunctionTreeNode(i, i + 1);
@@ -67,7 +71,44 @@ public class GrammaProc {
                         }
                     }
                 }
+                case TypeLookup.FUNCTION -> {
+                    int funcCallStart = i;
+                    if (!codeBlocks.get(++i).equals("(")) {
+                        System.out.println("不标准的函数调用");
+                        break;
+                    }
+                    i++;
+                    int parCnt = 1;
+                    while (parCnt != 0) {
+                        if (codeBlocks.get(i).equals("(")) {
+                            parCnt++;
+                        } else if (codeBlocks.get(i).equals(")")) {
+                            parCnt--;
+                        }
+                        i++;
+                    }
+                    FunctionCallTreeNode functionCallTreeNode = new FunctionCallTreeNode(funcCallStart, i);
+                    ArgTreeNode argTreeNode = new ArgTreeNode(funcCallStart + 2, i - 2);
+                    buildTree(argTreeNode);
+                    functionCallTreeNode.subNode.add(argTreeNode);
+                    parentNode.subNode.add(functionCallTreeNode);
+                }
+                case TypeLookup.SPLITPOINT -> {
+                    if (viewedR > lastSplitPoint) break;
+                    parentNode.subNode.add(new StatementTreeNode(lastSplitPoint + 1, i - 1));
+                    lastSplitPoint = i;
+                    i++;
+                }
+                default -> {
+                    /*
+                    if(parentNode.type().equals("funcCall") && i == r) {
+                        parentNode.subNode.add(new StatementTreeNode(lastSplitPoint + 1, i - 1));
+                        lastSplitPoint = i;
+                    }
+                    */
+                }
             }
+            viewedR = i - 1;
         }
     }
 
@@ -189,15 +230,15 @@ public class GrammaProc {
                 //注释没用，跳过这行
                 disableUntilEnter = true;
                 continue;
-            } else if (c == ';' && !bInQua) {
-                //遇到分号提交一次
+            } else if ((c == ';' || c == ',') && !bInQua) {
+                //遇到分号和逗号提交一次
                 statements.add(sb.toString());
                 sb.delete(0, sb.length());
                 sb.append(c);
                 statements.add(sb.toString());
                 sb.delete(0, sb.length());
                 continue;
-            } else if (c == ' ' && !bInQua && !bInPar) {
+            } else if (c == ' ' && !bInQua/* && !bInPar*/) {
                 if (sb.length() != 0 && !disableSpace) {
                     //遇到非字符串中的空格就提交一次
                     statements.add(sb.toString());
