@@ -3,6 +3,5 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      javavercheck:
-        java -version
-        mvn -version
+      - run: java -version
+      - run: mvn -version
