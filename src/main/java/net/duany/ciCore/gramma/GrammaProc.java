@@ -1,5 +1,6 @@
 package net.duany.ciCore.gramma;
 
+import net.duany.ciCore.Start;
 import net.duany.ciCore.memory.MemOperator;
 import net.duany.ciCore.symbols.Functions;
 import net.duany.ciCore.symbols.Keywords;
@@ -15,7 +16,8 @@ public class GrammaProc {
 
     public int analyze(String codes) {
         preProcess(codes);
-        root = new RootTreeNode(0, codeBlocks.size() - 1);
+        Start.codeBlocks = codeBlocks;
+        root = new RootTreeNode(0, codeBlocks.size());
         buildTree(root);
         return 0;
     }
@@ -24,7 +26,7 @@ public class GrammaProc {
         int l = parentNode.lIndex;
         int r = parentNode.rIndex;
         if (r <= l) return;
-        int lastSplitPoint = l - 1;
+        int lastSplitPoint = l;
         int viewedR = l - 1;
         for (int i = l; i <= r; i++) {
             String str = codeBlocks.get(i);
@@ -32,7 +34,7 @@ public class GrammaProc {
                 case TypeLookup.BASICTYPE -> {
                     if (codeBlocks.get(i + 1).matches("\\w+")) {
                         if (codeBlocks.get(i + 2).equals("(")) {
-                            FunctionTreeNode functionTreeNode = new FunctionTreeNode(i, i + 1);
+                            FunctionTreeNode functionTreeNode = new FunctionTreeNode(i, i + 2);
                             parentNode.subNode.add(functionTreeNode);
                             i += 3;
                             int argStart = i;
@@ -52,7 +54,7 @@ public class GrammaProc {
                                 if (codeBlocks.get(i).equals("{")) stack.push(0);
                                 else if (codeBlocks.get(i).equals("}")) stack.pop();
                             }
-                            BlockTreeNode blockTreeNode = new BlockTreeNode(blockStart, i - 1);
+                            BlockTreeNode blockTreeNode = new BlockTreeNode(blockStart + 1, i - 1);
                             buildTree(blockTreeNode);
                             functionTreeNode.subNode.add(blockTreeNode);
                         } else {
@@ -60,14 +62,14 @@ public class GrammaProc {
                             for (; !codeBlocks.get(i).matches("[;,]"); i++) {
                             }
                             int varEnd = i;
-                            VarTreeNode varTreeNode = new VarTreeNode(varStart, varEnd);
-                            parentNode.subNode.add(new VarTreeNode(varStart, i));
+                            VarTreeNode varTreeNode = new VarTreeNode(varStart, i);
                             if (i - varStart > 1) {
                                 i = varStart + 1;
                                 StatementTreeNode statementTreeNode = new StatementTreeNode(i, varEnd);
                                 buildTree(statementTreeNode);
-                                parentNode.subNode.add(statementTreeNode);
+                                varTreeNode.subNode.add(statementTreeNode);
                             }
+                            parentNode.subNode.add(varTreeNode);
                         }
                     }
                 }
@@ -88,27 +90,25 @@ public class GrammaProc {
                         i++;
                     }
                     FunctionCallTreeNode functionCallTreeNode = new FunctionCallTreeNode(funcCallStart, i);
-                    ArgTreeNode argTreeNode = new ArgTreeNode(funcCallStart + 2, i - 2);
+                    ArgTreeNode argTreeNode = new ArgTreeNode(funcCallStart + 2, i - 1);
                     buildTree(argTreeNode);
                     functionCallTreeNode.subNode.add(argTreeNode);
                     parentNode.subNode.add(functionCallTreeNode);
                 }
                 case TypeLookup.SPLITPOINT -> {
                     if (viewedR > lastSplitPoint) break;
-                    parentNode.subNode.add(new StatementTreeNode(lastSplitPoint + 1, i - 1));
-                    lastSplitPoint = i;
-                    i++;
+                    parentNode.subNode.add(new StatementTreeNode(lastSplitPoint, i));
+                    lastSplitPoint = i + 1;
                 }
                 default -> {
-                    /*
-                    if(parentNode.type().equals("funcCall") && i == r) {
-                        parentNode.subNode.add(new StatementTreeNode(lastSplitPoint + 1, i - 1));
-                        lastSplitPoint = i;
+                    if (parentNode.type().equals("arg") && i + 1 == r) {
+                        parentNode.subNode.add(new StatementTreeNode(lastSplitPoint, i + 1));
+                        lastSplitPoint = i + 1;
+                        i++;
                     }
-                    */
                 }
             }
-            viewedR = i - 1;
+            viewedR = i;
         }
     }
 
@@ -144,6 +144,7 @@ public class GrammaProc {
                 continue;
             }
             if (bInQua || !tmp.empty()) continue;
+            /*
             if (codeBlocks.get(i).equals("main")) {
                 if (codeBlocks.get(i - 1).equals("int") && codeBlocks.get(i + 3).equals("{")) {
                     if (Functions.funcList.getOrDefault("main", null) == null
@@ -154,11 +155,11 @@ public class GrammaProc {
                     }
                 }
             }
+
+             */
         }
         if (!tmp.empty()) return -1;
-        if (Functions.codesIndex.get("main") == -1) return -1;
         expendHeader("");
-        System.out.println("Main function index: " + Functions.codesIndex.get("main"));
         return 0;
     }
 
