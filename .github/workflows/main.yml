@@ -3,10 +3,12 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - run: java -version
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
       - run: mvn -version
-      - run: apt-get install -y openjdk-17-jdk
       - run: java -version
-      - uses: actions/checkout@master
       - run: mvn package
 
