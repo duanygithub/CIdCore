@@ -5,3 +5,8 @@ jobs:
     steps:
       - run: java -version
       - run: mvn -version
+      - run: apt-get install -y openjdk-17-jdk
+      - run: java -version
+      - uses: actions/checkout@master
+      - run: mvn package
+
