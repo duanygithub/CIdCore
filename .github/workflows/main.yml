@@ -8,11 +8,12 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+          cache: maven
       - run: mvn -version
       - run: java -version
       - run: mvn package
       - uses: actions/upload-artifact@v4
         with:
-          name: Package
+          name: CIdCore
           path: artifact
 
