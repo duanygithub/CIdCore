@@ -37,4 +37,4 @@ build/
 ### Mac OS ###
 .DS_Store
 
-src/main/java/net/duany/ciCore/Start.java
+#src/main/java/net/duany/ciCore/Start.java
