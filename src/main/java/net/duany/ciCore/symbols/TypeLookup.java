@@ -7,6 +7,8 @@ public class TypeLookup {
     public static final int INTEGER = 3;
     public static final int FLOAT = 4;
     public static final int SPLITPOINT = 5;
+    public static final int POINTER = 6;
+    public static final int STRING = 7;
 
     public static int lookup(String str) {
         if (str.matches("[0-9]+")) {
@@ -18,14 +20,19 @@ public class TypeLookup {
         if (str.matches("[,;)}]")) {
             return SPLITPOINT;
         }
-        if (str.equals("int") || str.equals("char") || str.equals("long") || str.equals("float")) {
-            return BASICTYPE;
+        if (str.matches("(int|char|float)\\*+") || str.matches("int|char|float")) {
+            if (str.matches("(int|char|float)\\*+")) {
+                return POINTER;
+            } else return BASICTYPE;
         }
         if (Functions.funcList.getOrDefault(str, null) != null) {
             return FUNCTION;
         }
-        if (Variables.vars.getOrDefault(str, null) != null) {
+        if (str.matches("\\w+")) {
             return VARIABLE;
+        }
+        if (str.matches("\"([^\"]*)\"")) {
+            return STRING;
         }
         return -1;
     }

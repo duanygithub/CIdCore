@@ -1,22 +1,21 @@
 package net.duany.ciCore;
 
-import net.duany.ciCore.gramma.GrammaProc;
-import net.duany.ciCore.gramma.MExp2FExp;
-import net.duany.ciCore.memory.MemOperator;
+import net.duany.ciCore.exception.CIdAssert;
+import net.duany.ciCore.exception.CIdGrammarException;
+import net.duany.ciCore.gramma.*;
 import net.duany.ciCore.symbols.Functions;
 import net.duany.ciCore.symbols.Keywords;
+import net.duany.ciCore.symbols.TypeLookup;
 import net.duany.ciCore.symbols.Variables;
 import net.duany.ciCore.variable.CIdINT;
 import net.duany.ciCore.variable.Variable;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Stack;
+import java.util.*;
 
 public class CInterpreter {
     String codes;
-    GrammaProc gp;
+    GrammarProc gp;
     public  CInterpreter() {
 
     }
@@ -37,16 +36,70 @@ public class CInterpreter {
         codes = codes.trim();
     }
     public int start() {
-        gp = new GrammaProc();
+        gp = new GrammarProc();
         gp.analyze(codes);
-        return runCode();
+        try {
+            Variable res = callFunction("main", Functions.argIndex.get("main"));
+            return (Integer) res.getValue();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return -1;
     }
     public int start(String c) {
         codes = c;
-        gp = new GrammaProc();
+        gp = new GrammarProc();
         gp.analyze(codes);
-        return runCode();
+        try {
+            Variable res = callFunction("main", Functions.argIndex.get("main"));
+            return (Integer) res.getValue();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return -1;
     }
+
+    private void scanFunction() {
+        RootTreeNode root = gp.getRoot();
+        for (TreeNode node : root.subNode) {
+            if (node.type().equals("Function")) {
+                Keywords keywordType = Keywords.string2Keywords(gp.codeBlocks.get(node.lIndex));
+                String name = gp.codeBlocks.get(node.lIndex + 1);
+                Functions.funcList.put(name, keywordType);
+                Functions.codeIndex.put(name, (BlockTreeNode) node.subNode.get(1));
+                Functions.argIndex.put(name, (ArgTreeNode) node.subNode.get(0));
+            }
+        }
+    }
+
+    private Variable callFunction(String funcName, ArgTreeNode args) throws CIdGrammarException {
+        BlockTreeNode funcBlock = Functions.codeIndex.get(funcName);
+        if (funcBlock == null) return CIdINT.createINT(-1);
+        ArgTreeNode funcArgBlock = Functions.argIndex.get(funcName);
+        Queue<TreeNode> treeQueue = new LinkedList<>();
+        treeQueue.add(funcBlock);
+        TreeNode cur;
+        while (!treeQueue.isEmpty()) {
+            cur = treeQueue.poll();
+            treeQueue.addAll(cur.subNode);
+            String type = cur.type();
+            int l = cur.lIndex;
+            int r = cur.rIndex;
+            switch (type) {
+                case "funcCall" -> {
+                    String calledFuncName = gp.codeBlocks.get(l);
+                    ArgTreeNode arg = (ArgTreeNode) cur.subNode.get(0);
+                    if (Functions.funcList.get(calledFuncName) != null) {
+                        callFunction(calledFuncName, arg);
+                    }
+
+                }
+            }
+        }
+        return CIdINT.createINT(0);
+    }
+
+    /*
     private int runCode() {
         Stack<Integer> callDepth = new Stack<>();
         int i = Functions.codesIndex.get("main");
@@ -68,21 +121,32 @@ public class CInterpreter {
         } while(!callDepth.empty());
         return 0;
     }
-    private String calcExpression(String exp) {
+    */
+    private Variable calcExpression(TreeNode treeNode) {
+        String exp;
+        StringBuilder sb = new StringBuilder();
+        for (String tmp : gp.codeBlocks.subList(treeNode.lIndex, treeNode.rIndex)) {
+            sb.append(tmp);
+        }
+        exp = sb.toString();
+        return calcExpression(exp, treeNode);
+    }
+
+    private Variable calcExpression(String exp, TreeNode treeNode) {
         List<String> res = MExp2FExp.convert(exp);
         Stack<String> stack = new Stack<>();
         int i = 0;
         stack.push(res.get(i));
         i++;
-        while(!stack.empty()) {
+        while (!stack.empty()) {
             String topEle = stack.peek();
-            if(Functions.funcList.get(topEle) != null) {
+            if (Functions.funcList.get(topEle) != null) {
                 //函数调用
-                if(Functions.codesIndex.get(topEle) == -1) {
+                if (Functions.codeIndex.get(topEle) == null) {
                     stack.pop();
                     String newTop = stack.pop();
-                    Variable var = Variables.vars.get(newTop);
-                    if(var != null) {
+                    Variable var = treeNode.vars.vars.get(newTop);
+                    if (var != null) {
                         Functions.NativeFunction.runNativeFunction_String1(topEle, String.valueOf(var.getValue()));
                     }
                 }
@@ -92,10 +156,10 @@ public class CInterpreter {
                         stack.pop();
                         String num1 = stack.pop();
                         String num2 = stack.pop();
-                        Variable var = Variables.vars.get(num2);
-                        if(Variables.vars.get(num2) != null) {
-                            if(var.getType().equals(Keywords.Int)) {
-                                stack.push(Integer.toString(((CIdINT)var).setValue(Integer.parseInt(num1))));
+                        Variable var = treeNode.vars.vars.get(num2);
+                        if (treeNode.vars.vars.get(num2) != null) {
+                            if (var.getType().equals(Keywords.Int)) {
+                                stack.push(Integer.toString(((CIdINT) var).setValue(Integer.parseInt(num1))));
                             }
                         }
                         break;
@@ -112,8 +176,8 @@ public class CInterpreter {
                         stack.pop();
                         String num1 = stack.pop();
                         String num2 = stack.pop();
-                        Variable var = Variables.vars.get(num2);
-                        if (Variables.vars.get(num2) != null) {
+                        Variable var = treeNode.vars.vars.get(num2);
+                        if (treeNode.vars.vars.get(num2) != null) {
                             if (var.getType().equals(Keywords.Int)) {
                                 stack.push(Integer.toString(((CIdINT) var).procOperation(CIdINT.createINT(num1), topEle).getValue().intValue()));
                             }
@@ -122,11 +186,25 @@ public class CInterpreter {
                     }
                 }
             }
-            try{stack.push(res.get(i));}catch (IndexOutOfBoundsException exception){break;}
+            try {
+                stack.push(res.get(i));
+            } catch (IndexOutOfBoundsException exception) {
+                break;
+            }
             i++;
         }
-        return stack.empty() ? "" : stack.pop();
+        return stack.empty() ? null : string2Variable(stack.pop());
     }
 
+    private Variable string2Variable(String str) {
+        switch (TypeLookup.lookup(str)) {
+            case TypeLookup.INTEGER -> {
+                return CIdINT.createINT(str);
+            }
+            default -> {
+                return null;
+            }
+        }
+    }
 
 }

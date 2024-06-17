@@ -7,5 +7,5 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Variables {
-    public static Map<String, Variable> vars = new HashMap<>();
+    public Map<String, Variable> vars = new HashMap<>();
 }

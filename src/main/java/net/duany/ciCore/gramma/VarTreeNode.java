@@ -6,7 +6,7 @@ public class VarTreeNode extends TreeNode {
         return "var";
     }
 
-    public VarTreeNode(int l, int r) {
-        super(l, r);
+    public VarTreeNode(int l, int r, TreeNode parent) {
+        super(l, r, parent);
     }
 }

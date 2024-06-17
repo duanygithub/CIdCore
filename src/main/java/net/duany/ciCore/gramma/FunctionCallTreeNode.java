@@ -6,7 +6,7 @@ public class FunctionCallTreeNode extends TreeNode {
         return "funcCall";
     }
 
-    public FunctionCallTreeNode(int l, int r) {
-        super(l, r);
+    public FunctionCallTreeNode(int l, int r, TreeNode parent) {
+        super(l, r, parent);
     }
 }

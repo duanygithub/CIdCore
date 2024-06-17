@@ -6,7 +6,7 @@ public class RootTreeNode extends TreeNode {
         return "root";
     }
 
-    public RootTreeNode(int l, int r) {
-        super(l, r);
+    public RootTreeNode(int l, int r, TreeNode parent) {
+        super(l, r, parent);
     }
 }

@@ -6,7 +6,7 @@ public class ArgTreeNode extends TreeNode {
         return "arg";
     }
 
-    public ArgTreeNode(int l, int r) {
-        super(l, r);
+    public ArgTreeNode(int l, int r, TreeNode parent) {
+        super(l, r, parent);
     }
 }
