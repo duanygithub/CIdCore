@@ -11,4 +11,15 @@
     <maven.compiler.target>17</maven.compiler.target>
     <maven.compiler.compilerVersion>17</maven.compiler.compilerVersion>
   </properties>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <outputDirectory>./artifact/</outputDirectory>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 </project>
