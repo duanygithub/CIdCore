@@ -42,7 +42,7 @@ public class MemPage {
     public byte[] readBytes(int index, int size) {
         for(int i = 0; i < size; i++) {
             int mapIndex = (index + i) / 8;
-            if((allocMap[mapIndex] & (i << ((index + i) % 8))) == 0) {
+            if ((allocMap[mapIndex] & (1 << ((index + i) % 8))) == 0) {
                 return null;
             }
         }

@@ -1,25 +1,24 @@
 package net.duany.ciCore.variable;
 
+import net.duany.ciCore.memory.MemOperator;
 import net.duany.ciCore.symbols.Keywords;
 
 public class CIdCHAR implements Variable {
-    int value;
+    int addr;
 
-    public CIdCHAR(char c) {
-        value = (int) c;
-    }
-
-    public CIdCHAR(int n) {
-        value = n;
+    public CIdCHAR(int address) {
+        addr = address;
     }
 
     public static Variable createCHAR(int n) {
-        return new CIdCHAR(n);
+        int address = MemOperator.allocateMemory(1);
+        MemOperator.writeChar(address, (char) n);
+        return new CIdCHAR(address);
     }
 
     @Override
-    public Number getValue() {
-        return value;
+    public Integer getValue() {
+        return (int) MemOperator.readChar(addr);
     }
 
     @Override
@@ -30,16 +29,18 @@ public class CIdCHAR implements Variable {
     @Override
     public Variable procOperation(Variable var, String op) {
         if (!var.getType().equals(Keywords.Int)) return this;
+        int value = getValue();
         return switch (op) {
-            case "+" -> new CIdCHAR(value + (int) var.getValue());
-            case "-" -> new CIdCHAR(value - (int) var.getValue());
+            case "+" -> createCHAR(value + (int) var.getValue());
+            case "-" -> createCHAR(value - (int) var.getValue());
             default -> this;
         };
     }
 
     @Override
     public int cmp(Variable var) {
-        float val = (float) var.getValue();
+        int value = getValue();
+        float val = var.getValue().floatValue();
         if (val > value) return 1;
         else if (val < value) return -1;
         else if (val == value) return 0;

@@ -1,25 +1,32 @@
 package net.duany.ciCore.variable;
 
+import net.duany.ciCore.memory.MemOperator;
 import net.duany.ciCore.symbols.Keywords;
 
-public class CIdFLOAT implements Variable{
-    float value;
-    public CIdFLOAT(float f) {
-        value = f;
+public class CIdFLOAT implements Variable {
+    int addr;
+
+    public CIdFLOAT(int address) {
+        addr = address;
     }
-    public static Variable createFLOAT(String str) {
-        return new CIdFLOAT(Float.parseFloat(str));
+
+    public static CIdFLOAT createFLOAT(String str) {
+        return createFLOAT(Float.parseFloat(str));
     }
-    public static Variable createFLOAT(float f) {
-        return new CIdFLOAT(f);
+
+    public static CIdFLOAT createFLOAT(float f) {
+        int address = MemOperator.allocateMemory(4);
+        MemOperator.writeFloat(address, f);
+        return new CIdFLOAT(address);
     }
-    public  void setValue(float f) {
-        value = f;
+
+    public void setValue(float f) {
+        MemOperator.writeFloat(addr, f);
     }
 
     @Override
-    public Number getValue() {
-        return value;
+    public Float getValue() {
+        return MemOperator.readFloat(addr);
     }
 
     @Override
@@ -30,21 +37,23 @@ public class CIdFLOAT implements Variable{
     @Override
     public Variable procOperation(Variable var, String op) {
         if(var.getType().equals(Keywords.Float)) {
+            float value = getValue();
             return switch (op) {
-                case "+" -> new CIdFLOAT(value + (float) var.getValue());
-                case "-" -> new CIdFLOAT(value - (float) var.getValue());
-                case "*" -> new CIdFLOAT(value * (float) var.getValue());
-                case "/" -> new CIdFLOAT(value / (float) var.getValue());
-                case "%" -> new CIdFLOAT(value % (float) var.getValue());
+                case "+" -> createFLOAT(value + (float) var.getValue());
+                case "-" -> createFLOAT(value - (float) var.getValue());
+                case "*" -> createFLOAT(value * (float) var.getValue());
+                case "/" -> createFLOAT(value / (float) var.getValue());
+                case "%" -> createFLOAT(value % (float) var.getValue());
                 default -> null;
             };
         }else if(var.getType().equals(Keywords.Int)) {
+            float value = getValue();
             return switch (op) {
-                case "+" -> new CIdFLOAT(value + (int) var.getValue());
-                case "-" -> new CIdFLOAT(value - (int) var.getValue());
-                case "*" -> new CIdFLOAT(value * (int) var.getValue());
-                case "/" -> new CIdFLOAT(value / (int) var.getValue());
-                case "%" -> new CIdFLOAT(value % (int) var.getValue());
+                case "+" -> createFLOAT(value + (int) var.getValue());
+                case "-" -> createFLOAT(value - (int) var.getValue());
+                case "*" -> createFLOAT(value * (int) var.getValue());
+                case "/" -> createFLOAT(value / (int) var.getValue());
+                case "%" -> createFLOAT(value % (int) var.getValue());
                 default -> null;
             };
         } else return null;
@@ -52,7 +61,8 @@ public class CIdFLOAT implements Variable{
 
     @Override
     public int cmp(Variable var) {
-        float val = (float) var.getValue();
+        float value = getValue();
+        float val = var.getValue().floatValue();
         if (val > value) return 1;
         else if (val < value) return -1;
         else if (val == value) return 0;
