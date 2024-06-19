@@ -176,9 +176,6 @@ public class MExp2FExp {
         //返回对应优先级的数字
         public static int getValue(String operation) {
             int result = 0;
-            if(Functions.funcList.get(operation) != null) {
-                return 15;
-            }
             switch (operation) {
                 case ",":
                     result = 1; break;

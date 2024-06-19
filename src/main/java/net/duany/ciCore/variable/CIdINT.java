@@ -42,7 +42,57 @@ public class CIdINT implements Variable {
 
     @Override
     public Variable procOperation(Variable var, String op) {
-        if(var.getType().equals(Keywords.Int)) {
+        switch (op) {
+            case "=" -> {
+                int value = setValue(var.getValue().intValue());
+                return createINT(value);
+            }
+            case "+=" -> {
+                int value = setValue(var.getValue().intValue() + getValue());
+                return createINT(value);
+            }
+            case "-=" -> {
+                int value = setValue(var.getValue().intValue() - getValue());
+                return createINT(value);
+            }
+            case "*=" -> {
+                int value = setValue(var.getValue().intValue() * getValue());
+                return createINT(value);
+            }
+            case "/=" -> {
+                int value = setValue((int) (getValue() / var.getValue().floatValue()));
+                return createINT(value);
+            }
+            case "%=" -> {
+                int value = setValue(getValue() % var.getValue().intValue());
+                return createINT(value);
+            }
+            case "&=" -> {
+                if (var.getType() != Keywords.Int) return null;
+                int value = setValue(getValue() & var.getValue().intValue());
+                return createINT(value);
+            }
+            case "|=" -> {
+                if (var.getType() != Keywords.Int) return null;
+                int value = setValue(getValue() | var.getValue().intValue());
+                return createINT(value);
+            }
+            case "^=" -> {
+                if (var.getType() != Keywords.Int) return null;
+                int value = setValue(getValue() ^ var.getValue().intValue());
+                return createINT(value);
+            }
+            case "++" -> {
+                int value = setValue(getValue() + 1);
+                return createINT(value);
+            }
+            case "--" -> {
+                int value = setValue(getValue() - 1);
+                return createINT(value);
+            }
+        }
+
+        if (var.getType().equals(Keywords.Int)) {
             int value = getValue();
             return switch (op) {
                 case "+" -> createINT(value + var.getValue().intValue());
@@ -57,7 +107,6 @@ public class CIdINT implements Variable {
                 case "~" -> createINT(~value);
                 case "!" -> createINT(value == 0 ? 1 : 0);
                 case "^" -> createINT(value ^ var.getValue().intValue());
-
                 default -> null;
             };
         } else if(var.getType().equals(Keywords.Float)) {
@@ -81,5 +130,10 @@ public class CIdINT implements Variable {
         else if (val < value) return -1;
         else if (val == value) return 0;
         throw new AssertionError();
+    }
+
+    @Override
+    public String toString() {
+        return ((Integer) MemOperator.readInt(addr)).toString();
     }
 }

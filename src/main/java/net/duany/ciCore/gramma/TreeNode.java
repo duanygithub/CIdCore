@@ -4,6 +4,7 @@ import net.duany.ciCore.Start;
 import net.duany.ciCore.symbols.Variables;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class TreeNode {
@@ -22,6 +23,13 @@ public class TreeNode {
             sb.append(s).append(" ");
         }
         content = sb.toString();
+        if (type().equals("Function")) {
+            Variables vars = new Variables();
+            vars.vars = new HashMap<>(parent.vars.vars);
+            this.vars = vars;
+        } else if (!type().equals("root")) {
+            vars.vars = parent.vars.vars;
+        }
     }
 
     public int getLIndex() {

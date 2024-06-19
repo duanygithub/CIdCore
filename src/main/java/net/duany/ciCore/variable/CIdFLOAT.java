@@ -68,4 +68,9 @@ public class CIdFLOAT implements Variable {
         else if (val == value) return 0;
         throw new AssertionError();
     }
+
+    @Override
+    public String toString() {
+        return ((Float) MemOperator.readFloat(addr)).toString();
+    }
 }
