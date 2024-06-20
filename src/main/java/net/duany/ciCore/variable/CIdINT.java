@@ -25,6 +25,10 @@ public class CIdINT implements Variable {
         return new CIdINT(address);
     }
 
+    public static CIdINT createINT() {
+        return new CIdINT(MemOperator.allocateMemory(4));
+    }
+
     public int setValue(int n) {
         MemOperator.writeInt(addr, n);
         return n;
@@ -80,6 +84,16 @@ public class CIdINT implements Variable {
             case "^=" -> {
                 if (var.getType() != Keywords.Int) return null;
                 int value = setValue(getValue() ^ var.getValue().intValue());
+                return createINT(value);
+            }
+            case ">>=" -> {
+                if (var.getType() != Keywords.Int) return null;
+                int value = setValue(getValue() >> var.getValue().intValue());
+                return createINT(value);
+            }
+            case "<<=" -> {
+                if (var.getType() != Keywords.Int) return null;
+                int value = setValue(getValue() << var.getValue().intValue());
                 return createINT(value);
             }
             case "++" -> {

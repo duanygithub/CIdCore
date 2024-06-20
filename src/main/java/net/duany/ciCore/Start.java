@@ -19,7 +19,7 @@ public class Start {
         CInterpreter ci = new CInterpreter("C:\\Users\\duany\\test.c.txt");
         ci.start();
          */
-        String str = "int main() {return 1 / 4;}";
+        String str = "int main() {int i = 4; i >>= 2; return i;}";
         Functions.funcList.put("printf", Keywords.Int);
         Functions.codeIndex.put("printf", null);
         CInterpreter cInterpreter = new CInterpreter(str, false);
@@ -33,6 +33,11 @@ public class Start {
             System.out.println(Integer.toHexString(b));
         }
         System.out.println(MemOperator.readInt(addr));
+
+         */
+        /*
+        List<String> res = MExp2FExp.convert("i += 1");
+        return;
 
          */
     }

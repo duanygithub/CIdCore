@@ -8,7 +8,7 @@ import java.util.Stack;
 
 public class MExp2FExp {
     public static List<String> convert(String s) {
-        List<String> tmp = toInfixExpressionList(s), result;
+        List<String> tmp = GrammarProc.splitCodes(s), result;
         Stack<String> func = new Stack<>();
         for(int i = 0; i < tmp.size(); i++) {
             //替换*和&使其更方便索引
@@ -176,6 +176,7 @@ public class MExp2FExp {
         //返回对应优先级的数字
         public static int getValue(String operation) {
             int result = 0;
+            if (operation.matches("(<<=)|(>>=)")) return 2;
             switch (operation) {
                 case ",":
                     result = 1; break;

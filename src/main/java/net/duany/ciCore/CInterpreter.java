@@ -7,6 +7,7 @@ import net.duany.ciCore.symbols.Functions;
 import net.duany.ciCore.symbols.Keywords;
 import net.duany.ciCore.symbols.TypeLookup;
 import net.duany.ciCore.symbols.Variables;
+import net.duany.ciCore.variable.CIdCHAR;
 import net.duany.ciCore.variable.CIdFLOAT;
 import net.duany.ciCore.variable.CIdINT;
 import net.duany.ciCore.variable.Variable;
@@ -139,7 +140,7 @@ public class CInterpreter {
             }
         }
         for (String tmp : gp.codeBlocks.subList(treeNode.lIndex, treeNode.rIndex - offset)) {
-            sb.append(tmp);
+            sb.append(tmp).append(" ");
         }
         exp = sb.toString();
         return calcExpression(exp, treeNode);
@@ -180,6 +181,19 @@ public class CInterpreter {
                 String strOp2 = stack.pop();
                 String strOp1 = stack.pop();
                 stack.push(string2Variable(strOp1, treeNode.vars).procOperation(string2Variable(strOp2, treeNode.vars), cur).toString());
+            } else if (TypeLookup.lookup(cur, treeNode.vars) == TypeLookup.BASICTYPE) {
+                if (TypeLookup.lookup(res.get(i + 1), treeNode.vars) != TypeLookup.VARIABLE_FORMAT) continue;
+                switch (cur) {
+                    case "int" -> {
+                        treeNode.vars.vars.put(res.get(i + 1), CIdINT.createINT());
+                    }
+                    case "float" -> {
+                        treeNode.vars.vars.put(res.get(i + 1), CIdFLOAT.createFLOAT());
+                    }
+                    case "char" -> {
+                        treeNode.vars.vars.put(res.get(i + 1), CIdCHAR.createCHAR());
+                    }
+                }
             } else stack.push(res.get(i));
         }
         return stack.empty() ? null : string2Variable(stack.pop(), treeNode.vars);

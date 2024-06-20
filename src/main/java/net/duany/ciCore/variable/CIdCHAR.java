@@ -10,10 +10,14 @@ public class CIdCHAR implements Variable {
         addr = address;
     }
 
-    public static Variable createCHAR(int n) {
+    public static CIdCHAR createCHAR(int n) {
         int address = MemOperator.allocateMemory(1);
         MemOperator.writeChar(address, (char) n);
         return new CIdCHAR(address);
+    }
+
+    public static CIdCHAR createCHAR() {
+        return new CIdCHAR(MemOperator.allocateMemory(1));
     }
 
     @Override

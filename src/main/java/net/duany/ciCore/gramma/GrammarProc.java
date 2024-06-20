@@ -97,12 +97,14 @@ public class GrammarProc {
                             }
                             int varEnd = i;
                             VarTreeNode varTreeNode = new VarTreeNode(varStart, i, parentNode);
+                            /*
                             if (i - varStart > 1) {
                                 i = varStart + 1;
                                 StatementTreeNode statementTreeNode = new StatementTreeNode(i, varEnd, parentNode);
                                 buildTree(statementTreeNode);
                                 varTreeNode.subNode.add(statementTreeNode);
                             }
+                            */
                             parentNode.subNode.add(varTreeNode);
                         }
                     }
@@ -148,6 +150,16 @@ public class GrammarProc {
                     parentNode.subNode.add(statementTreeNode);
                 }
                 default -> {
+                    int begin = i;
+                    boolean somethingUseful = false;
+                    for (; i < r && !codeBlocks.get(i).matches(";"); i++) {
+                        if (TypeLookup.lookup(codeBlocks.get(i), parentNode.vars) == TypeLookup.FUNCTION) {
+                            somethingUseful = true;
+                        }
+                    }
+                    StatementTreeNode statementTreeNode = new StatementTreeNode(begin, i, parentNode);
+                    if (somethingUseful) buildTree(statementTreeNode);
+                    parentNode.subNode.add(statementTreeNode);
                 }
             }
         }
@@ -208,7 +220,7 @@ public class GrammarProc {
         return 0;
     }
 
-    private List<String> splitCodes(String codes) {
+    public static List<String> splitCodes(String codes) {
         try {
             codes = codes.replaceAll("\r\n", "\n");
         } catch (NullPointerException ignore) {

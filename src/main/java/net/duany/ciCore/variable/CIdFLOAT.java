@@ -20,6 +20,10 @@ public class CIdFLOAT implements Variable {
         return new CIdFLOAT(address);
     }
 
+    public static CIdFLOAT createFLOAT() {
+        return new CIdFLOAT(MemOperator.allocateMemory(4));
+    }
+
     public void setValue(float f) {
         MemOperator.writeFloat(addr, f);
     }
