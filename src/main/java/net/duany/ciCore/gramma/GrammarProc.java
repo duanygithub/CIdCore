@@ -139,14 +139,46 @@ public class GrammarProc {
                     lastSplitPoint = i + 1;
                 }
                 */
+                case TypeLookup.PROC_CONTROL -> {
+                    if (str.equals("if")) {
+                        int tmp = 0, ifBegin = i;
+                        do {
+                            i++;
+                            if (codeBlocks.get(i).equals("(")) tmp++;
+                            else if (codeBlocks.get(i).equals(")")) tmp--;
+                        } while (tmp != 0);
+                        IfStatementTreeNode ifStatementTreeNode = new IfStatementTreeNode(ifBegin, i + 1, parentNode);
+                        ArgTreeNode argTreeNode = new ArgTreeNode(ifBegin + 2, i, ifStatementTreeNode);
+                        buildTree(argTreeNode);
+                        ifStatementTreeNode.subNode.add(argTreeNode);
+                        if (codeBlocks.get(i + 1).equals("{")) {
+                            int blockBegin = i + 2;
+                            do {
+                                i++;
+                                if (codeBlocks.get(i).equals("{")) tmp++;
+                                else if (codeBlocks.get(i).equals("}")) tmp--;
+                            } while (tmp != 0);
+                            BlockTreeNode blockTreeNode = new BlockTreeNode(blockBegin, i, ifStatementTreeNode);
+                            buildTree(blockTreeNode);
+                            ifStatementTreeNode.subNode.add(blockTreeNode);
+                        } else {
+                            int blockBegin = i + 1;
+                            while (!codeBlocks.get(i).equals(";")) i++;
+                            BlockTreeNode blockTreeNode = new BlockTreeNode(blockBegin, i, ifStatementTreeNode);
+                            buildTree(blockTreeNode);
+                            ifStatementTreeNode.subNode.add(blockTreeNode);
+                        }
+                        parentNode.subNode.add(ifStatementTreeNode);
+                    }
+                }
                 case TypeLookup.RETURN -> {
                     int returnBegin = i;
                     for (int j = returnBegin; j < r; j++) {
                         if (originalCodeBlocks.get(j).equals(";")) {
-                            i = j + 1;
+                            i = j;
                         }
                     }
-                    StatementTreeNode statementTreeNode = new StatementTreeNode(returnBegin, i - 1, parentNode);
+                    StatementTreeNode statementTreeNode = new StatementTreeNode(returnBegin, i, parentNode);
                     parentNode.subNode.add(statementTreeNode);
                 }
                 default -> {

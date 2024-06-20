@@ -18,6 +18,7 @@ public class TypeLookup {
     public static final int DECLEAR_POINTER = 9;
     public static final int VARIABLE_FORMAT = 10;
     public static final int RETURN = 11;
+    public static final int PROC_CONTROL = 12;
 
     public static int lookup(String str, Variables vars) {
         if (str.matches("[0-9]+")) {
@@ -48,6 +49,9 @@ public class TypeLookup {
         }
         if (str.matches("__cidfunc_\\w+_l[0-9]+r[0-9]+__")) {
             return FUNCTION_CALL;
+        }
+        if (str.matches("(for)|(while)|(if)|(do)|(goto)")) {
+            return PROC_CONTROL;
         }
         if (str.matches("\\w+")) {
             return VARIABLE_FORMAT;

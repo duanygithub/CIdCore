@@ -19,11 +19,10 @@ public class Start {
         CInterpreter ci = new CInterpreter("C:\\Users\\duany\\test.c.txt");
         ci.start();
          */
-        String str = "int main() {int i = 4; i >>= 2; return i;}";
+        String str = "int main() { if(tmp == 0) { int i = 4; i >>= 2; return i; } }";
         Functions.funcList.put("printf", Keywords.Int);
         Functions.codeIndex.put("printf", null);
-        CInterpreter cInterpreter = new CInterpreter(str, false);
-        System.out.println(cInterpreter.start());
+        new GrammarProc().analyze(str);
         return;
         /*
         int addr = MemOperator.allocateMemory(4);

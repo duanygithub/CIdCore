@@ -107,29 +107,6 @@ public class CInterpreter {
         return CIdINT.createINT(0);
     }
 
-    /*
-    private int runCode() {
-        Stack<Integer> callDepth = new Stack<>();
-        int i = Functions.codesIndex.get("main");
-        StringBuilder exp = new StringBuilder();
-        do {
-            if (gp.codeBlocks.get(i).equals("{")) {
-                callDepth.add(0);
-            } else if (gp.codeBlocks.get(i).equals("}")) {
-                callDepth.pop();
-            } else if (gp.codeBlocks.get(i).equals("int")) {
-                Variables.vars.put(gp.codeBlocks.get(i + 1), CIdINT.createINT(0));
-            } else if (!gp.codeBlocks.get(i).equals(";")) {
-                exp.append(gp.codeBlocks.get(i));
-            } else {
-                calcExpression(exp.toString());
-                exp.delete(0, exp.length());
-            }
-            i++;
-        } while(!callDepth.empty());
-        return 0;
-    }
-    */
     private Variable calcExpression(TreeNode treeNode) throws CIdGrammarException {
         String exp;
         StringBuilder sb = new StringBuilder();
