@@ -46,7 +46,7 @@ public class CInterpreter {
         gp.analyze(codes);
         try {
             scanFunction();
-            Variable res = callFunction("main", Functions.argIndex.get("main"));
+            Variable res = callFunction("main", new ValuedArgTreeNode());
             return res.getValue().intValue();
         } catch (Exception e) {
             e.printStackTrace();
@@ -59,7 +59,7 @@ public class CInterpreter {
         gp.analyze(codes);
         try {
             scanFunction();
-            Variable res = callFunction("main", Functions.argIndex.get("main"));
+            Variable res = callFunction("main", new ValuedArgTreeNode());
             return (Integer) res.getValue();
         } catch (Exception e) {
             e.printStackTrace();
@@ -140,7 +140,11 @@ public class CInterpreter {
             if (TypeLookup.lookup(cur, treeNode.vars) == TypeLookup.FUNCTION_CALL) {
                 FunctionCallTreeNode functionCallTreeNode = Functions.funcCallIdentifyMap.get(cur);
                 String funcName = gp.originalCodeBlocks.get(functionCallTreeNode.lIndex);
-                stack.push(callFunction(funcName, (ArgTreeNode) functionCallTreeNode.subNode.get(0)).toString());
+                ValuedArgTreeNode valuedArgTreeNode = new ValuedArgTreeNode();
+                for (TreeNode node : functionCallTreeNode.subNode) {
+                    valuedArgTreeNode.vars.vars.put("", calcExpression(node));
+                }
+                stack.push(callFunction(funcName, valuedArgTreeNode).toString());
             }
             if (cur.matches("(\\+)|(-)|(\\*)|(/)|(\\^)|(\\|)|<<|>>|&|")) {
                 String strOp2 = stack.pop();
