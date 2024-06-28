@@ -91,4 +91,14 @@ public class MemOperator {
     public static char readChar(int addr) {
         return (char) (read(addr, 1))[0];
     }
+
+    public static int writeBoolean(int addr, boolean b) {
+        byte[] bytes = new byte[1];
+        if (b) bytes[0] = 1;
+        return write(addr, 1, bytes);
+    }
+
+    public static boolean readBoolean(int addr) {
+        return read(addr, 1)[0] != 0;
+    }
 }

@@ -3,14 +3,12 @@ package net.duany.ciCore;
 import net.duany.ciCore.exception.CIdAssert;
 import net.duany.ciCore.exception.CIdGrammarException;
 import net.duany.ciCore.gramma.*;
+import net.duany.ciCore.runtime.ValuedArgTreeNode;
 import net.duany.ciCore.symbols.Functions;
 import net.duany.ciCore.symbols.Keywords;
 import net.duany.ciCore.symbols.TypeLookup;
 import net.duany.ciCore.symbols.Variables;
-import net.duany.ciCore.variable.CIdCHAR;
-import net.duany.ciCore.variable.CIdFLOAT;
-import net.duany.ciCore.variable.CIdINT;
-import net.duany.ciCore.variable.Variable;
+import net.duany.ciCore.variable.*;
 
 import java.io.*;
 import java.util.*;
@@ -94,17 +92,28 @@ public class CInterpreter {
         }
     }
 
-    public Variable callFunction(String funcName, ArgTreeNode args) throws CIdGrammarException {
-        BlockTreeNode funcBlock = Functions.codeIndex.get(funcName);
-        if (funcBlock == null) return CIdINT.createINT(-1);
-        ArgTreeNode funcArgBlock = Functions.argIndex.get(funcName);
-        for (TreeNode node : funcBlock.subNode) {
+    public Variable callFunction(String funcName, ValuedArgTreeNode args) throws CIdGrammarException {
+        BlockTreeNode block = Functions.codeIndex.get(funcName);
+        block.vars.vars = new HashMap<>(args.vars.vars);
+        return execBlock(Functions.codeIndex.get(funcName));
+    }
+
+    public Variable execBlock(BlockTreeNode block) throws CIdGrammarException {
+        if (block == null) return CIdINT.createINT(-1);
+        for (TreeNode node : block.subNode) {
             if (gp.originalCodeBlocks.get(node.lIndex).equals("return")) {
                 return calcExpression(new StatementTreeNode(node.lIndex + 1, node.rIndex, node));
+            } else if (node.type().equals("if")) {
+                if (calcExpression(node.subNode.get(0)).getValue().intValue() != 0) {
+                    Variable result = execBlock((BlockTreeNode) node.subNode.get(1));
+                    if (result.getType() != Keywords.Void) {
+                        return result;
+                    }
+                }
             }
             calcExpression(node);
         }
-        return CIdINT.createINT(0);
+        return CIdVOID.createVOID();
     }
 
     private Variable calcExpression(TreeNode treeNode) throws CIdGrammarException {

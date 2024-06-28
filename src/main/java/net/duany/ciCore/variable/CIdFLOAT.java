@@ -6,8 +6,13 @@ import net.duany.ciCore.symbols.Keywords;
 public class CIdFLOAT implements Variable {
     int addr;
 
-    public CIdFLOAT(int address) {
+    private CIdFLOAT(int address) {
         addr = address;
+    }
+
+    @Override
+    protected void finalize() {
+        MemOperator.freeMemory(addr, 4);
     }
 
     public static CIdFLOAT createFLOAT(String str) {

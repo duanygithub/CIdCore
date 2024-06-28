@@ -7,6 +7,7 @@ import java.util.Map;
 
 public class Keywords {
     public static final Keywords Int = new Keywords();
+    public static final Keywords Void = new Keywords();
     public static final Keywords Char = new Keywords();
     public static final Keywords Float = new Keywords();
     public static final Keywords Pointer = new Keywords();

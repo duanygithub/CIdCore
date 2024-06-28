@@ -6,8 +6,13 @@ import net.duany.ciCore.symbols.Keywords;
 public class CIdCHAR implements Variable {
     int addr;
 
-    public CIdCHAR(int address) {
+    private CIdCHAR(int address) {
         addr = address;
+    }
+
+    @Override
+    protected void finalize() {
+        MemOperator.freeMemory(addr, 1);
     }
 
     public static CIdCHAR createCHAR(int n) {
