@@ -169,6 +169,54 @@ public class GrammarProc {
                             ifStatementTreeNode.subNode.add(blockTreeNode);
                         }
                         parentNode.subNode.add(ifStatementTreeNode);
+                    } else if (str.equals("while")) {
+                        if (parentNode.type().equals("do")) {
+                            i += 2;
+                            int conditionBegin = i + 2;
+                            int tmp = 1;
+                            while (tmp > 0) {
+                                if (codeBlocks.get(i).equals("(")) tmp++;
+                                else if (codeBlocks.get(i).equals(")")) tmp--;
+                                i++;
+                            }
+                            ArgTreeNode argTreeNode = new ArgTreeNode(conditionBegin, i - 1, parentNode);
+                            buildTree(argTreeNode);
+                            parentNode.subNode.add(argTreeNode);
+                        } else {
+                            int whileBegin = i;
+                            i += 2;
+                            int conditionBegin = i + 2, conditionEnd = 0, blockBegin = 0, blockEnd = 0;
+                            int tmp = 1;
+                            while (tmp > 0) {
+                                if (codeBlocks.get(i).equals("(")) tmp++;
+                                else if (codeBlocks.get(i).equals(")")) tmp--;
+                            }
+                            conditionEnd = i;
+                            i++;
+                            if (codeBlocks.get(i).equals("{")) {
+                                tmp = 1;
+                                i++;
+                                blockBegin = i;
+                                while (tmp > 0) {
+                                    if (codeBlocks.get(i).equals("{")) tmp++;
+                                    else if (codeBlocks.get(i).equals("}")) tmp--;
+                                    i++;
+                                }
+                                blockEnd = i - 1;
+                            } else {
+                                blockBegin = i;
+                                for (; !codeBlocks.get(i).equals(";"); i++) ;
+                                blockEnd = i;
+                            }
+                            WhileTreeNode whileTreeNode = new WhileTreeNode(whileBegin, blockEnd, parentNode);
+                            ArgTreeNode argTreeNode = new ArgTreeNode(conditionBegin, conditionEnd, whileTreeNode);
+                            buildTree(argTreeNode);
+                            whileTreeNode.subNode.add(argTreeNode);
+                            BlockTreeNode blockTreeNode = new BlockTreeNode(blockBegin, blockEnd, whileTreeNode);
+                            buildTree(blockTreeNode);
+                            whileTreeNode.subNode.add(blockTreeNode);
+                            parentNode.subNode.add(whileTreeNode);
+                        }
                     }
                 }
                 case TypeLookup.RETURN -> {

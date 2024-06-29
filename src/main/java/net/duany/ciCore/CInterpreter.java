@@ -155,7 +155,7 @@ public class CInterpreter {
                         throw new CIdGrammarException("位运算的操作数1必须是整数变量或整数常数");
                     }
                     if (TypeLookup.lookup(strOp2, treeNode.vars) != TypeLookup.VARIABLE &&
-                            TypeLookup.lookup(strOp1, treeNode.vars) != TypeLookup.INTEGER) {
+                            TypeLookup.lookup(strOp2, treeNode.vars) != TypeLookup.INTEGER) {
                         throw new CIdGrammarException("位运算的操作数2必须是整数变量或整数常数");
                     }
                 }
@@ -166,6 +166,28 @@ public class CInterpreter {
                 if (TypeLookup.lookup(strOp1, treeNode.vars) == TypeLookup.VARIABLE &&
                         TypeLookup.lookupKeywords(strOp1, treeNode.vars) == Keywords.Int) {
                     stack.push(string2Variable(strOp1, treeNode.vars).procOperation(null, cur).toString());
+                }
+            } else if (cur.matches(">|<|>=|<=|==")) {
+                Variable var2 = string2Variable(stack.pop(), treeNode.vars);
+                Variable var1 = string2Variable(stack.pop(), treeNode.vars);
+                int cmpResult = var1.cmp(var2);
+                switch (cmpResult) {
+                    case 1 -> {
+                        //var1 小于 var2
+                        if (cur.matches("<|(<=)")) {
+                            stack.push("1");
+                        } else stack.push("0");
+                    }
+                    case -1 -> {
+                        if (cur.matches(">|(>=)")) {
+                            stack.push("1");
+                        } else stack.push("0");
+                    }
+                    case 0 -> {
+                        if (cur.matches("(>=)|(<=)|(==)")) {
+                            stack.push("1");
+                        } else stack.push("0");
+                    }
                 }
             } else if (MExp2FExp.Operation.getValue(cur) != 0) {
                 String strOp2 = stack.pop();

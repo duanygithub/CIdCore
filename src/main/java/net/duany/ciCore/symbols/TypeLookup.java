@@ -21,7 +21,7 @@ public class TypeLookup {
     public static final int PROC_CONTROL = 12;
 
     public static int lookup(String str, Variables vars) {
-        if (str.matches("[0-9]+")) {
+        if (str.matches("(\\+|-)?[0-9]+")) {
             return INTEGER;
         }
         if (str.matches("^([0-9]+[.][0-9]*)$")) {

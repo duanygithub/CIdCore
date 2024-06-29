@@ -139,7 +139,7 @@ public class CIdINT implements Variable {
     @Override
     public int cmp(Variable var) {
         int value = getValue();
-        float val = (float) var.getValue();
+        float val = var.getValue().floatValue();
         if (val > value) return 1;
         else if (val < value) return -1;
         else if (val == value) return 0;

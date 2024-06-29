@@ -32,6 +32,10 @@ public class TreeNode {
         }
     }
 
+    public TreeNode() {
+
+    }
+
     public int getLIndex() {
         return lIndex;
     }

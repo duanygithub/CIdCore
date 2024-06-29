@@ -9,7 +9,9 @@ public class ValuedArgTreeNode extends TreeNode {
     public ArrayList<Variable> argList = new ArrayList<>();
 
     public ValuedArgTreeNode() {
-        super(0, 0, null);
+        super();
+        lIndex = 0;
+        rIndex = 0;
     }
 
     public static ValuedArgTreeNode create(Variable var) {
