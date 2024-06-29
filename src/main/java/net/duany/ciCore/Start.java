@@ -15,30 +15,14 @@ public class Start {
 
     public static void main(String[] args) throws IOException {
         //DEBUG ONLY!!!!
-        /*
-        CInterpreter ci = new CInterpreter("C:\\Users\\duany\\test.c.txt");
-        ci.start();
-         */
-        String str = "int main() { int i = 1; if(i <= 0) { return i + 114514; } i <<= 31; return i; }";
+        String str = "int main() { int i = 0; if(i > 0) { i += 1; }return i; }";
         Functions.funcList.put("printf", Keywords.Int);
         Functions.codeIndex.put("printf", null);
+        /*
         CInterpreter cInterpreter = new CInterpreter(str, false);
+        List<String> res = MExp2FExp.convert(str);
         System.out.println(cInterpreter.start());
-        return;
-        /*
-        int addr = MemOperator.allocateMemory(4);
-        System.out.println(addr);
-        MemOperator.writeInt(addr, 114514);
-        for (byte b : MemOperator.read(addr, 4)) {
-            System.out.println(Integer.toHexString(b));
-        }
-        System.out.println(MemOperator.readInt(addr));
-
          */
-        /*
-        List<String> res = MExp2FExp.convert("i += 1");
-        return;
-
-         */
+        new GrammarProc().analyze(str);
     }
 }

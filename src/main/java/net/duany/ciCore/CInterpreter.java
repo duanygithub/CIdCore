@@ -110,8 +110,14 @@ public class CInterpreter {
                         return result;
                     }
                 }
-            }
-            calcExpression(node);
+            } else if (node.type().equals("while")) {
+                while (calcExpression(node.subNode.get(0)).getValue().intValue() != 0) {
+                    Variable result = execBlock((BlockTreeNode) node.subNode.get(1));
+                    if (result.getType() != Keywords.Void) {
+                        return result;
+                    }
+                }
+            } else calcExpression(node);
         }
         return CIdVOID.createVOID();
     }

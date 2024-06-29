@@ -16,7 +16,6 @@ public class GrammarProc {
 
     public int analyze(String codes) {
         preProcess(codes);
-        Start.codeBlocks = codeBlocks;
         root = new RootTreeNode(0, codeBlocks.size(), null);
         buildTree(root);
         return 0;
@@ -185,13 +184,14 @@ public class GrammarProc {
                         } else {
                             int whileBegin = i;
                             i += 2;
-                            int conditionBegin = i + 2, conditionEnd = 0, blockBegin = 0, blockEnd = 0;
+                            int conditionBegin = i, conditionEnd = 0, blockBegin = 0, blockEnd = 0;
                             int tmp = 1;
                             while (tmp > 0) {
                                 if (codeBlocks.get(i).equals("(")) tmp++;
                                 else if (codeBlocks.get(i).equals(")")) tmp--;
+                                i++;
                             }
-                            conditionEnd = i;
+                            conditionEnd = i - 1;
                             i++;
                             if (codeBlocks.get(i).equals("{")) {
                                 tmp = 1;
@@ -208,7 +208,7 @@ public class GrammarProc {
                                 for (; !codeBlocks.get(i).equals(";"); i++) ;
                                 blockEnd = i;
                             }
-                            WhileTreeNode whileTreeNode = new WhileTreeNode(whileBegin, blockEnd, parentNode);
+                            WhileTreeNode whileTreeNode = new WhileTreeNode(whileBegin, blockEnd + 2, parentNode);
                             ArgTreeNode argTreeNode = new ArgTreeNode(conditionBegin, conditionEnd, whileTreeNode);
                             buildTree(argTreeNode);
                             whileTreeNode.subNode.add(argTreeNode);
@@ -216,6 +216,7 @@ public class GrammarProc {
                             buildTree(blockTreeNode);
                             whileTreeNode.subNode.add(blockTreeNode);
                             parentNode.subNode.add(whileTreeNode);
+                            i++;
                         }
                     }
                 }
@@ -410,12 +411,26 @@ public class GrammarProc {
                 //这里原来检查预处理指令的，检查到了这行就不用换行了
                 //但现在感觉还是换行比较好
 //                disableSpace = true;
+            } else if (MExp2FExp.Operation.getValue(String.valueOf(c)) != 0) {
+                statements.add(sb.toString());
+                sb.delete(0, sb.length());
+                while (MExp2FExp.Operation.getValue(String.valueOf(c)) != 0) {
+                    c = codes.charAt(i);
+                    if (MExp2FExp.Operation.getValue(String.valueOf(c)) != 0) sb.append(c);
+                    i++;
+                }
+                statements.add(sb.toString());
+                sb.delete(0, sb.length());
+                i--;
             }
             sb.append(c);
             if (i == codes.length() - 1) statements.add(sb.toString());
         }
         for (int i = 0; i < statements.size(); i++) {
-            if (statements.get(i).equals("")) statements.remove(i);
+            if (statements.get(i).equals("")) {
+                statements.remove(i);
+                i--;
+            }
         }
         return statements;
     }
