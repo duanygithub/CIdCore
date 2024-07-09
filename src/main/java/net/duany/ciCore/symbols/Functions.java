@@ -14,7 +14,7 @@ public class Functions {
     public static Map<String, FunctionCallTreeNode> funcCallIdentifyMap = new HashMap<>();
 
     public class NativeFunction {
-        public static Object runNativeFunction_String1(String funcName, String arg) {
+        public Object runNativeFunction_String1(String funcName, String arg) {
             switch (funcName) {
                 case "printf":
                     return printf(arg);
@@ -23,7 +23,7 @@ public class Functions {
             }
         }
 
-        static int printf(String str) {
+        int printf(String str) {
             System.out.print(str);
             return 0;
         }

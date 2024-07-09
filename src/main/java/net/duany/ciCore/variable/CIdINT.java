@@ -47,60 +47,60 @@ public class CIdINT implements Variable {
     @Override
     public Variable procOperation(Variable var, String op) {
         switch (op) {
-            case "=" -> {
+            case "=": {
                 int value = setValue(var.getValue().intValue());
                 return createINT(value);
             }
-            case "+=" -> {
+            case "+=": {
                 int value = setValue(var.getValue().intValue() + getValue());
                 return createINT(value);
             }
-            case "-=" -> {
+            case "-=": {
                 int value = setValue(var.getValue().intValue() - getValue());
                 return createINT(value);
             }
-            case "*=" -> {
+            case "*=": {
                 int value = setValue(var.getValue().intValue() * getValue());
                 return createINT(value);
             }
-            case "/=" -> {
+            case "/=": {
                 int value = setValue((int) (getValue() / var.getValue().floatValue()));
                 return createINT(value);
             }
-            case "%=" -> {
+            case "%=": {
                 int value = setValue(getValue() % var.getValue().intValue());
                 return createINT(value);
             }
-            case "&=" -> {
+            case "&=": {
                 if (var.getType() != Keywords.Int) return null;
                 int value = setValue(getValue() & var.getValue().intValue());
                 return createINT(value);
             }
-            case "|=" -> {
+            case "|=": {
                 if (var.getType() != Keywords.Int) return null;
                 int value = setValue(getValue() | var.getValue().intValue());
                 return createINT(value);
             }
-            case "^=" -> {
+            case "^=": {
                 if (var.getType() != Keywords.Int) return null;
                 int value = setValue(getValue() ^ var.getValue().intValue());
                 return createINT(value);
             }
-            case ">>=" -> {
+            case ">>=": {
                 if (var.getType() != Keywords.Int) return null;
                 int value = setValue(getValue() >> var.getValue().intValue());
                 return createINT(value);
             }
-            case "<<=" -> {
+            case "<<=": {
                 if (var.getType() != Keywords.Int) return null;
                 int value = setValue(getValue() << var.getValue().intValue());
                 return createINT(value);
             }
-            case "++" -> {
+            case "++": {
                 int value = setValue(getValue() + 1);
                 return createINT(value);
             }
-            case "--" -> {
+            case "--": {
                 int value = setValue(getValue() - 1);
                 return createINT(value);
             }
@@ -108,31 +108,50 @@ public class CIdINT implements Variable {
 
         if (var.getType().equals(Keywords.Int)) {
             int value = getValue();
-            return switch (op) {
-                case "+" -> createINT(value + var.getValue().intValue());
-                case "-" -> createINT(value - var.getValue().intValue());
-                case "*" -> createINT(value * var.getValue().intValue());
-                case "/" -> CIdFLOAT.createFLOAT((float) value / var.getValue().intValue());
-                case "%" -> createINT(value % var.getValue().intValue());
-                case ">>" -> createINT(value >> var.getValue().intValue());
-                case "<<" -> createINT(value << var.getValue().intValue());
-                case "&" -> createINT(value & var.getValue().intValue());
-                case "|" -> createINT(value | var.getValue().intValue());
-                case "~" -> createINT(~value);
-                case "!" -> createINT(value == 0 ? 1 : 0);
-                case "^" -> createINT(value ^ var.getValue().intValue());
-                default -> null;
-            };
+            switch (op) {
+                case "+":
+                    return createINT(value + var.getValue().intValue());
+                case "-":
+                    return createINT(value - var.getValue().intValue());
+                case "*":
+                    return createINT(value * var.getValue().intValue());
+                case "/":
+                    return CIdFLOAT.createFLOAT((float) value / var.getValue().intValue());
+                case "%":
+                    return createINT(value % var.getValue().intValue());
+                case ">>":
+                    return createINT(value >> var.getValue().intValue());
+                case "<<":
+                    return createINT(value << var.getValue().intValue());
+                case "&":
+                    return createINT(value & var.getValue().intValue());
+                case "|":
+                    return createINT(value | var.getValue().intValue());
+                case "~":
+                    return createINT(~value);
+                case "!":
+                    return createINT(value == 0 ? 1 : 0);
+                case "^":
+                    return createINT(value ^ var.getValue().intValue());
+                default:
+                    return null;
+            }
         } else if(var.getType().equals(Keywords.Float)) {
             int value = getValue();
-            return switch (op) {
-                case "+" -> CIdFLOAT.createFLOAT(value + var.getValue().floatValue());
-                case "-" -> CIdFLOAT.createFLOAT(value - var.getValue().floatValue());
-                case "*" -> CIdFLOAT.createFLOAT(value * var.getValue().floatValue());
-                case "/" -> CIdFLOAT.createFLOAT(value / var.getValue().floatValue());
-                case "%" -> CIdFLOAT.createFLOAT(value % var.getValue().floatValue());
-                default -> null;
-            };
+            switch (op) {
+                case "+":
+                    return CIdFLOAT.createFLOAT(value + var.getValue().floatValue());
+                case "-":
+                    return CIdFLOAT.createFLOAT(value - var.getValue().floatValue());
+                case "*":
+                    return CIdFLOAT.createFLOAT(value * var.getValue().floatValue());
+                case "/":
+                    return CIdFLOAT.createFLOAT(value / var.getValue().floatValue());
+                case "%":
+                    return CIdFLOAT.createFLOAT(value % var.getValue().floatValue());
+                default:
+                    return null;
+            }
         } else return null;
     }
 

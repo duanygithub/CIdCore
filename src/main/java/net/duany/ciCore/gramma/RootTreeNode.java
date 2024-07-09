@@ -1,5 +1,7 @@
 package net.duany.ciCore.gramma;
 
+import java.util.HashMap;
+
 public class RootTreeNode extends TreeNode {
     @Override
     public String type() {
@@ -8,5 +10,6 @@ public class RootTreeNode extends TreeNode {
 
     public RootTreeNode(int l, int r, TreeNode parent) {
         super(l, r, parent);
+        vars.vars = new HashMap<>();
     }
 }

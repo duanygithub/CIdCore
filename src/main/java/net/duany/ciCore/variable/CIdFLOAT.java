@@ -47,24 +47,36 @@ public class CIdFLOAT implements Variable {
     public Variable procOperation(Variable var, String op) {
         if(var.getType().equals(Keywords.Float)) {
             float value = getValue();
-            return switch (op) {
-                case "+" -> createFLOAT(value + (float) var.getValue());
-                case "-" -> createFLOAT(value - (float) var.getValue());
-                case "*" -> createFLOAT(value * (float) var.getValue());
-                case "/" -> createFLOAT(value / (float) var.getValue());
-                case "%" -> createFLOAT(value % (float) var.getValue());
-                default -> null;
-            };
+            switch (op) {
+                case "+":
+                    return createFLOAT(value + (float) var.getValue());
+                case "-":
+                    return createFLOAT(value - (float) var.getValue());
+                case "*":
+                    return createFLOAT(value * (float) var.getValue());
+                case "/":
+                    return createFLOAT(value / (float) var.getValue());
+                case "%":
+                    return createFLOAT(value % (float) var.getValue());
+                default:
+                    return null;
+            }
         }else if(var.getType().equals(Keywords.Int)) {
             float value = getValue();
-            return switch (op) {
-                case "+" -> createFLOAT(value + (int) var.getValue());
-                case "-" -> createFLOAT(value - (int) var.getValue());
-                case "*" -> createFLOAT(value * (int) var.getValue());
-                case "/" -> createFLOAT(value / (int) var.getValue());
-                case "%" -> createFLOAT(value % (int) var.getValue());
-                default -> null;
-            };
+            switch (op) {
+                case "+":
+                    return createFLOAT(value + (int) var.getValue());
+                case "-":
+                    return createFLOAT(value - (int) var.getValue());
+                case "*":
+                    return createFLOAT(value * (int) var.getValue());
+                case "/":
+                    return createFLOAT(value / (int) var.getValue());
+                case "%":
+                    return createFLOAT(value % (int) var.getValue());
+                default:
+                    return null;
+            }
         } else return null;
     }
 

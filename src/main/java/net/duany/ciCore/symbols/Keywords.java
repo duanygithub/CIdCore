@@ -15,16 +15,16 @@ public class Keywords {
 
     public static Keywords string2Keywords(String type) {
         switch (type) {
-            case "int" -> {
+            case "int": {
                 return Int;
             }
-            case "char" -> {
+            case "char": {
                 return Char;
             }
-            case "Float" -> {
+            case "Float": {
                 return Float;
             }
-            default -> {
+            default: {
                 if (type.matches("(int|char|float)\\*+")) {
                     return Pointer;
                 } else return null;

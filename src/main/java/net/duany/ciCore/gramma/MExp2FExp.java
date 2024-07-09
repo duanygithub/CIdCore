@@ -14,7 +14,7 @@ public class MExp2FExp {
             //替换*和&使其更方便索引
             String n = tmp.get(i);
             if(n.equals("*") || n.equals("&")) {
-                if(Operation.getValue(tmp.get(i - 1)) != 0 || tmp.get(i - 1).equals("(")) {
+                if (new Operation().getValue(tmp.get(i - 1)) != 0 || tmp.get(i - 1).equals("(")) {
                     n = 'A' + n;
                     tmp.set(i, n);
                     continue;
@@ -143,7 +143,7 @@ public class MExp2FExp {
         List<String> s2 = new ArrayList<String>();
 
         for (String item : ls) {
-            if (Operation.getValue(item) == 0 && !item.matches("[()]")) {
+            if (new Operation().getValue(item) == 0 && !item.matches("[()]")) {
                 //如果是一个数，直接加入S2
                 s2.add(item);
             } else if (item.equals("(")) {
@@ -158,7 +158,7 @@ public class MExp2FExp {
                 s1.pop();
             } else {
                 //当item的优先级小于等于s1栈顶的运算符时，将s1栈顶的运算符弹出并加入到s2中
-                while (s1.size() != 0 && Operation.getValue(s1.peek()) >= Operation.getValue(item)) {
+                while (s1.size() != 0 && new Operation().getValue(s1.peek()) >= new Operation().getValue(item)) {
                     s2.add(s1.pop());
                 }
                 //需要将item压入栈
@@ -172,14 +172,16 @@ public class MExp2FExp {
         //因为是存放到List,因此按顺序输出就是对应的后缀表达式对应的List
         return s2;
     }
-    public class Operation {
+
+    public static class Operation {
         //返回对应优先级的数字
-        public static int getValue(String operation) {
+        public int getValue(String operation) {
             int result = 0;
             if (operation.matches("(<<=)|(>>=)")) return 2;
             switch (operation) {
                 case ",":
-                    result = 1; break;
+                    result = 1;
+                    break;
                 case "=":
                 case "/=":
                 case "*=":

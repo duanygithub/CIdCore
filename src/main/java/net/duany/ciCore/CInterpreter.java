@@ -67,6 +67,10 @@ public class CInterpreter {
         return -1;
     }
 
+    public void setGrammarProc(GrammarProc grammarProc) {
+        gp = grammarProc;
+    }
+
     private void scanFunction() {
         RootTreeNode root = gp.getRoot();
         for (TreeNode node : root.subNode) {
@@ -131,6 +135,10 @@ public class CInterpreter {
                 offset += (subNode.rIndex - subNode.lIndex - 1);
             }
         }
+        /*
+
+
+         */
         for (String tmp : gp.codeBlocks.subList(treeNode.lIndex, treeNode.rIndex - offset)) {
             sb.append(tmp).append(" ");
         }
@@ -178,38 +186,45 @@ public class CInterpreter {
                 Variable var1 = string2Variable(stack.pop(), treeNode.vars);
                 int cmpResult = var1.cmp(var2);
                 switch (cmpResult) {
-                    case 1 -> {
+                    case 1: {
                         //var1 小于 var2
                         if (cur.matches("<|(<=)")) {
                             stack.push("1");
                         } else stack.push("0");
+                        break;
                     }
-                    case -1 -> {
+                    case -1: {
                         if (cur.matches(">|(>=)")) {
                             stack.push("1");
                         } else stack.push("0");
+                        break;
                     }
-                    case 0 -> {
+                    case 0: {
                         if (cur.matches("(>=)|(<=)|(==)")) {
                             stack.push("1");
                         } else stack.push("0");
+                        break;
                     }
                 }
-            } else if (MExp2FExp.Operation.getValue(cur) != 0) {
+            } else if (new MExp2FExp.Operation().getValue(cur) != 0) {
                 String strOp2 = stack.pop();
                 String strOp1 = stack.pop();
                 stack.push(string2Variable(strOp1, treeNode.vars).procOperation(string2Variable(strOp2, treeNode.vars), cur).toString());
+                //}
             } else if (TypeLookup.lookup(cur, treeNode.vars) == TypeLookup.BASICTYPE) {
                 if (TypeLookup.lookup(res.get(i + 1), treeNode.vars) != TypeLookup.VARIABLE_FORMAT) continue;
                 switch (cur) {
-                    case "int" -> {
+                    case "int": {
                         treeNode.vars.vars.put(res.get(i + 1), CIdINT.createINT());
+                        break;
                     }
-                    case "float" -> {
+                    case "float": {
                         treeNode.vars.vars.put(res.get(i + 1), CIdFLOAT.createFLOAT());
+                        break;
                     }
-                    case "char" -> {
+                    case "char": {
                         treeNode.vars.vars.put(res.get(i + 1), CIdCHAR.createCHAR());
+                        break;
                     }
                 }
             } else stack.push(res.get(i));
@@ -219,16 +234,16 @@ public class CInterpreter {
 
     private Variable string2Variable(String str, Variables vars) {
         switch (TypeLookup.lookup(str, vars)) {
-            case TypeLookup.INTEGER -> {
+            case TypeLookup.INTEGER: {
                 return CIdINT.createINT(str);
             }
-            case TypeLookup.FLOAT -> {
+            case TypeLookup.FLOAT: {
                 return CIdFLOAT.createFLOAT(str);
             }
-            case TypeLookup.VARIABLE -> {
+            case TypeLookup.VARIABLE: {
                 return vars.vars.get(str);
             }
-            default -> {
+            default: {
                 return null;
             }
         }
@@ -246,9 +261,13 @@ public class CInterpreter {
         for (String s : expList) sb.append(s);
         List<String> resExpList = MExp2FExp.convert(sb.toString());
         for (int i = 0; i < resExpList.size(); i++) {
-            if (MExp2FExp.Operation.getValue(resExpList.get(i)) != 0) {
+            if (new MExp2FExp.Operation().getValue(resExpList.get(i)) != 0) {
                 switch (resExpList.get(i)) {
-                    case "+", "-", "*", "/", "%" -> {
+                    case "+":
+                    case "-":
+                    case "*":
+                    case "/":
+                    case "%": {
                         Keywords type2 = typeStack.pop();
                         Keywords type1 = typeStack.pop();
                         if (type1 == Keywords.Float || type2 == Keywords.Float) {
@@ -260,23 +279,43 @@ public class CInterpreter {
                         } else if (type1 == Keywords.Char || type2 == Keywords.Int) {
                             typeStack.push(Keywords.Char);
                         }
+                        break;
                     }
-                    case "+=", "-=", "*=", "/=", "%=" -> {
+                    case "+=":
+                    case "-=":
+                    case "*=":
+                    case "/=":
+                    case "%=": {
                         Keywords type1 = typeStack.pop();
                         typeStack.push(type1);
+                        break;
                     }
-                    case "|=", "^=", "&=", ">>=", "<<=", "|", "^", "&", "<<", ">>" -> {
+                    case "|=":
+                    case "^=":
+                    case "&=":
+                    case ">>=":
+                    case "<<=":
+                    case "|":
+                    case "^":
+                    case "&":
+                    case "<<":
+                    case ">>": {
                         Keywords type2 = typeStack.pop();
                         Keywords type1 = typeStack.pop();
                         typeStack.push(Keywords.Int);
+                        break;
                     }
-                    case "++", "--", "~" -> {
+                    case "++":
+                    case "--":
+                    case "~": {
                         Keywords type1 = typeStack.pop();
                         typeStack.push(Keywords.Int);
+                        break;
                     }
-                    case "A&" -> {
+                    case "A&": {
                         Keywords type1 = typeStack.pop();
                         typeStack.push(Keywords.Pointer);
+                        break;
                     }
                 }
             } else {

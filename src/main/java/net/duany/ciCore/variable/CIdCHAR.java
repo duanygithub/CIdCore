@@ -39,11 +39,14 @@ public class CIdCHAR implements Variable {
     public Variable procOperation(Variable var, String op) {
         if (!var.getType().equals(Keywords.Int)) return this;
         int value = getValue();
-        return switch (op) {
-            case "+" -> createCHAR(value + (int) var.getValue());
-            case "-" -> createCHAR(value - (int) var.getValue());
-            default -> this;
-        };
+        switch (op) {
+            case "+":
+                return createCHAR(value + (int) var.getValue());
+            case "-":
+                return createCHAR(value - (int) var.getValue());
+            default:
+                return this;
+        }
     }
 
     @Override
