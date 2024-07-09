@@ -67,6 +67,10 @@ public class CInterpreter {
         return -1;
     }
 
+    public void setGrammarProc(GrammarProc grammarProc) {
+        gp = grammarProc;
+    }
+
     private void scanFunction() {
         RootTreeNode root = gp.getRoot();
         for (TreeNode node : root.subNode) {

@@ -12,7 +12,7 @@ import java.util.Stack;
 public class GrammarProc {
     public List<String> codeBlocks = new ArrayList<>();
     public List<String> originalCodeBlocks = new ArrayList<>();
-    RootTreeNode root;
+    public RootTreeNode root;
 
     public int analyze(String codes) {
         preProcess(codes);
@@ -246,9 +246,10 @@ public class GrammarProc {
         }
     }
 
-    private int preProcess(String codes) {
+    public int preProcess(String codes) {
         //先把代码分割一遍
         originalCodeBlocks = new ArrayList<>(codeBlocks = splitCodes(codes));
+        Start.codeBlocks = codeBlocks;
         //计算代码块总数
         int codeSize = 0;
         for (String s : codeBlocks) {
@@ -357,6 +358,13 @@ public class GrammarProc {
                     }
                     continue;
                 }
+            } else if (c == '.') {
+                if (String.valueOf(nxt).matches("[0-9]")) {
+                    if (String.valueOf(pre).matches("[0-9]") || pre == ' ' || MExp2FExp.Operation.getValue(String.valueOf(pre)) != 0) {
+                        sb.append(c);
+                        continue;
+                    }
+                }
             } else if (c == '\t') {
                 //将字符串中的制表符替换为空格，其它不用管，直接跳过
                 if (bInQua) sb.append(' ');
@@ -424,12 +432,27 @@ public class GrammarProc {
                 i--;
             }
             sb.append(c);
-            if (i == codes.length() - 1) statements.add(sb.toString());
+            if (i == codes.length() - 1) statements.add(sb.toString().trim());
         }
         for (int i = 0; i < statements.size(); i++) {
+            statements.set(i, statements.get(i).trim());
             if (statements.get(i).equals("")) {
                 statements.remove(i);
                 i--;
+            }
+        }
+        for (int i = 0; i < statements.size(); i++) {
+            if (statements.get(i).matches("[\\+-]")) {
+                try {
+                    if (MExp2FExp.Operation.getValue(statements.get(i - 1)) != 0 && MExp2FExp.Operation.getValue(statements.get(i + 1)) == 0) {
+                        if (statements.get(i).equals("-")) {
+                            statements.set(i, "-" + statements.get(i + 1));
+                        } else statements.set(i, statements.get(i + 1));
+                        statements.remove(i + 1);
+                        i--;
+                    }
+                } catch (IndexOutOfBoundsException ignore) {
+                }
             }
         }
         return statements;
