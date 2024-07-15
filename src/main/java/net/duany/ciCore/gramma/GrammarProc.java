@@ -462,6 +462,13 @@ public class GrammarProc {
                 } catch (IndexOutOfBoundsException ignore) {
                 }
             }
+            if (TypeLookup.lookup(statements.get(i), null) == TypeLookup.BASICTYPE ||
+                    TypeLookup.lookup(statements.get(i), null) == TypeLookup.DECLEAR_POINTER) {
+                while (statements.get(i + 1).equals("*")) {
+                    statements.set(i, statements.get(i) + "*");
+                    statements.remove(i + 1);
+                }
+            }
         }
         return statements;
     }

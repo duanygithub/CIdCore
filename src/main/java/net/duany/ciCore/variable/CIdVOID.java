@@ -20,6 +20,11 @@ public class CIdVOID implements Variable {
     }
 
     @Override
+    public int getAddress() {
+        return 0;
+    }
+
+    @Override
     public Variable procOperation(Variable var, String op) {
         return null;
     }

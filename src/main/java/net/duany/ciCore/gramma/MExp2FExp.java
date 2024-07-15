@@ -16,15 +16,6 @@ public class MExp2FExp {
         List<String> tmp = GrammarProc.splitCodes(s), result;
         Stack<String> func = new Stack<>();
         for (int i = 0; i < tmp.size(); i++) {
-            if (TypeLookup.lookup(tmp.get(i), null) == TypeLookup.BASICTYPE ||
-                    TypeLookup.lookup(tmp.get(i), null) == TypeLookup.DECLEAR_POINTER) {
-                while (tmp.get(i + 1).equals("*")) {
-                    tmp.set(i, tmp.get(i) + "*");
-                    tmp.remove(i + 1);
-                }
-            }
-        }
-        for (int i = 0; i < tmp.size(); i++) {
             //替换*和&使其更方便索引
             String n = tmp.get(i);
             if (n.equals("*") || n.equals("&")) {
