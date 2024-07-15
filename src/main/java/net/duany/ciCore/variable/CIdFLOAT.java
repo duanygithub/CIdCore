@@ -44,8 +44,13 @@ public class CIdFLOAT implements Variable {
     }
 
     @Override
+    public int getAddress() {
+        return addr;
+    }
+
+    @Override
     public Variable procOperation(Variable var, String op) {
-        if(var.getType().equals(Keywords.Float)) {
+        if (var.getType().equals(Keywords.Float)) {
             float value = getValue();
             return switch (op) {
                 case "+" -> createFLOAT(value + (float) var.getValue());

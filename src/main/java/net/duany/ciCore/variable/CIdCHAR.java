@@ -1,5 +1,6 @@
 package net.duany.ciCore.variable;
 
+import net.duany.ciCore.gramma.MExp2FExp;
 import net.duany.ciCore.memory.MemOperator;
 import net.duany.ciCore.symbols.Keywords;
 
@@ -25,6 +26,10 @@ public class CIdCHAR implements Variable {
         return new CIdCHAR(MemOperator.allocateMemory(1));
     }
 
+    public int setValue(char c) {
+        return MemOperator.writeChar(addr, c);
+    }
+
     @Override
     public Integer getValue() {
         return (int) MemOperator.readChar(addr);
@@ -33,6 +38,11 @@ public class CIdCHAR implements Variable {
     @Override
     public Keywords getType() {
         return Keywords.Char;
+    }
+
+    @Override
+    public int getAddress() {
+        return addr;
     }
 
     @Override

@@ -15,11 +15,11 @@ public class Start {
 
     public static void main(String[] args) throws IOException {
         //DEBUG ONLY!!!!
-        String str = "int main() { int i = -1; if(i > 0) { i += 1; }return i; }";
+        String str = "int*** i = 0;";
         Functions.funcList.put("printf", Keywords.Int);
         Functions.codeIndex.put("printf", null);
         CInterpreter cInterpreter = new CInterpreter(str, false);
         List<String> res = MExp2FExp.convert(str);
-        System.out.println(cInterpreter.start());
+        return;
     }
 }

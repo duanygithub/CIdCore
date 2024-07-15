@@ -422,14 +422,22 @@ public class GrammarProc {
             } else if (MExp2FExp.Operation.getValue(String.valueOf(c)) != 0) {
                 statements.add(sb.toString());
                 sb.delete(0, sb.length());
-                while (MExp2FExp.Operation.getValue(String.valueOf(c)) != 0) {
-                    c = codes.charAt(i);
-                    if (MExp2FExp.Operation.getValue(String.valueOf(c)) != 0) sb.append(c);
-                    i++;
+                if (c == '*' && nxt != '=') {
+                    do {
+                        i++;
+                        c = codes.charAt(i);
+                        statements.add("*");
+                    } while (c == '*');
+                } else {
+                    while (MExp2FExp.Operation.getValue(String.valueOf(c)) != 0) {
+                        c = codes.charAt(i);
+                        if (MExp2FExp.Operation.getValue(String.valueOf(c)) != 0) sb.append(c);
+                        i++;
+                    }
+                    statements.add(sb.toString());
+                    sb.delete(0, sb.length());
+                    i--;
                 }
-                statements.add(sb.toString());
-                sb.delete(0, sb.length());
-                i--;
             }
             sb.append(c);
             if (i == codes.length() - 1) statements.add(sb.toString().trim());

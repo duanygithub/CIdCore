@@ -1,6 +1,8 @@
 package net.duany.ciCore.gramma;
 
 import net.duany.ciCore.symbols.Functions;
+import net.duany.ciCore.symbols.Keywords;
+import net.duany.ciCore.symbols.TypeLookup;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -8,13 +10,25 @@ import java.util.Stack;
 
 public class MExp2FExp {
     public static List<String> convert(String s) {
+        if (s.charAt(s.length() - 1) == ';') {
+            s = s.substring(0, s.length() - 1);
+        }
         List<String> tmp = GrammarProc.splitCodes(s), result;
         Stack<String> func = new Stack<>();
-        for(int i = 0; i < tmp.size(); i++) {
+        for (int i = 0; i < tmp.size(); i++) {
+            if (TypeLookup.lookup(tmp.get(i), null) == TypeLookup.BASICTYPE ||
+                    TypeLookup.lookup(tmp.get(i), null) == TypeLookup.DECLEAR_POINTER) {
+                while (tmp.get(i + 1).equals("*")) {
+                    tmp.set(i, tmp.get(i) + "*");
+                    tmp.remove(i + 1);
+                }
+            }
+        }
+        for (int i = 0; i < tmp.size(); i++) {
             //替换*和&使其更方便索引
             String n = tmp.get(i);
-            if(n.equals("*") || n.equals("&")) {
-                if(Operation.getValue(tmp.get(i - 1)) != 0 || tmp.get(i - 1).equals("(")) {
+            if (n.equals("*") || n.equals("&")) {
+                if (Operation.getValue(tmp.get(i - 1)) != 0 || tmp.get(i - 1).equals("(") || Keywords.keywords.contains(tmp.get(i - 1))) {
                     n = 'A' + n;
                     tmp.set(i, n);
                     continue;
@@ -39,8 +53,6 @@ public class MExp2FExp {
                 }
             }catch(IndexOutOfBoundsException ignore){}
         }
-
-
         result = parseSuffixExpression(tmp);
         return result;
     }

@@ -38,8 +38,11 @@ public class TypeLookup {
         if (Functions.funcList.getOrDefault(str, null) != null) {
             return FUNCTION;
         }
-        if (vars.vars.get(str) != null) {
-            return VARIABLE;
+        try {
+            if (vars.vars.get(str) != null) {
+                return VARIABLE;
+            }
+        } catch (NullPointerException ignore) {
         }
         if (str.equals("return")) {
             return RETURN;

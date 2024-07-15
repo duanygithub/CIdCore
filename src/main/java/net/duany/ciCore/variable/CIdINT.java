@@ -6,7 +6,7 @@ import net.duany.ciCore.symbols.Keywords;
 public class CIdINT implements Variable {
     int addr;
 
-    private CIdINT(int address) {
+    protected CIdINT(int address) {
         addr = address;
     }
 
@@ -42,6 +42,11 @@ public class CIdINT implements Variable {
     @Override
     public Keywords getType() {
         return Keywords.Int;
+    }
+
+    @Override
+    public int getAddress() {
+        return addr;
     }
 
     @Override

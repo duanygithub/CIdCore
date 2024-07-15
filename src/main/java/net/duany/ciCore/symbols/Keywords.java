@@ -2,8 +2,7 @@ package net.duany.ciCore.symbols;
 
 import net.duany.ciCore.variable.Variable;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class Keywords {
     public static final Keywords Int = new Keywords();
@@ -12,6 +11,11 @@ public class Keywords {
     public static final Keywords Float = new Keywords();
     public static final Keywords Pointer = new Keywords();
     public static final Keywords CharArray = new Keywords();
+
+    public static final ArrayList<String> keywords = new ArrayList<>(Arrays.asList(
+            "int", "float", "bool", "char",
+            "while", "do", "for", "return", "break", "continue", "goto"
+    ));
 
     public static Keywords string2Keywords(String type) {
         switch (type) {

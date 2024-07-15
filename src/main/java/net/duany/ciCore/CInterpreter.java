@@ -11,6 +11,7 @@ import net.duany.ciCore.symbols.Variables;
 import net.duany.ciCore.variable.*;
 
 import java.io.*;
+import java.security.Key;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -206,16 +207,30 @@ public class CInterpreter {
             } else if (TypeLookup.lookup(cur, treeNode.vars) == TypeLookup.BASICTYPE) {
                 if (TypeLookup.lookup(res.get(i + 1), treeNode.vars) != TypeLookup.VARIABLE_FORMAT) continue;
                 switch (cur) {
-                    case "int" -> {
-                        treeNode.vars.vars.put(res.get(i + 1), CIdINT.createINT());
-                    }
-                    case "float" -> {
-                        treeNode.vars.vars.put(res.get(i + 1), CIdFLOAT.createFLOAT());
-                    }
-                    case "char" -> {
-                        treeNode.vars.vars.put(res.get(i + 1), CIdCHAR.createCHAR());
+                    case "int" -> treeNode.vars.vars.put(res.get(i + 1), CIdINT.createINT());
+                    case "float" -> treeNode.vars.vars.put(res.get(i + 1), CIdFLOAT.createFLOAT());
+                    case "char" -> treeNode.vars.vars.put(res.get(i + 1), CIdCHAR.createCHAR());
+                }
+            } else if (TypeLookup.lookup(cur, treeNode.vars) == TypeLookup.DECLEAR_POINTER) {
+                int pointerLevel = 0, pointerBegin = 0;
+                for (int j = 0; j < cur.length(); j++) {
+                    if (exp.length() == '*') {
+                        if (pointerBegin == 0) {
+                            pointerBegin = j;
+                        }
+                        pointerLevel++;
                     }
                 }
+                String typeStr = cur.substring(0, pointerBegin);
+                Keywords type;
+                switch (typeStr) {
+                    case "int" -> type = Keywords.Int;
+                    case "float" -> type = Keywords.Float;
+                    case "char" -> type = Keywords.Char;
+                    case "void" -> type = Keywords.Void;
+                    default -> type = null;
+                }
+                treeNode.vars.vars.put(res.get(i + 1), CIdPOINTER.createPOINTER(pointerLevel, 0, type));
             } else stack.push(res.get(i));
         }
         return stack.empty() ? null : string2Variable(stack.pop(), treeNode.vars);

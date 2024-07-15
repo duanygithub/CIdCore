@@ -21,6 +21,10 @@ public class CIdBOOLEAN implements Variable {
         return new CIdBOOLEAN(address);
     }
 
+    public int setValue(boolean b) {
+        return MemOperator.writeBoolean(addr, b);
+    }
+
     @Override
     public Number getValue() {
         return null;
@@ -29,6 +33,11 @@ public class CIdBOOLEAN implements Variable {
     @Override
     public Keywords getType() {
         return null;
+    }
+
+    @Override
+    public int getAddress() {
+        return addr;
     }
 
     @Override

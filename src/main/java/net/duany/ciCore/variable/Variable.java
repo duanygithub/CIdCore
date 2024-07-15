@@ -5,6 +5,9 @@ import net.duany.ciCore.symbols.Keywords;
 public interface Variable {
     Number getValue();
     Keywords getType();
+
+    int getAddress();
+
     Variable procOperation(Variable var, String op);
     int cmp(Variable var);
 
