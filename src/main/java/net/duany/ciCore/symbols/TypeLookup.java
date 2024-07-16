@@ -19,6 +19,7 @@ public class TypeLookup {
     public static final int VARIABLE_FORMAT = 10;
     public static final int RETURN = 11;
     public static final int PROC_CONTROL = 12;
+    public static final int BOOLEAN = 13;
 
     public static int lookup(String str, Variables vars) {
         if (str.matches("(\\+|-)?[0-9]+")) {
@@ -55,6 +56,9 @@ public class TypeLookup {
         }
         if (str.matches("(for)|(while)|(if)|(do)|(goto)")) {
             return PROC_CONTROL;
+        }
+        if (str.matches("(true)|(false)")) {
+            return BOOLEAN;
         }
         if (str.matches("\\w+")) {
             return VARIABLE_FORMAT;

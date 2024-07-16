@@ -19,7 +19,7 @@ public class MExp2FExp {
             //替换*和&使其更方便索引
             String n = tmp.get(i);
             if (n.equals("*") || n.equals("&")) {
-                if (Operation.getValue(tmp.get(i - 1)) != 0 || tmp.get(i - 1).equals("(") || Keywords.keywords.contains(tmp.get(i - 1))) {
+                if (i == 0 || Operation.getValue(tmp.get(i - 1)) != 0 || tmp.get(i - 1).equals("(") || Keywords.keywords.contains(tmp.get(i - 1))) {
                     n = 'A' + n;
                     tmp.set(i, n);
                     continue;

@@ -3,6 +3,7 @@ package net.duany.ciCore;
 import net.duany.ciCore.exception.CIdAssert;
 import net.duany.ciCore.exception.CIdGrammarException;
 import net.duany.ciCore.gramma.*;
+import net.duany.ciCore.memory.MemOperator;
 import net.duany.ciCore.runtime.ValuedArgTreeNode;
 import net.duany.ciCore.symbols.Functions;
 import net.duany.ciCore.symbols.Keywords;
@@ -156,8 +157,34 @@ public class CInterpreter {
                     valuedArgTreeNode.vars.vars.put("", calcExpression(node));
                 }
                 stack.push(callFunction(funcName, valuedArgTreeNode).toString());
-            }
-            if (cur.matches("(\\+)|(-)|(\\*)|(/)|(\\^)|(\\|)|<<|>>|&|")) {
+            } else if (cur.matches("(A&)|(A\\*)")) {
+                if (cur.equals("A&")) {
+                    String strOp1 = stack.pop();
+                    try {
+                        int addr = string2Variable(strOp1, treeNode.vars).getAddress();
+                        stack.push(Integer.toString(addr));
+                    } catch (NullPointerException e) {
+                        throw new CIdGrammarException("取地址对象必须为变量");
+                    }
+                } else if (cur.equals("A*")) {
+                    String strOp1 = stack.pop();
+                    Variable varOp1 = string2Variable(strOp1, treeNode.vars);
+                    if (varOp1.getType() != Keywords.Pointer) {
+                        throw new CIdGrammarException("");
+                    }
+                    int addr = varOp1.getValue().intValue();
+                    CIdPOINTER pointer = (CIdPOINTER) varOp1;
+                    if (pointer.getTargetType().equals(Keywords.Int)) {
+                        stack.push(Integer.toString(MemOperator.readInt(addr)));
+                    } else if (pointer.getTargetType().equals(Keywords.Float)) {
+                        stack.push(Float.toString(MemOperator.readFloat(addr)));
+                    } else if (pointer.getTargetType().equals(Keywords.Char)) {
+                        stack.push(Character.toString(MemOperator.readChar(addr)));
+                    } else if (pointer.getTargetType().equals(Keywords.Boolean)) {
+                        stack.push(Boolean.toString(MemOperator.readBoolean(addr)));
+                    }
+                }
+            } else if (cur.matches("(\\+)|(-)|(\\*)|(/)|(\\^)|(\\|)|<<|>>|&|")) {
                 String strOp2 = stack.pop();
                 String strOp1 = stack.pop();
                 if (cur.matches("(\\|)|(>>)|(<<)|&|^")) {
@@ -214,7 +241,7 @@ public class CInterpreter {
             } else if (TypeLookup.lookup(cur, treeNode.vars) == TypeLookup.DECLEAR_POINTER) {
                 int pointerLevel = 0, pointerBegin = 0;
                 for (int j = 0; j < cur.length(); j++) {
-                    if (exp.length() == '*') {
+                    if (cur.charAt(j) == '*') {
                         if (pointerBegin == 0) {
                             pointerBegin = j;
                         }
@@ -246,6 +273,9 @@ public class CInterpreter {
             }
             case TypeLookup.VARIABLE -> {
                 return vars.vars.get(str);
+            }
+            case TypeLookup.BOOLEAN -> {
+                return CIdBOOLEAN.createBOOLEAN(str.equals("true"));
             }
             default -> {
                 return null;

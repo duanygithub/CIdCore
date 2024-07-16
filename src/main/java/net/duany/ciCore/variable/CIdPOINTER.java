@@ -11,6 +11,7 @@ public class CIdPOINTER implements Variable {
     protected CIdPOINTER(int address, int lvl, Keywords type) {
         addr = address;
         level = lvl;
+        targetType = type;
     }
 
     public static CIdPOINTER createPOINTER(int lvl, int pAddress, Keywords type) {
@@ -31,6 +32,10 @@ public class CIdPOINTER implements Variable {
     @Override
     public Keywords getType() {
         return Keywords.Pointer;
+    }
+
+    public Keywords getTargetType() {
+        return targetType;
     }
 
     @Override
