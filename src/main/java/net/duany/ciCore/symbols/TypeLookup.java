@@ -51,14 +51,14 @@ public class TypeLookup {
         if (str.matches("\"([^\"]*)\"")) {
             return STRING;
         }
-        if (str.matches("__cidfunc_\\w+_l[0-9]+r[0-9]+__")) {
-            return FUNCTION_CALL;
-        }
         if (str.matches("(for)|(while)|(if)|(do)|(goto)")) {
             return PROC_CONTROL;
         }
         if (str.matches("(true)|(false)")) {
             return BOOLEAN;
+        }
+        if (Functions.funcList.get(str) != null) {
+            return FUNCTION;
         }
         if (str.matches("\\w+")) {
             return VARIABLE_FORMAT;

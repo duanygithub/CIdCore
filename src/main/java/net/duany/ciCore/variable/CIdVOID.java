@@ -33,4 +33,9 @@ public class CIdVOID implements Variable {
     public int cmp(Variable var) {
         return 0;
     }
+
+    @Override
+    public String toString() {
+        return "";
+    }
 }

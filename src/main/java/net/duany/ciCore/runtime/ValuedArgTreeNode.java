@@ -4,9 +4,11 @@ import net.duany.ciCore.gramma.TreeNode;
 import net.duany.ciCore.variable.Variable;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ValuedArgTreeNode extends TreeNode {
-    public ArrayList<Variable> argList = new ArrayList<>();
+    public Map<String, Variable> argMap = new HashMap<>();
 
     public ValuedArgTreeNode() {
         super();
@@ -14,14 +16,14 @@ public class ValuedArgTreeNode extends TreeNode {
         rIndex = 0;
     }
 
-    public static ValuedArgTreeNode create(Variable var) {
+    public static ValuedArgTreeNode create(String name, Variable var) {
         ValuedArgTreeNode valuedArgTreeNode = new ValuedArgTreeNode();
-        valuedArgTreeNode.argList.add(var);
+        valuedArgTreeNode.argMap.put(name, var);
         return valuedArgTreeNode;
     }
 
-    public ValuedArgTreeNode add(Variable var) {
-        this.argList.add(var);
+    public ValuedArgTreeNode add(String name, Variable var) {
+        this.argMap.put(name, var);
         return this;
     }
 }

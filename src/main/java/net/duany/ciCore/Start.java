@@ -15,7 +15,7 @@ public class Start {
 
     public static void main(String[] args) throws IOException {
         //DEBUG ONLY!!!!
-        String str = "int main(){ int* p; int i = 66; p = &i; return *p; }";
+        String str = "int f(){ return 14514; } int main(){ return f() + 1; }";
         Functions.funcList.put("printf", Keywords.Int);
         Functions.codeIndex.put("printf", null);
         CInterpreter cInterpreter = new CInterpreter(str, false);

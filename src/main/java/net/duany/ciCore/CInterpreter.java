@@ -74,6 +74,7 @@ public class CInterpreter {
     }
 
     private void scanFunction() {
+        /*
         RootTreeNode root = gp.getRoot();
         for (TreeNode node : root.subNode) {
             if (node.type().equals("Function")) {
@@ -82,33 +83,24 @@ public class CInterpreter {
                 Functions.funcList.put(name, keywordType);
                 Functions.codeIndex.put(name, (BlockTreeNode) node.subNode.get(1));
                 Functions.argIndex.put(name, (ArgTreeNode) node.subNode.get(0));
-            } else if (node.type().equals("funcCall")) {
-                String funcIdentifyString = null;
-                for (Map.Entry<String, FunctionCallTreeNode> entry : Functions.funcCallIdentifyMap.entrySet()) {
-                    if (entry.getValue().equals(node)) {
-                        funcIdentifyString = entry.getKey();
-                        break;
-                    }
-                }
-                for (int i = 0; i < node.rIndex - node.lIndex; i++) {
-                    gp.codeBlocks.remove(node.lIndex);
-                }
-                gp.codeBlocks.add(node.lIndex, funcIdentifyString);
             }
         }
+         */
     }
 
     public Variable callFunction(String funcName, ValuedArgTreeNode args) throws CIdGrammarException {
         BlockTreeNode block = Functions.codeIndex.get(funcName);
-        block.vars.vars = new HashMap<>(args.vars.vars);
+        block.vars.vars = new HashMap<>(args.argMap);
         return execBlock(Functions.codeIndex.get(funcName));
     }
 
     public Variable execBlock(BlockTreeNode block) throws CIdGrammarException {
         if (block == null) return CIdINT.createINT(-1);
         for (TreeNode node : block.subNode) {
-            if (gp.originalCodeBlocks.get(node.lIndex).equals("return")) {
-                return calcExpression(new StatementTreeNode(node.lIndex + 1, node.rIndex, node));
+            if (gp.codeBlocks.get(node.lIndex).equals("return")) {
+                StatementTreeNode statementTreeNode = new StatementTreeNode(node.lIndex + 1, node.rIndex, node.parentNode);
+                gp.buildTree(statementTreeNode);
+                return calcExpression(/*statementTreeNode*/node.subNode.get(0));
             } else if (node.type().equals("if")) {
                 if (calcExpression(node.subNode.get(0)).getValue().intValue() != 0) {
                     Variable result = execBlock((BlockTreeNode) node.subNode.get(1));
@@ -134,7 +126,7 @@ public class CInterpreter {
         int offset = 0;
         for (TreeNode subNode : treeNode.subNode) {
             if (subNode.type().equals("funcCall")) {
-                offset += (subNode.rIndex - subNode.lIndex - 1);
+
             }
         }
         for (String tmp : gp.codeBlocks.subList(treeNode.lIndex, treeNode.rIndex - offset)) {
@@ -145,16 +137,23 @@ public class CInterpreter {
     }
 
     private Variable calcExpression(String exp, TreeNode treeNode) throws CIdGrammarException {
+        Map<String, FunctionCallTreeNode> tempFuncCallMap = new HashMap<>();
+        for (TreeNode node : treeNode.subNode) {
+            if (node.type().equals("funcCall")) {
+                tempFuncCallMap.put(gp.codeBlocks.get(node.lIndex), (FunctionCallTreeNode) node);
+            }
+        }
         List<String> res = MExp2FExp.convert(exp);
         Stack<String> stack = new Stack<>();
         for (int i = 0; i < res.size(); i++) {
             String cur = res.get(i);
-            if (TypeLookup.lookup(cur, treeNode.vars) == TypeLookup.FUNCTION_CALL) {
-                FunctionCallTreeNode functionCallTreeNode = Functions.funcCallIdentifyMap.get(cur);
+            if (TypeLookup.lookup(cur, treeNode.vars) == TypeLookup.FUNCTION) {
+                FunctionCallTreeNode functionCallTreeNode = tempFuncCallMap.get(cur);
                 String funcName = gp.originalCodeBlocks.get(functionCallTreeNode.lIndex);
+                ArgTreeNode argTreeNode = Functions.argIndex.get(funcName);
                 ValuedArgTreeNode valuedArgTreeNode = new ValuedArgTreeNode();
-                for (TreeNode node : functionCallTreeNode.subNode) {
-                    valuedArgTreeNode.vars.vars.put("", calcExpression(node));
+                for (int j = 0; j < functionCallTreeNode.subNode.get(0).subNode.size(); j++) {
+                    valuedArgTreeNode.argMap.put(gp.codeBlocks.get(argTreeNode.subNode.get(j).lIndex + 1), calcExpression(functionCallTreeNode.subNode.get(j)));
                 }
                 stack.push(callFunction(funcName, valuedArgTreeNode).toString());
             } else if (cur.matches("(A&)|(A\\*)")) {

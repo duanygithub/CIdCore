@@ -3,6 +3,7 @@ package net.duany.ciCore.gramma;
 import net.duany.ciCore.Start;
 import net.duany.ciCore.memory.MemOperator;
 import net.duany.ciCore.symbols.Functions;
+import net.duany.ciCore.symbols.Keywords;
 import net.duany.ciCore.symbols.TypeLookup;
 
 import java.util.ArrayList;
@@ -59,6 +60,7 @@ public class GrammarProc {
                 case TypeLookup.BASICTYPE -> {
                     if (codeBlocks.get(i + 1).matches("\\w+")) {
                         if (codeBlocks.get(i + 2).equals("(")) {
+                            int funcBegin = i;
                             FunctionTreeNode functionTreeNode = new FunctionTreeNode(i, i + 2, parentNode);
                             parentNode.subNode.add(functionTreeNode);
                             i += 3;
@@ -82,6 +84,12 @@ public class GrammarProc {
                             BlockTreeNode blockTreeNode = new BlockTreeNode(blockStart + 1, i - 1, parentNode);
                             buildTree(blockTreeNode);
                             functionTreeNode.subNode.add(blockTreeNode);
+                            Keywords keywordType = Keywords.string2Keywords(str);
+                            String name = codeBlocks.get(funcBegin + 1);
+                            Functions.funcList.put(name, keywordType);
+                            Functions.codeIndex.put(name, blockTreeNode);
+                            Functions.argIndex.put(name, argTreeNode);
+                            i--;
                         } else {
                             int varStart = i;
                             int tmp = 0;
@@ -129,8 +137,6 @@ public class GrammarProc {
                     buildTree(argTreeNode);
                     functionCallTreeNode.subNode.add(argTreeNode);
                     parentNode.subNode.add(functionCallTreeNode);
-                    String id = String.format("__cidfunc_%s_l%dr%d__", codeBlocks.get(funcCallStart), funcCallStart, i);
-                    Functions.funcCallIdentifyMap.put(id, functionCallTreeNode);
                 }/*
                 case TypeLookup.SPLITPOINT -> {
                     if (viewedR > lastSplitPoint) break;
@@ -225,10 +231,14 @@ public class GrammarProc {
                     for (int j = returnBegin; j < r; j++) {
                         if (originalCodeBlocks.get(j).equals(";")) {
                             i = j;
+                            break;
                         }
                     }
-                    StatementTreeNode statementTreeNode = new StatementTreeNode(returnBegin, i, parentNode);
-                    parentNode.subNode.add(statementTreeNode);
+                    StatementTreeNode returnTreeNode = new StatementTreeNode(returnBegin, i, parentNode);
+                    StatementTreeNode statementTreeNode = new StatementTreeNode(returnBegin + 1, i, returnTreeNode);
+                    buildTree(statementTreeNode);
+                    returnTreeNode.subNode.add(statementTreeNode);
+                    parentNode.subNode.add(returnTreeNode);
                 }
                 default -> {
                     int begin = i;
