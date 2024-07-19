@@ -43,6 +43,10 @@ public class CIdPOINTER implements Variable {
         return addr;
     }
 
+    public int getLevel() {
+        return level;
+    }
+
     @Override
     public Variable procOperation(Variable var, String op) {
         switch (op) {
@@ -96,7 +100,12 @@ public class CIdPOINTER implements Variable {
                 return createPOINTER(value, level, targetType);
             }
             case "++" -> {
-                int value = setValue(getValue() + 1);
+                int value = 0;
+                if (targetType == Keywords.Pointer || targetType == Keywords.Int || targetType == Keywords.Void || targetType == Keywords.Float) {
+                    value = setValue(getValue() + 4);
+                } else if (targetType == Keywords.Char || targetType == Keywords.Boolean) {
+                    value = setValue(getValue() + 1);
+                }
                 return createPOINTER(value, level, targetType);
             }
             case "--" -> {

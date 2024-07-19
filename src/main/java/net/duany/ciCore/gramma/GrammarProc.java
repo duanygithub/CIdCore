@@ -71,7 +71,7 @@ public class GrammarProc {
                                 if (codeBlocks.get(i).equals("(")) stack.push(0);
                                 else if (codeBlocks.get(i).equals(")")) stack.pop();
                             }
-                            ArgTreeNode argTreeNode = new ArgTreeNode(argStart, i - 1, parentNode);
+                            ArgTreeNode argTreeNode = new ArgTreeNode(argStart, i - 1, functionTreeNode);
                             buildTree(argTreeNode);
                             functionTreeNode.subNode.add(argTreeNode);
                             stack.push(0);
@@ -81,7 +81,7 @@ public class GrammarProc {
                                 if (codeBlocks.get(i).equals("{")) stack.push(0);
                                 else if (codeBlocks.get(i).equals("}")) stack.pop();
                             }
-                            BlockTreeNode blockTreeNode = new BlockTreeNode(blockStart + 1, i - 1, parentNode);
+                            BlockTreeNode blockTreeNode = new BlockTreeNode(blockStart + 1, i - 1, functionTreeNode);
                             buildTree(blockTreeNode);
                             functionTreeNode.subNode.add(blockTreeNode);
                             Keywords keywordType = Keywords.string2Keywords(str);

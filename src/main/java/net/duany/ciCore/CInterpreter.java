@@ -90,7 +90,8 @@ public class CInterpreter {
 
     public Variable callFunction(String funcName, ValuedArgTreeNode args) throws CIdGrammarException {
         BlockTreeNode block = Functions.codeIndex.get(funcName);
-        block.vars.vars = new HashMap<>(args.argMap);
+        block.vars.vars.clear();
+        block.vars.vars.putAll(args.argMap);
         return execBlock(Functions.codeIndex.get(funcName));
     }
 
@@ -144,7 +145,7 @@ public class CInterpreter {
             }
         }
         List<String> res = MExp2FExp.convert(exp);
-        Stack<String> stack = new Stack<>();
+        Stack<Variable> stack = new Stack<>();
         for (int i = 0; i < res.size(); i++) {
             String cur = res.get(i);
             if (TypeLookup.lookup(cur, treeNode.vars) == TypeLookup.FUNCTION) {
@@ -152,91 +153,96 @@ public class CInterpreter {
                 String funcName = gp.originalCodeBlocks.get(functionCallTreeNode.lIndex);
                 ArgTreeNode argTreeNode = Functions.argIndex.get(funcName);
                 ValuedArgTreeNode valuedArgTreeNode = new ValuedArgTreeNode();
-                for (int j = 0; j < functionCallTreeNode.subNode.get(0).subNode.size(); j++) {
-                    valuedArgTreeNode.argMap.put(gp.codeBlocks.get(argTreeNode.subNode.get(j).lIndex + 1), calcExpression(functionCallTreeNode.subNode.get(j)));
+                ArgTreeNode realArgTreeNode = (ArgTreeNode) functionCallTreeNode.subNode.get(0);
+                if (realArgTreeNode.lIndex < realArgTreeNode.rIndex - 1) {
+                    if (realArgTreeNode.subNode.size() == 0) {
+                        valuedArgTreeNode.argMap.put(gp.codeBlocks.get(argTreeNode.lIndex + 1), calcExpression(realArgTreeNode));
+                    } else {
+                        for (int j = 0; j < realArgTreeNode.subNode.size(); j++) {
+                            valuedArgTreeNode.argMap.put(gp.codeBlocks.get(argTreeNode.subNode.get(j).lIndex + 1), calcExpression(realArgTreeNode.subNode.get(j)));
+                        }
+                    }
                 }
-                stack.push(callFunction(funcName, valuedArgTreeNode).toString());
+                stack.push(callFunction(funcName, valuedArgTreeNode));
             } else if (cur.matches("(A&)|(A\\*)")) {
                 if (cur.equals("A&")) {
-                    String strOp1 = stack.pop();
-                    try {
-                        int addr = string2Variable(strOp1, treeNode.vars).getAddress();
-                        stack.push(Integer.toString(addr));
-                    } catch (NullPointerException e) {
+                    Variable varOp1 = stack.pop();
+                    if (!treeNode.vars.vars.containsValue(varOp1))
                         throw new CIdGrammarException("取地址对象必须为变量");
-                    }
+                    stack.push(CIdPOINTER.createPOINTER(
+                            varOp1.getType() == Keywords.Pointer ? ((CIdPOINTER) varOp1).getLevel() + 1 : 1,
+                            varOp1.getAddress(),
+                            varOp1.getType() == Keywords.Pointer ? ((CIdPOINTER) varOp1).getTargetType() : varOp1.getType()
+                    ));
                 } else if (cur.equals("A*")) {
-                    String strOp1 = stack.pop();
-                    Variable varOp1 = string2Variable(strOp1, treeNode.vars);
+                    Variable varOp1 = stack.pop();
                     if (varOp1.getType() != Keywords.Pointer) {
-                        throw new CIdGrammarException("");
+                        throw new CIdGrammarException("取值对象必须为指针变量");
                     }
                     int addr = varOp1.getValue().intValue();
                     CIdPOINTER pointer = (CIdPOINTER) varOp1;
                     if (pointer.getTargetType().equals(Keywords.Int)) {
-                        stack.push(Integer.toString(MemOperator.readInt(addr)));
+                        stack.push(CIdINT.createINT(MemOperator.readInt(addr)));
                     } else if (pointer.getTargetType().equals(Keywords.Float)) {
-                        stack.push(Float.toString(MemOperator.readFloat(addr)));
+                        stack.push(CIdFLOAT.createFLOAT(MemOperator.readFloat(addr)));
                     } else if (pointer.getTargetType().equals(Keywords.Char)) {
-                        stack.push(Character.toString(MemOperator.readChar(addr)));
+                        stack.push(CIdCHAR.createCHAR(MemOperator.readChar(addr)));
                     } else if (pointer.getTargetType().equals(Keywords.Boolean)) {
-                        stack.push(Boolean.toString(MemOperator.readBoolean(addr)));
+                        stack.push(CIdBOOLEAN.createBOOLEAN(MemOperator.readBoolean(addr)));
                     }
                 }
             } else if (cur.matches("(\\+)|(-)|(\\*)|(/)|(\\^)|(\\|)|<<|>>|&|")) {
-                String strOp2 = stack.pop();
-                String strOp1 = stack.pop();
+                Variable varOp2 = stack.pop();
+                Variable varOp1 = stack.pop();
                 if (cur.matches("(\\|)|(>>)|(<<)|&|^")) {
-                    if (TypeLookup.lookup(strOp1, treeNode.vars) != TypeLookup.VARIABLE &&
-                            TypeLookup.lookup(strOp1, treeNode.vars) != TypeLookup.INTEGER) {
+                    if (varOp1.getType() != Keywords.Int) {
                         throw new CIdGrammarException("位运算的操作数1必须是整数变量或整数常数");
                     }
-                    if (TypeLookup.lookup(strOp2, treeNode.vars) != TypeLookup.VARIABLE &&
-                            TypeLookup.lookup(strOp2, treeNode.vars) != TypeLookup.INTEGER) {
+                    if (varOp2.getType() != Keywords.Int) {
                         throw new CIdGrammarException("位运算的操作数2必须是整数变量或整数常数");
                     }
                 }
-                Variable ans = string2Variable(strOp1, treeNode.vars).procOperation(string2Variable(strOp2, treeNode.vars), cur);
-                stack.push(ans.toString());
+                stack.push(varOp1.procOperation(varOp2, cur));
             } else if (cur.matches("(\\+\\+)|(--)|~")) {
-                String strOp1 = stack.pop();
-                if (TypeLookup.lookup(strOp1, treeNode.vars) == TypeLookup.VARIABLE &&
-                        TypeLookup.lookupKeywords(strOp1, treeNode.vars) == Keywords.Int) {
-                    stack.push(string2Variable(strOp1, treeNode.vars).procOperation(null, cur).toString());
+                Variable varOp1 = stack.pop();
+                if (varOp1.getType() != Keywords.Int && varOp1.getType() != Keywords.Pointer) {
+                    stack.push(varOp1.procOperation(null, cur));
                 }
             } else if (cur.matches(">|<|>=|<=|==")) {
-                Variable var2 = string2Variable(stack.pop(), treeNode.vars);
-                Variable var1 = string2Variable(stack.pop(), treeNode.vars);
+                Variable var2 = stack.pop();
+                Variable var1 = stack.pop();
                 int cmpResult = var1.cmp(var2);
                 switch (cmpResult) {
                     case 1 -> {
                         //var1 小于 var2
                         if (cur.matches("<|(<=)")) {
-                            stack.push("1");
-                        } else stack.push("0");
+                            stack.push(CIdBOOLEAN.createBOOLEAN(true));
+                        } else stack.push(CIdBOOLEAN.createBOOLEAN(false));
                     }
                     case -1 -> {
                         if (cur.matches(">|(>=)")) {
-                            stack.push("1");
-                        } else stack.push("0");
+                            stack.push(CIdBOOLEAN.createBOOLEAN(true));
+                        } else stack.push(CIdBOOLEAN.createBOOLEAN(false));
                     }
                     case 0 -> {
                         if (cur.matches("(>=)|(<=)|(==)")) {
-                            stack.push("1");
-                        } else stack.push("0");
+                            stack.push(CIdBOOLEAN.createBOOLEAN(true));
+                        } else stack.push(CIdBOOLEAN.createBOOLEAN(false));
                     }
                 }
             } else if (MExp2FExp.Operation.getValue(cur) != 0) {
-                String strOp2 = stack.pop();
-                String strOp1 = stack.pop();
-                stack.push(string2Variable(strOp1, treeNode.vars).procOperation(string2Variable(strOp2, treeNode.vars), cur).toString());
+                Variable varOp2 = stack.pop();
+                Variable varOp1 = stack.pop();
+                stack.push(varOp1.procOperation(varOp2, cur));
             } else if (TypeLookup.lookup(cur, treeNode.vars) == TypeLookup.BASICTYPE) {
                 if (TypeLookup.lookup(res.get(i + 1), treeNode.vars) != TypeLookup.VARIABLE_FORMAT) continue;
+                Variable variable = null;
                 switch (cur) {
-                    case "int" -> treeNode.vars.vars.put(res.get(i + 1), CIdINT.createINT());
-                    case "float" -> treeNode.vars.vars.put(res.get(i + 1), CIdFLOAT.createFLOAT());
-                    case "char" -> treeNode.vars.vars.put(res.get(i + 1), CIdCHAR.createCHAR());
+                    case "int" -> treeNode.vars.vars.put(res.get(i + 1), (variable = CIdINT.createINT()));
+                    case "float" -> treeNode.vars.vars.put(res.get(i + 1), (variable = CIdFLOAT.createFLOAT()));
+                    case "char" -> treeNode.vars.vars.put(res.get(i + 1), (variable = CIdCHAR.createCHAR()));
                 }
+                stack.push(variable);
             } else if (TypeLookup.lookup(cur, treeNode.vars) == TypeLookup.DECLEAR_POINTER) {
                 int pointerLevel = 0, pointerBegin = 0;
                 for (int j = 0; j < cur.length(); j++) {
@@ -257,9 +263,9 @@ public class CInterpreter {
                     default -> type = null;
                 }
                 treeNode.vars.vars.put(res.get(i + 1), CIdPOINTER.createPOINTER(pointerLevel, 0, type));
-            } else stack.push(res.get(i));
+            } else stack.push(string2Variable(cur, treeNode.vars));
         }
-        return stack.empty() ? null : string2Variable(stack.pop(), treeNode.vars);
+        return stack.empty() ? null : stack.pop();
     }
 
     private Variable string2Variable(String str, Variables vars) {
