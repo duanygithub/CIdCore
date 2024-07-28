@@ -23,7 +23,7 @@ public class TreeNode {
             sb.append(s).append(" ");
         }
         content = sb.toString();
-        if (type().equals("Function")) {
+        if (type().equals("Function") || type().equals("block")) {
             Variables vars = new Variables();
             vars.vars = new HashMap<>(parent.vars.vars);
             this.vars = vars;

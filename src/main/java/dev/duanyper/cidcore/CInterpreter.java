@@ -1,5 +1,6 @@
 package dev.duanyper.cidcore;
 
+import dev.duanyper.cidcore.exception.CIdRuntimeException;
 import dev.duanyper.cidcore.grammar.*;
 import dev.duanyper.cidcore.runtime.ValuedArgTreeNode;
 import dev.duanyper.cidcore.symbols.Functions;
@@ -10,6 +11,8 @@ import dev.duanyper.cidcore.variable.*;
 import dev.duanyper.cidcore.exception.CIdGrammarException;
 
 import java.io.*;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.*;
 
 public class CInterpreter {
@@ -50,7 +53,8 @@ public class CInterpreter {
     }
 
     public int start() {
-        functions = new Functions();
+        if (functions == null)
+            functions = new Functions();
         gp = new GrammarProc(functions);
         gp.analyze(codes);
         try {
@@ -63,7 +67,8 @@ public class CInterpreter {
         return -1;
     }
     public int start(String c) {
-        functions = new Functions();
+        if (functions == null)
+            functions = new Functions();
         codes = c;
         gp = new GrammarProc(functions);
         gp.analyze(codes);
@@ -75,6 +80,12 @@ public class CInterpreter {
             e.printStackTrace();
         }
         return -1;
+    }
+
+    public void clear() {
+        codes = "";
+        gp = null;
+        functions = null;
     }
 
     public void setGrammarProc(GrammarProc grammarProc) {
@@ -96,14 +107,24 @@ public class CInterpreter {
          */
     }
 
-    public Variable callFunction(String funcName, ValuedArgTreeNode args) throws CIdGrammarException {
+    public Variable callFunction(String funcName, ValuedArgTreeNode args) throws CIdGrammarException, CIdRuntimeException {
         BlockTreeNode block = functions.codeIndex.get(funcName);
+        if (block == null) {
+            try {
+                Method method = functions.nativeFunctions.get(funcName);
+                Variable var = (Variable) method.invoke(Start.class, new Object[]{this, args});
+                if (var == null) return CIdVOID.createVOID();
+                else return var;
+            } catch (Exception e) {
+                throw new CIdRuntimeException("无法调用native函数");
+            }
+        }
         block.vars.vars.clear();
         block.vars.vars.putAll(args.argMap);
         return execBlock(functions.codeIndex.get(funcName));
     }
 
-    public Variable execBlock(BlockTreeNode block) throws CIdGrammarException {
+    public Variable execBlock(BlockTreeNode block) throws CIdGrammarException, CIdRuntimeException {
         if (block == null) return CIdINT.createINT(-1);
         for (TreeNode node : block.subNode) {
             if (gp.codeBlocks.get(node.lIndex).equals("return")) {
@@ -129,7 +150,7 @@ public class CInterpreter {
         return CIdVOID.createVOID();
     }
 
-    private Variable calcExpression(TreeNode treeNode) throws CIdGrammarException {
+    private Variable calcExpression(TreeNode treeNode) throws CIdGrammarException, CIdRuntimeException {
         String exp;
         StringBuilder sb = new StringBuilder();
         int offset = 0;
@@ -145,7 +166,7 @@ public class CInterpreter {
         return calcExpression(exp, treeNode);
     }
 
-    private Variable calcExpression(String exp, TreeNode treeNode) throws CIdGrammarException {
+    private Variable calcExpression(String exp, TreeNode treeNode) throws CIdGrammarException, CIdRuntimeException {
         Map<String, FunctionCallTreeNode> tempFuncCallMap = new HashMap<>();
         if (treeNode.type().equals("funcCall")) {
             tempFuncCallMap.put(gp.codeBlocks.get(treeNode.lIndex), (FunctionCallTreeNode) treeNode);
@@ -165,12 +186,20 @@ public class CInterpreter {
                 ArgTreeNode argTreeNode = functions.argIndex.get(funcName);
                 ValuedArgTreeNode valuedArgTreeNode = new ValuedArgTreeNode();
                 ArgTreeNode realArgTreeNode = (ArgTreeNode) functionCallTreeNode.subNode.get(0);
-                if (realArgTreeNode.lIndex < realArgTreeNode.rIndex - 1) {
+                if (realArgTreeNode.lIndex < realArgTreeNode.rIndex) {
                     if (realArgTreeNode.subNode.size() == 0) {
-                        valuedArgTreeNode.argMap.put(gp.codeBlocks.get(argTreeNode.lIndex + 1), calcExpression(realArgTreeNode));
+                        String argName = "";
+                        if (argTreeNode == null) {
+                            argName = "%0";
+                        } else argName = gp.codeBlocks.get(argTreeNode.lIndex + 1);
+                        valuedArgTreeNode.argMap.put(argName, calcExpression(realArgTreeNode));
                     } else {
                         for (int j = 0; j < realArgTreeNode.subNode.size(); j++) {
-                            valuedArgTreeNode.argMap.put(gp.codeBlocks.get(argTreeNode.subNode.get(j).lIndex + 1), calcExpression(realArgTreeNode.subNode.get(j)));
+                            String argName = "";
+                            if (argTreeNode == null) {
+                                argName = "%" + j;
+                            } else argName = gp.codeBlocks.get(argTreeNode.subNode.get(j).lIndex + 1);
+                            valuedArgTreeNode.argMap.put(argName, calcExpression(realArgTreeNode.subNode.get(j)));
                         }
                     }
                 }
