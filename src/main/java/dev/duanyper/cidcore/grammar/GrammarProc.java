@@ -70,21 +70,20 @@ public class GrammarProc {
                             parentNode.subNode.add(functionTreeNode);
                             i += 3;
                             int argStart = i;
-                            Stack<Integer> stack = new Stack<Integer>();
-                            stack.push(0);
-                            for (; !stack.empty(); i++) {
-                                if (codeBlocks.get(i).equals("(")) stack.push(0);
-                                else if (codeBlocks.get(i).equals(")")) stack.pop();
+                            int tmp = 1;
+                            for (; tmp != 0; i++) {
+                                if (codeBlocks.get(i).equals("(")) tmp++;
+                                else if (codeBlocks.get(i).equals(")")) tmp--;
                             }
                             ArgTreeNode argTreeNode = new ArgTreeNode(argStart, i - 1, functionTreeNode);
                             buildTree(argTreeNode);
                             functionTreeNode.subNode.add(argTreeNode);
-                            stack.push(0);
+                            tmp = 1;
                             int blockStart = i;
                             i++;
-                            for (; !stack.empty(); i++) {
-                                if (codeBlocks.get(i).equals("{")) stack.push(0);
-                                else if (codeBlocks.get(i).equals("}")) stack.pop();
+                            for (; tmp != 0; i++) {
+                                if (codeBlocks.get(i).equals("{")) tmp++;
+                                else if (codeBlocks.get(i).equals("}")) tmp--;
                             }
                             BlockTreeNode blockTreeNode = new BlockTreeNode(blockStart + 1, i - 1, functionTreeNode);
                             buildTree(blockTreeNode);
@@ -216,7 +215,8 @@ public class GrammarProc {
                                 blockEnd = i - 1;
                             } else {
                                 blockBegin = i;
-                                for (; !codeBlocks.get(i).equals(";"); i++) ;
+                                //for (; !codeBlocks.get(i).equals(";"); i++) ;
+                                while (!codeBlocks.get(i).equals(";")) i++;
                                 blockEnd = i;
                             }
                             WhileTreeNode whileTreeNode = new WhileTreeNode(whileBegin, blockEnd + 2, parentNode);
@@ -229,6 +229,41 @@ public class GrammarProc {
                             parentNode.subNode.add(whileTreeNode);
                             i++;
                         }
+                    } else if (str.equals("for")) {
+                        i += 2;
+                        int conditionBegin = i, conditionEnd, blockBegin, blockEnd;
+                        int tmp = 1;
+                        while (tmp > 0) {
+                            if (codeBlocks.get(i).equals("(")) tmp++;
+                            else if (codeBlocks.get(i).equals(")")) tmp--;
+                            i++;
+                        }
+                        conditionEnd = i - 1;
+                        i++;
+                        if (codeBlocks.get(i).equals("{")) {
+                            tmp = 1;
+                            i++;
+                            blockBegin = i;
+                            while (tmp > 0) {
+                                if (codeBlocks.get(i).equals("{")) tmp++;
+                                else if (codeBlocks.get(i).equals("}")) tmp--;
+                                i++;
+                            }
+                            blockEnd = i - 1;
+                        } else {
+                            blockBegin = i;
+                            //for (; !codeBlocks.get(i).equals(";"); i++) ;
+                            while (!codeBlocks.get(i).equals(";")) i++;
+                            blockEnd = i;
+                        }
+                        ForTreeNode forTreeNode = new ForTreeNode(conditionEnd - 2, blockEnd + 1, parentNode);
+                        ArgTreeNode argTreeNode = new ArgTreeNode(conditionBegin, i - 1, forTreeNode);
+                        buildTree(argTreeNode);
+                        forTreeNode.subNode.add(argTreeNode);
+                        BlockTreeNode blockTreeNode = new BlockTreeNode(blockBegin, blockEnd, forTreeNode);
+                        buildTree(blockTreeNode);
+                        forTreeNode.subNode.add(blockTreeNode);
+                        parentNode.subNode.add(forTreeNode);
                     }
                 }
                 case TypeLookup.RETURN -> {
@@ -278,37 +313,6 @@ public class GrammarProc {
         if (codesAddr == -1) {
             return -1;
         }
-        Stack<Integer> tmp = new Stack<>();
-        boolean bInQua = false;
-        for (int i = 0; i < codeBlocks.size(); i++) {
-            if (codeBlocks.get(i).equals("{") || codeBlocks.get(i).equals("(") || codeBlocks.get(i).equals("[")) {
-                tmp.add(0);
-                continue;
-            }
-            if (codeBlocks.get(i).equals("}") || codeBlocks.get(i).equals(")") || codeBlocks.get(i).equals("]")) {
-                tmp.pop();
-                continue;
-            }
-            if (codeBlocks.get(i).equals("\"")) {
-                bInQua = !bInQua;
-                continue;
-            }
-            if (bInQua || !tmp.empty()) continue;
-            /*
-            if (codeBlocks.get(i).equals("main")) {
-                if (codeBlocks.get(i - 1).equals("int") && codeBlocks.get(i + 3).equals("{")) {
-                    if (Functions.funcList.getOrDefault("main", null) == null
-                            && Functions.codesIndex.getOrDefault("main", null) == null) {
-                        Functions.funcList.put("main", Keywords.Int);
-                        Functions.codesIndex.put("main", i + 3);
-                        break;
-                    }
-                }
-            }
-
-             */
-        }
-        if (!tmp.empty()) return -1;
         expendHeader("");
         return 0;
     }

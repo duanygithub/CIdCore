@@ -28,7 +28,7 @@ public class TypeLookup {
         if (str.matches("^([0-9]+[.][0-9]*)$")) {
             return FLOAT;
         }
-        if (str.matches("[,;)}]")) {
+        if (str.matches("[,;]")) {
             return SPLITPOINT;
         }
         if (str.matches("(int|char|float)\\*+") || str.matches("int|char|float")) {

@@ -16,7 +16,7 @@ public class Start {
     static public List<String> codeBlocks;
 
     public static void printf(CInterpreter cInterpreter, ValuedArgTreeNode arg) {
-        Variable var = arg.argMap.get("%0");
+        Variable var = arg.argMap.get("%1");
         System.out.println(var.toString());
     }
 
@@ -26,6 +26,6 @@ public class Start {
         Functions functions = new Functions();
         functions.funcList.put("printf", Keywords.Void);
         functions.nativeFunctions.put("printf", Start.class.getMethod("printf", CInterpreter.class, ValuedArgTreeNode.class));
-        new CIdWrapper().executeCode("printf(999);", functions, null);
+        new CIdWrapper().executeCode("printf(999, 1);", functions, null);
     }
 }

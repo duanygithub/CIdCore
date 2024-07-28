@@ -145,6 +145,25 @@ public class CInterpreter {
                         return result;
                     }
                 }
+            } else if (node.type().equals("do")) {
+                do {
+                    Variable result = execBlock((BlockTreeNode) node.subNode.get(1));
+                    if (result.getType() != Keywords.Void) {
+                        return result;
+                    }
+                } while (calcExpression(node.subNode.get(0)).getValue().intValue() != 0);
+            } else if (node.type().equals("for")) {
+                TreeNode init = node.subNode.get(0).subNode.get(0);
+                TreeNode condition = node.subNode.get(0).subNode.get(1);
+                TreeNode it = node.subNode.get(0).subNode.get(2);
+                calcExpression(init);
+                while (calcExpression(condition).getValue().intValue() != 0) {
+                    Variable result = execBlock((BlockTreeNode) node.subNode.get(1));
+                    if (result.getType() != Keywords.Void) {
+                        return result;
+                    }
+                    calcExpression(condition);
+                }
             } else calcExpression(node);
         }
         return CIdVOID.createVOID();
