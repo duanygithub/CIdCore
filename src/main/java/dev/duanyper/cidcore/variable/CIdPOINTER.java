@@ -1,26 +1,26 @@
 package dev.duanyper.cidcore.variable;
 
 import dev.duanyper.cidcore.memory.MemOperator;
-import dev.duanyper.cidcore.symbols.Keywords;
+import dev.duanyper.cidcore.symbols.Types;
 
 public class CIdPOINTER implements Variable {
     int addr;
     int level = 0;
-    Keywords targetType;
+    Types targetType;
 
-    protected CIdPOINTER(int address, int lvl, Keywords type) {
+    protected CIdPOINTER(int address, int lvl, Types type) {
         addr = address;
         level = lvl;
         targetType = type;
     }
 
-    public static CIdPOINTER createPOINTER(int lvl, int pAddress, Keywords type) {
+    public static CIdPOINTER createPOINTER(int lvl, int pAddress, Types type) {
         int address = MemOperator.allocateMemory(4);
         MemOperator.writeInt(address, pAddress);
         return new CIdPOINTER(address, lvl, type);
     }
 
-    public static CIdPOINTER createWithAllocatedAddress(int address, int lvl, Keywords type) {
+    public static CIdPOINTER createWithAllocatedAddress(int address, int lvl, Types type) {
         return new CIdPOINTER(address, lvl, type);
     }
 
@@ -34,11 +34,11 @@ public class CIdPOINTER implements Variable {
     }
 
     @Override
-    public Keywords getType() {
-        return Keywords.Pointer;
+    public Types getType() {
+        return Types.Pointer;
     }
 
-    public Keywords getTargetType() {
+    public Types getTargetType() {
         return targetType;
     }
 
@@ -79,35 +79,35 @@ public class CIdPOINTER implements Variable {
                 return createPOINTER(value, level, targetType);
             }
             case "&=" -> {
-                if (var.getType() != Keywords.Int) return null;
+                if (var.getType() != Types.Int) return null;
                 int value = setValue(getValue() & var.getValue().intValue());
                 return createPOINTER(value, level, targetType);
             }
             case "|=" -> {
-                if (var.getType() != Keywords.Int) return null;
+                if (var.getType() != Types.Int) return null;
                 int value = setValue(getValue() | var.getValue().intValue());
                 return createPOINTER(value, level, targetType);
             }
             case "^=" -> {
-                if (var.getType() != Keywords.Int) return null;
+                if (var.getType() != Types.Int) return null;
                 int value = setValue(getValue() ^ var.getValue().intValue());
                 return createPOINTER(value, level, targetType);
             }
             case ">>=" -> {
-                if (var.getType() != Keywords.Int) return null;
+                if (var.getType() != Types.Int) return null;
                 int value = setValue(getValue() >> var.getValue().intValue());
                 return createPOINTER(value, level, targetType);
             }
             case "<<=" -> {
-                if (var.getType() != Keywords.Int) return null;
+                if (var.getType() != Types.Int) return null;
                 int value = setValue(getValue() << var.getValue().intValue());
                 return createPOINTER(value, level, targetType);
             }
             case "++" -> {
                 int value = 0;
-                if (targetType == Keywords.Pointer || targetType == Keywords.Int || targetType == Keywords.Void || targetType == Keywords.Float) {
+                if (targetType == Types.Pointer || targetType == Types.Int || targetType == Types.Void || targetType == Types.Float) {
                     value = setValue(getValue() + 4);
-                } else if (targetType == Keywords.Char || targetType == Keywords.Boolean) {
+                } else if (targetType == Types.Char || targetType == Types.Boolean) {
                     value = setValue(getValue() + 1);
                 }
                 return createPOINTER(value, level, targetType);
@@ -118,7 +118,7 @@ public class CIdPOINTER implements Variable {
             }
         }
 
-        if (var.getType().equals(Keywords.Int)) {
+        if (var.getType().equals(Types.Int)) {
             int value = getValue();
             return switch (op) {
                 case "+" -> createPOINTER(value + var.getValue().intValue(), level, targetType);
@@ -151,5 +151,10 @@ public class CIdPOINTER implements Variable {
     @Override
     public String toString() {
         return String.format("%x", MemOperator.readInt(addr));
+    }
+
+    @Override
+    public int sizeOf() {
+        return 4;
     }
 }

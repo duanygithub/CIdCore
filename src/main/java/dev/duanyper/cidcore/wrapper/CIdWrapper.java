@@ -6,11 +6,11 @@ import dev.duanyper.cidcore.exception.CIdRuntimeException;
 import dev.duanyper.cidcore.grammar.BlockTreeNode;
 import dev.duanyper.cidcore.grammar.GrammarProc;
 import dev.duanyper.cidcore.grammar.RootTreeNode;
+import dev.duanyper.cidcore.grammar.TreeNode;
+import dev.duanyper.cidcore.runtime.Environment;
 import dev.duanyper.cidcore.runtime.ValuedArgTreeNode;
 import dev.duanyper.cidcore.symbols.Functions;
 import dev.duanyper.cidcore.variable.Variable;
-
-import java.lang.reflect.InvocationTargetException;
 
 public class CIdWrapper {
     Variable returnValue;
@@ -22,19 +22,20 @@ public class CIdWrapper {
         return returnValue;
     }
 
-    public CInterpreter executeCode(String code, Functions functions, CInterpreter cInterpreter) throws CIdGrammarException, CIdRuntimeException {
-        if (functions == null)
-            functions = new Functions();
+    public CInterpreter executeCode(String code, Environment env, CInterpreter cInterpreter) throws CIdGrammarException, CIdRuntimeException {
+        if (env == null)
+            env = new Environment(null, null);
         if (cInterpreter == null)
             cInterpreter = new CInterpreter(code, false);
-        cInterpreter.setFunctions(functions);
-        GrammarProc gp = new GrammarProc(functions);
+        cInterpreter.setFunctions(env.functions);
+        GrammarProc gp = new GrammarProc(env.functions);
         cInterpreter.setGrammarProc(gp);
         gp.preProcess(code);
         gp.root = new RootTreeNode(0, gp.codeBlocks.size(), null);
         BlockTreeNode block = new BlockTreeNode(gp.root.lIndex, gp.root.rIndex, gp.root);
         gp.buildTree(block);
         gp.root.subNode.add(block);
+        block.vars.vars.putAll(env.variables.vars);
         returnValue = cInterpreter.execBlock(block);
         return cInterpreter;
     }
@@ -59,6 +60,18 @@ public class CIdWrapper {
         GrammarProc gp = new GrammarProc(functions);
         gp.analyze(code);
         returnValue = cInterpreter.callFunction(function, arg);
+        return cInterpreter;
+    }
+
+    public CInterpreter executeTree(TreeNode treeNode, Environment env, CInterpreter cInterpreter) throws CIdRuntimeException, CIdGrammarException {
+        if (env == null)
+            env = new Environment(null, null);
+        if (cInterpreter == null)
+            cInterpreter = new CInterpreter();
+        GrammarProc gp = new GrammarProc(env.functions);
+        cInterpreter.setFunctions(env.functions);
+        cInterpreter.setGrammarProc(gp);
+        returnValue = cInterpreter.calcExpression(treeNode);
         return cInterpreter;
     }
 }

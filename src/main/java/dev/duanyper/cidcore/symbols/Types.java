@@ -1,22 +1,24 @@
 package dev.duanyper.cidcore.symbols;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
 
-public class Keywords {
-    public static final Keywords Int = new Keywords();
-    public static final Keywords Void = new Keywords();
-    public static final Keywords Char = new Keywords();
-    public static final Keywords Float = new Keywords();
-    public static final Keywords Boolean = new Keywords();
-    public static final Keywords Pointer = new Keywords();
-    public static final Keywords CharArray = new Keywords();
+public class Types {
+    public static final Types Int = new Types();
+    public static final Types Void = new Types();
+    public static final Types Char = new Types();
+    public static final Types Float = new Types();
+    public static final Types Boolean = new Types();
+    public static final Types Pointer = new Types();
+    public static final Types CharArray = new Types();
+    public static final Types Struct = new Types();
 
     public static final ArrayList<String> keywords = new ArrayList<>(Arrays.asList(
-            "int", "float", "bool", "char",
+            "int", "float", "bool", "char", "struct", "enum", "union",
             "while", "do", "for", "return", "break", "continue", "goto"
     ));
 
-    public static Keywords string2Keywords(String type) {
+    public static Types string2Keywords(String type) {
         switch (type) {
             case "int" -> {
                 return Int;

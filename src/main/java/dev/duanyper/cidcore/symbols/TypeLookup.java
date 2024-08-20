@@ -20,8 +20,13 @@ public class TypeLookup {
     public static final int RETURN = 11;
     public static final int PROC_CONTROL = 12;
     public static final int BOOLEAN = 13;
+    public static final int BLOCK_START = 14;
+    public static final int STRUCT = 15;
 
     public static int lookup(String str, Variables vars, Functions functions) {
+        if (str.equals("{")) {
+            return BLOCK_START;
+        }
         if (str.matches("(\\+|-)?[0-9]+")) {
             return INTEGER;
         }
@@ -35,6 +40,9 @@ public class TypeLookup {
             if (str.matches("(int|char|float)\\*+")) {
                 return DECLEAR_POINTER;
             } else return BASICTYPE;
+        }
+        if (str.equals("struct")) {
+            return STRUCT;
         }
         if (functions.funcList.getOrDefault(str, null) != null) {
             return FUNCTION;
@@ -66,16 +74,16 @@ public class TypeLookup {
         return -1;
     }
 
-    public static Keywords lookupKeywords(String str, Variables tmpVars, Functions functions) {
+    public static Types lookupKeywords(String str, Variables tmpVars, Functions functions) {
         Map<String, Variable> vars;
         if (tmpVars == null) {
             vars = new HashMap<>();
         } else vars = new HashMap<>(tmpVars.vars);
         if (str.matches("[0-9]+")) {
-            return Keywords.Int;
+            return Types.Int;
         }
         if (str.matches("^([0-9]+[.][0-9]*)$")) {
-            return Keywords.Float;
+            return Types.Float;
         }
         if (functions.funcList.getOrDefault(str, null) != null) {
             functions.funcList.get(str);
@@ -84,7 +92,7 @@ public class TypeLookup {
             return vars.get(str).getType();
         }
         if (str.matches("\"([^\"]*)\"")) {
-            return Keywords.Pointer;
+            return Types.Pointer;
         }
         if (functions.funcList.get(str) != null) {
             return functions.funcList.get(str);

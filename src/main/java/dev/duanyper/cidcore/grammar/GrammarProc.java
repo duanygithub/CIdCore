@@ -1,10 +1,10 @@
 package dev.duanyper.cidcore.grammar;
 
-import dev.duanyper.cidcore.memory.MemOperator;
 import dev.duanyper.cidcore.Start;
+import dev.duanyper.cidcore.memory.MemOperator;
 import dev.duanyper.cidcore.symbols.Functions;
-import dev.duanyper.cidcore.symbols.Keywords;
 import dev.duanyper.cidcore.symbols.TypeLookup;
+import dev.duanyper.cidcore.symbols.Types;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,24 +38,16 @@ public class GrammarProc {
         if (parentNode.type().equals("arg")) {
             int last = l;
             for (int i = l, splitCount = 0; i < r; i++) {
-                if (TypeLookup.lookup(codeBlocks.get(i), parentNode.vars, functions) == TypeLookup.SPLITPOINT) {
-                    if (i == r - 1 && splitCount == 0)
-                        break;
-                    /*
-                    if (parentNode.parentNode.subNode.contains(parentNode))
-                        parentNode.parentNode.subNode.remove(parentNode);
-                     */
+                if (TypeLookup.lookup(codeBlocks.get(i), parentNode.vars, functions) == TypeLookup.SPLITPOINT || i == r - 1) {
+                    if (i == r - 1) {
+                        i++;
+                    }
                     StatementTreeNode node = new StatementTreeNode(last, i, parentNode);
                     buildTree(node);
                     parentNode.subNode.add(node);
                     last = i + 1;
                     splitCount++;
                 }
-            }
-            if (last != l) {
-                StatementTreeNode node = new StatementTreeNode(last, r, parentNode);
-                buildTree(node);
-                parentNode.subNode.add(node);
             }
             return;
         }
@@ -88,7 +80,7 @@ public class GrammarProc {
                             BlockTreeNode blockTreeNode = new BlockTreeNode(blockStart + 1, i - 1, functionTreeNode);
                             buildTree(blockTreeNode);
                             functionTreeNode.subNode.add(blockTreeNode);
-                            Keywords keywordType = Keywords.string2Keywords(str);
+                            Types keywordType = Types.string2Keywords(str);
                             String name = codeBlocks.get(funcBegin + 1);
                             functions.funcList.put(name, keywordType);
                             functions.codeIndex.put(name, blockTreeNode);
@@ -141,13 +133,7 @@ public class GrammarProc {
                     buildTree(argTreeNode);
                     functionCallTreeNode.subNode.add(argTreeNode);
                     parentNode.subNode.add(functionCallTreeNode);
-                }/*
-                case TypeLookup.SPLITPOINT -> {
-                    if (viewedR > lastSplitPoint) break;
-                    parentNode.subNode.add(new StatementTreeNode(lastSplitPoint, i, parentNode));
-                    lastSplitPoint = i + 1;
                 }
-                */
                 case TypeLookup.PROC_CONTROL -> {
                     if (str.equals("if")) {
                         int tmp = 0, ifBegin = i;
@@ -279,6 +265,29 @@ public class GrammarProc {
                     buildTree(statementTreeNode);
                     returnTreeNode.subNode.add(statementTreeNode);
                     parentNode.subNode.add(returnTreeNode);
+                }
+                case TypeLookup.STRUCT -> {
+                    int blockBegin = i + 1;
+                    int tmp = 0;
+                    do {
+                        if (codeBlocks.get(i).equals("{")) tmp++;
+                        if (codeBlocks.get(i).equals("}")) tmp--;
+                        i++;
+                    } while (tmp != 0);
+                    StructureTreeNode structureTreeNode = new StructureTreeNode(blockBegin, i, parentNode);
+                    BlockTreeNode blockTreeNode = new BlockTreeNode(blockBegin + 2, i - 1, structureTreeNode);
+                    buildTree(blockTreeNode);
+                    structureTreeNode.subNode.add(structureTreeNode);
+                }
+                case TypeLookup.BLOCK_START -> {
+                    int tmp = 0, blockStart = i + 1;
+                    do {
+                        if (codeBlocks.get(i).equals("{")) tmp++;
+                        if (codeBlocks.get(i).equals("}")) tmp--;
+                        i++;
+                    } while (tmp != 0);
+                    BlockTreeNode blockTreeNode = new BlockTreeNode(blockStart, i - 2, parentNode);
+                    parentNode.subNode.add(blockTreeNode);
                 }
                 default -> {
                     int begin = i;

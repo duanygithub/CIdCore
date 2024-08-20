@@ -1,7 +1,7 @@
 package dev.duanyper.cidcore.variable;
 
 import dev.duanyper.cidcore.memory.MemOperator;
-import dev.duanyper.cidcore.symbols.Keywords;
+import dev.duanyper.cidcore.symbols.Types;
 
 public class CIdCHAR implements Variable {
     int addr;
@@ -39,8 +39,8 @@ public class CIdCHAR implements Variable {
     }
 
     @Override
-    public Keywords getType() {
-        return Keywords.Char;
+    public Types getType() {
+        return Types.Char;
     }
 
     @Override
@@ -50,7 +50,7 @@ public class CIdCHAR implements Variable {
 
     @Override
     public Variable procOperation(Variable var, String op) {
-        if (!var.getType().equals(Keywords.Int)) return this;
+        if (!var.getType().equals(Types.Int)) return this;
         int value = getValue();
         return switch (op) {
             case "+" -> createCHAR(value + (int) var.getValue());
@@ -73,5 +73,10 @@ public class CIdCHAR implements Variable {
     public String toString() {
         return String.valueOf(MemOperator.readChar(addr));
 
+    }
+
+    @Override
+    public int sizeOf() {
+        return 1;
     }
 }

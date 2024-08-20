@@ -2,12 +2,7 @@ package dev.duanyper.cidcore.variable;
 
 import dev.duanyper.cidcore.symbols.Types;
 
-public class CIdVOID implements Variable {
-    int addr;
-
-    public static CIdVOID createVOID() {
-        return new CIdVOID();
-    }
+public class CIdSTRUCT implements Variable {
 
     @Override
     public Number getValue() {
@@ -16,7 +11,7 @@ public class CIdVOID implements Variable {
 
     @Override
     public Types getType() {
-        return Types.Void;
+        return null;
     }
 
     @Override
@@ -32,11 +27,6 @@ public class CIdVOID implements Variable {
     @Override
     public int cmp(Variable var) {
         return 0;
-    }
-
-    @Override
-    public String toString() {
-        return "";
     }
 
     @Override
