@@ -1,32 +1,35 @@
 package dev.duanyper.cidcore;
 
-import dev.duanyper.cidcore.exception.CIdGrammarException;
-import dev.duanyper.cidcore.exception.CIdRuntimeException;
-import dev.duanyper.cidcore.runtime.Environment;
-import dev.duanyper.cidcore.runtime.ValuedArgTreeNode;
-import dev.duanyper.cidcore.symbols.Functions;
-import dev.duanyper.cidcore.symbols.Types;
-import dev.duanyper.cidcore.variable.Variable;
-import dev.duanyper.cidcore.wrapper.CIdWrapper;
-
+import java.io.DataInputStream;
+import java.io.File;
 import java.io.IOException;
-import java.util.List;
 
 public class Start {
-    static public List<String> codeBlocks;
-
-    public static void printf(CInterpreter cInterpreter, ValuedArgTreeNode arg) {
-        Variable var = arg.argMap.get("%0");
-        System.out.println(var.toString());
-    }
-
-    public static void main(String[] args) throws IOException, CIdGrammarException, NoSuchMethodException, CIdRuntimeException {
-        //DEBUG ONLY!!!!
-        String str = "int main(){printf(666);}";
-        Functions functions = new Functions();
-        functions.funcList.put("printf", Types.Void);
-        functions.nativeFunctions.put("printf", Start.class.getMethod("printf", CInterpreter.class, ValuedArgTreeNode.class));
-
-        new CIdWrapper().executeCode("printf(999);", new Environment(functions, null), null);
+    public static void main(String[] args) throws IOException {
+        if (args.length == 0) {
+            DataInputStream cout = new DataInputStream(System.in);
+            String code = cout.readLine();
+            CInterpreter ci = new CInterpreter(code, false);
+            int retVal = ci.start();
+            System.out.println();
+            System.out.println("***程序返回 " + retVal + " ***");
+            return;
+        }
+        File codeFile = new File(args[0]);
+        if (codeFile.exists()) {
+            CInterpreter ci = new CInterpreter(args[0]);
+            int retVal = ci.start();
+            System.out.println();
+            System.out.println("***程序返回 " + retVal + " .");
+        } else {
+            StringBuilder sb = new StringBuilder();
+            for (String argString : args) {
+                sb.append(argString).append(' ');
+            }
+            CInterpreter ci = new CInterpreter(sb.toString(), false);
+            int retVal = ci.start();
+            System.out.println();
+            System.out.println("***程序返回 " + retVal + " .");
+        }
     }
 }

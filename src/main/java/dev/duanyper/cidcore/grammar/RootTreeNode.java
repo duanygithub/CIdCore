@@ -1,6 +1,8 @@
 package dev.duanyper.cidcore.grammar;
 
-import java.util.HashMap;
+import dev.duanyper.cidcore.symbols.Variables;
+
+import java.util.List;
 
 public class RootTreeNode extends TreeNode {
     @Override
@@ -8,8 +10,9 @@ public class RootTreeNode extends TreeNode {
         return "root";
     }
 
-    public RootTreeNode(int l, int r, TreeNode parent) {
+    public RootTreeNode(int l, int r, TreeNode parent, List<String> codeBlocks) {
         super(l, r, parent);
-        vars.vars = new HashMap<>();
+        vars = new Variables();
+        this.codeBlocks = codeBlocks;
     }
 }

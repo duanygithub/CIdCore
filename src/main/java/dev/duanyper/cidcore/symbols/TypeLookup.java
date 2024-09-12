@@ -48,7 +48,7 @@ public class TypeLookup {
             return FUNCTION;
         }
         try {
-            if (vars.vars.get(str) != null) {
+            if (vars.get(str) != null) {
                 return VARIABLE;
             }
         } catch (NullPointerException ignore) {
@@ -78,7 +78,7 @@ public class TypeLookup {
         Map<String, Variable> vars;
         if (tmpVars == null) {
             vars = new HashMap<>();
-        } else vars = new HashMap<>(tmpVars.vars);
+        } else vars = new HashMap<>(tmpVars);
         if (str.matches("[0-9]+")) {
             return Types.Int;
         }

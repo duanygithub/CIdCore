@@ -24,18 +24,18 @@ public class CIdWrapper {
 
     public CInterpreter executeCode(String code, Environment env, CInterpreter cInterpreter) throws CIdGrammarException, CIdRuntimeException {
         if (env == null)
-            env = new Environment(null, null);
+            env = new Environment(null, null, null);
         if (cInterpreter == null)
             cInterpreter = new CInterpreter(code, false);
         cInterpreter.setFunctions(env.functions);
         GrammarProc gp = new GrammarProc(env.functions);
         cInterpreter.setGrammarProc(gp);
         gp.preProcess(code);
-        gp.root = new RootTreeNode(0, gp.codeBlocks.size(), null);
+        gp.root = new RootTreeNode(0, gp.codeBlocks.size(), null, gp.codeBlocks);
         BlockTreeNode block = new BlockTreeNode(gp.root.lIndex, gp.root.rIndex, gp.root);
         gp.buildTree(block);
         gp.root.subNode.add(block);
-        block.vars.vars.putAll(env.variables.vars);
+        block.vars.putAll(env.variables);
         returnValue = cInterpreter.execBlock(block);
         return cInterpreter;
     }
@@ -65,7 +65,7 @@ public class CIdWrapper {
 
     public CInterpreter executeTree(TreeNode treeNode, Environment env, CInterpreter cInterpreter) throws CIdRuntimeException, CIdGrammarException {
         if (env == null)
-            env = new Environment(null, null);
+            env = new Environment(null, null, null);
         if (cInterpreter == null)
             cInterpreter = new CInterpreter();
         GrammarProc gp = new GrammarProc(env.functions);

@@ -1,10 +1,9 @@
 package dev.duanyper.cidcore.grammar;
 
-import dev.duanyper.cidcore.Start;
+import dev.duanyper.cidcore.DbgStart;
 import dev.duanyper.cidcore.symbols.Variables;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 public class TreeNode {
@@ -13,27 +12,27 @@ public class TreeNode {
     public ArrayList<TreeNode> subNode = new ArrayList<>();
     public TreeNode parentNode;
     public Variables vars = new Variables();
+    public List<String> codeBlocks;
 
     public TreeNode(int l, int r, TreeNode parent) {
         lIndex = l;
         rIndex = r;
         parentNode = parent;
         StringBuilder sb = new StringBuilder();
-        for (String s : Start.codeBlocks.subList(l, r)) {
+        for (String s : DbgStart.codeBlocks.subList(l, r)) {
             sb.append(s).append(" ");
         }
         content = sb.toString();
         if (type().equals("Function") || type().equals("block")) {
-            Variables vars = new Variables();
-            vars.vars = new HashMap<>(parent.vars.vars);
+            Variables vars = new Variables(parent.vars);
             this.vars = vars;
         } else if (!type().equals("root")) {
-            vars.vars = parent.vars.vars;
+            vars = parent.vars;
+            codeBlocks = parent.codeBlocks;
         }
     }
 
     public TreeNode() {
-
     }
 
     public int getLIndex() {
@@ -48,7 +47,7 @@ public class TreeNode {
         return "nul";
     }
 
-    public String toString(List<String> codeBlocks) {
+    public String toString() {
         StringBuilder ret = new StringBuilder();
         for (String str : codeBlocks.subList(lIndex, rIndex)) {
             ret.append(str).append(" ");

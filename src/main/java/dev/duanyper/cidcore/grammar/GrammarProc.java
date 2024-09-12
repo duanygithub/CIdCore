@@ -1,6 +1,6 @@
 package dev.duanyper.cidcore.grammar;
 
-import dev.duanyper.cidcore.Start;
+import dev.duanyper.cidcore.DbgStart;
 import dev.duanyper.cidcore.memory.MemOperator;
 import dev.duanyper.cidcore.symbols.Functions;
 import dev.duanyper.cidcore.symbols.TypeLookup;
@@ -22,7 +22,7 @@ public class GrammarProc {
 
     public int analyze(String codes) {
         preProcess(codes);
-        root = new RootTreeNode(0, codeBlocks.size(), null);
+        root = new RootTreeNode(0, codeBlocks.size(), null, codeBlocks);
         buildTree(root);
         return 0;
     }
@@ -308,7 +308,7 @@ public class GrammarProc {
     public int preProcess(String codes) {
         //先把代码分割一遍
         originalCodeBlocks = new ArrayList<>(codeBlocks = splitCodes(codes));
-        Start.codeBlocks = codeBlocks;
+        DbgStart.codeBlocks = codeBlocks;
         //计算代码块总数
         int codeSize = 0;
         for (String s : codeBlocks) {

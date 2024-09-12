@@ -120,8 +120,8 @@ public class CInterpreter {
                 throw new CIdRuntimeException("无法调用native函数");
             }
         }
-        block.vars.vars.clear();
-        block.vars.vars.putAll(args.argMap);
+        block.vars.clear();
+        block.vars.putAll(args.argMap);
         return execBlock(functions.codeIndex.get(funcName));
     }
 
@@ -213,7 +213,7 @@ public class CInterpreter {
             } else if (cur.matches("(A&)|(A\\*)")) {
                 if (cur.equals("A&")) {
                     Variable varOp1 = stack.pop();
-                    if (!treeNode.vars.vars.containsValue(varOp1))
+                    if (!treeNode.vars.containsValue(varOp1))
                         throw new CIdGrammarException("取地址对象必须为变量");
                     stack.push(CIdPOINTER.createPOINTER(
                             varOp1.getType() == Types.Pointer ? ((CIdPOINTER) varOp1).getLevel() + 1 : 1,
@@ -284,31 +284,14 @@ public class CInterpreter {
                 if (TypeLookup.lookup(res.get(i + 1), treeNode.vars, functions) != TypeLookup.VARIABLE_FORMAT) continue;
                 Variable variable = null;
                 switch (cur) {
-                    case "int" -> treeNode.vars.vars.put(res.get(i + 1), (variable = CIdINT.createINT()));
-                    case "float" -> treeNode.vars.vars.put(res.get(i + 1), (variable = CIdFLOAT.createFLOAT()));
-                    case "char" -> treeNode.vars.vars.put(res.get(i + 1), (variable = CIdCHAR.createCHAR()));
+                    case "int" -> treeNode.vars.put(res.get(i + 1), (variable = CIdINT.createINT()));
+                    case "float" -> treeNode.vars.put(res.get(i + 1), (variable = CIdFLOAT.createFLOAT()));
+                    case "char" -> treeNode.vars.put(res.get(i + 1), (variable = CIdCHAR.createCHAR()));
                 }
                 stack.push(variable);
             } else if (TypeLookup.lookup(cur, treeNode.vars, functions) == TypeLookup.DECLEAR_POINTER) {
-                int pointerLevel = 0, pointerBegin = 0;
-                for (int j = 0; j < cur.length(); j++) {
-                    if (cur.charAt(j) == '*') {
-                        if (pointerBegin == 0) {
-                            pointerBegin = j;
-                        }
-                        pointerLevel++;
-                    }
-                }
-                String typeStr = cur.substring(0, pointerBegin);
-                Types type;
-                switch (typeStr) {
-                    case "int" -> type = Types.Int;
-                    case "float" -> type = Types.Float;
-                    case "char" -> type = Types.Char;
-                    case "void" -> type = Types.Void;
-                    default -> type = null;
-                }
-                treeNode.vars.vars.put(res.get(i + 1), CIdPOINTER.createPOINTER(pointerLevel, 0, type));
+                Types pointerType = Types.getPointerTypes(cur);
+                treeNode.vars.put(res.get(i + 1), CIdPOINTER.createPOINTER(pointerType.lvl, 0, pointerType.type));
             } else stack.push(string2Variable(cur, treeNode.vars));
         }
         return stack.empty() ? null : stack.pop();
@@ -323,7 +306,7 @@ public class CInterpreter {
                 return CIdFLOAT.createFLOAT(str);
             }
             case TypeLookup.VARIABLE -> {
-                return vars.vars.get(str);
+                return vars.get(str);
             }
             case TypeLookup.BOOLEAN -> {
                 return CIdBOOLEAN.createBOOLEAN(str.equals("true"));
