@@ -17,6 +17,12 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
         <configuration>
+          <archive>
+            <manifest>
+              <!-- 将入口类添加到 MANIFEST.MF 中 -->
+              <mainClass>dev.duanyper.cidcore.Start</mainClass>
+            </manifest>
+          </archive>
           <outputDirectory>./artifact/</outputDirectory>
         </configuration>
       </plugin>
