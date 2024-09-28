@@ -1,7 +1,7 @@
 package dev.duanyper.cidcore.variable;
 
 import dev.duanyper.cidcore.memory.MemOperator;
-import dev.duanyper.cidcore.symbols.Types;
+import dev.duanyper.cidcore.symbols.CIdType;
 
 public class CIdINT implements Variable {
     int addr;
@@ -44,8 +44,8 @@ public class CIdINT implements Variable {
     }
 
     @Override
-    public Types getType() {
-        return Types.Int;
+    public CIdType getType() {
+        return CIdType.Int;
     }
 
     @Override
@@ -81,27 +81,27 @@ public class CIdINT implements Variable {
                 return createINT(value);
             }
             case "&=" -> {
-                if (var.getType() != Types.Int) return null;
+                if (var.getType() != CIdType.Int) return null;
                 int value = setValue(getValue() & var.getValue().intValue());
                 return createINT(value);
             }
             case "|=" -> {
-                if (var.getType() != Types.Int) return null;
+                if (var.getType() != CIdType.Int) return null;
                 int value = setValue(getValue() | var.getValue().intValue());
                 return createINT(value);
             }
             case "^=" -> {
-                if (var.getType() != Types.Int) return null;
+                if (var.getType() != CIdType.Int) return null;
                 int value = setValue(getValue() ^ var.getValue().intValue());
                 return createINT(value);
             }
             case ">>=" -> {
-                if (var.getType() != Types.Int) return null;
+                if (var.getType() != CIdType.Int) return null;
                 int value = setValue(getValue() >> var.getValue().intValue());
                 return createINT(value);
             }
             case "<<=" -> {
-                if (var.getType() != Types.Int) return null;
+                if (var.getType() != CIdType.Int) return null;
                 int value = setValue(getValue() << var.getValue().intValue());
                 return createINT(value);
             }
@@ -115,7 +115,7 @@ public class CIdINT implements Variable {
             }
         }
 
-        if (var.getType().equals(Types.Int)) {
+        if (var.getType().equals(CIdType.Int)) {
             int value = getValue();
             return switch (op) {
                 case "+" -> createINT(value + var.getValue().intValue());
@@ -132,7 +132,7 @@ public class CIdINT implements Variable {
                 case "^" -> createINT(value ^ var.getValue().intValue());
                 default -> null;
             };
-        } else if (var.getType().equals(Types.Float)) {
+        } else if (var.getType().equals(CIdType.Float)) {
             int value = getValue();
             return switch (op) {
                 case "+" -> CIdFLOAT.createFLOAT(value + var.getValue().floatValue());

@@ -2,9 +2,9 @@ package dev.duanyper.cidcore.grammar;
 
 import dev.duanyper.cidcore.DbgStart;
 import dev.duanyper.cidcore.memory.MemOperator;
+import dev.duanyper.cidcore.symbols.CIdType;
 import dev.duanyper.cidcore.symbols.Functions;
 import dev.duanyper.cidcore.symbols.TypeLookup;
-import dev.duanyper.cidcore.symbols.Types;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -80,7 +80,7 @@ public class GrammarProc {
                             BlockTreeNode blockTreeNode = new BlockTreeNode(blockStart + 1, i - 1, functionTreeNode);
                             buildTree(blockTreeNode);
                             functionTreeNode.subNode.add(blockTreeNode);
-                            Types keywordType = Types.string2Keywords(str);
+                            CIdType keywordType = CIdType.string2Keywords(str);
                             String name = codeBlocks.get(funcBegin + 1);
                             functions.funcList.put(name, keywordType);
                             functions.codeIndex.put(name, blockTreeNode);

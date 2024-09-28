@@ -1,6 +1,6 @@
 package dev.duanyper.cidcore.variable;
 
-import dev.duanyper.cidcore.symbols.Types;
+import dev.duanyper.cidcore.symbols.CIdType;
 
 public interface Variable {
     static Variable createWithAllocatedAddress(int address) {
@@ -9,7 +9,7 @@ public interface Variable {
 
     Number getValue();
 
-    Types getType();
+    CIdType getType();
     int getAddress();
     Variable procOperation(Variable var, String op);
     int cmp(Variable var);

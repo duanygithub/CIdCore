@@ -1,7 +1,7 @@
 package dev.duanyper.cidcore.variable;
 
 import dev.duanyper.cidcore.memory.MemOperator;
-import dev.duanyper.cidcore.symbols.Types;
+import dev.duanyper.cidcore.symbols.CIdType;
 
 public class CIdBOOLEAN implements Variable {
     int addr;
@@ -35,7 +35,7 @@ public class CIdBOOLEAN implements Variable {
     }
 
     @Override
-    public Types getType() {
+    public CIdType getType() {
         return null;
     }
 

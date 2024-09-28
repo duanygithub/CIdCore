@@ -74,16 +74,16 @@ public class TypeLookup {
         return -1;
     }
 
-    public static Types lookupKeywords(String str, Variables tmpVars, Functions functions) {
+    public static CIdType lookupKeywords(String str, Variables tmpVars, Functions functions) {
         Map<String, Variable> vars;
         if (tmpVars == null) {
             vars = new HashMap<>();
         } else vars = new HashMap<>(tmpVars);
         if (str.matches("[0-9]+")) {
-            return Types.Int;
+            return CIdType.Int;
         }
         if (str.matches("^([0-9]+[.][0-9]*)$")) {
-            return Types.Float;
+            return CIdType.Float;
         }
         if (functions.funcList.getOrDefault(str, null) != null) {
             functions.funcList.get(str);
@@ -92,7 +92,7 @@ public class TypeLookup {
             return vars.get(str).getType();
         }
         if (str.matches("\"([^\"]*)\"")) {
-            return Types.Pointer;
+            return CIdType.Pointer;
         }
         if (functions.funcList.get(str) != null) {
             return functions.funcList.get(str);

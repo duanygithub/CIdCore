@@ -4,10 +4,7 @@ import dev.duanyper.cidcore.exception.CIdGrammarException;
 import dev.duanyper.cidcore.exception.CIdRuntimeException;
 import dev.duanyper.cidcore.grammar.*;
 import dev.duanyper.cidcore.runtime.ValuedArgTreeNode;
-import dev.duanyper.cidcore.symbols.Functions;
-import dev.duanyper.cidcore.symbols.TypeLookup;
-import dev.duanyper.cidcore.symbols.Types;
-import dev.duanyper.cidcore.symbols.Variables;
+import dev.duanyper.cidcore.symbols.*;
 import dev.duanyper.cidcore.variable.*;
 
 import java.io.File;
@@ -98,7 +95,7 @@ public class CInterpreter {
         RootTreeNode root = gp.getRoot();
         for (TreeNode node : root.subNode) {
             if (node.type().equals("Function")) {
-                Types keywordType = Types.string2Keywords(gp.originalCodeBlocks.get(node.lIndex));
+                CIdType keywordType = CIdType.string2Keywords(gp.originalCodeBlocks.get(node.lIndex));
                 String name = gp.originalCodeBlocks.get(node.lIndex + 1);
                 Functions.funcList.put(name, keywordType);
                 Functions.codeIndex.put(name, (BlockTreeNode) node.subNode.get(1));
@@ -135,21 +132,21 @@ public class CInterpreter {
             } else if (node instanceof IfStatementTreeNode) {
                 if (calcExpression(node.subNode.get(0)).getValue().intValue() != 0) {
                     Variable result = execBlock((BlockTreeNode) node.subNode.get(1));
-                    if (result.getType() != Types.Void) {
+                    if (result.getType() != CIdType.Void) {
                         return result;
                     }
                 }
             } else if (node instanceof WhileTreeNode) {
                 while (calcExpression(node.subNode.get(0)).getValue().intValue() != 0) {
                     Variable result = execBlock((BlockTreeNode) node.subNode.get(1));
-                    if (result.getType() != Types.Void) {
+                    if (result.getType() != CIdType.Void) {
                         return result;
                     }
                 }
             } else if (node instanceof DoTreeNode) {
                 do {
                     Variable result = execBlock((BlockTreeNode) node.subNode.get(1));
-                    if (result.getType() != Types.Void) {
+                    if (result.getType() != CIdType.Void) {
                         return result;
                     }
                 } while (calcExpression(node.subNode.get(0)).getValue().intValue() != 0);
@@ -160,7 +157,7 @@ public class CInterpreter {
                 calcExpression(init);
                 while (calcExpression(condition).getValue().intValue() != 0) {
                     Variable result = execBlock((BlockTreeNode) node.subNode.get(1));
-                    if (result.getType() != Types.Void) {
+                    if (result.getType() != CIdType.Void) {
                         return result;
                     }
                     calcExpression(condition);
@@ -216,24 +213,24 @@ public class CInterpreter {
                     if (!treeNode.vars.containsValue(varOp1))
                         throw new CIdGrammarException("取地址对象必须为变量");
                     stack.push(CIdPOINTER.createPOINTER(
-                            varOp1.getType() == Types.Pointer ? ((CIdPOINTER) varOp1).getLevel() + 1 : 1,
+                            varOp1.getType() == CIdType.Pointer ? ((CIdPOINTER) varOp1).getLevel() + 1 : 1,
                             varOp1.getAddress(),
-                            varOp1.getType() == Types.Pointer ? ((CIdPOINTER) varOp1).getTargetType() : varOp1.getType()
+                            varOp1.getType() == CIdType.Pointer ? ((CIdPOINTER) varOp1).getTargetType() : varOp1.getType()
                     ));
                 } else if (cur.equals("A*")) {
                     Variable varOp1 = stack.pop();
-                    if (varOp1.getType() != Types.Pointer) {
+                    if (varOp1.getType() != CIdType.Pointer) {
                         throw new CIdGrammarException("取值对象必须为指针变量");
                     }
                     int addr = varOp1.getValue().intValue();
                     CIdPOINTER pointer = (CIdPOINTER) varOp1;
-                    if (pointer.getTargetType().equals(Types.Int)) {
+                    if (pointer.getTargetType().equals(CIdType.Int)) {
                         stack.push(CIdINT.createWithAllocatedAddress(addr));
-                    } else if (pointer.getTargetType().equals(Types.Float)) {
+                    } else if (pointer.getTargetType().equals(CIdType.Float)) {
                         stack.push(CIdFLOAT.createWithAllocatedAddress(addr));
-                    } else if (pointer.getTargetType().equals(Types.Char)) {
+                    } else if (pointer.getTargetType().equals(CIdType.Char)) {
                         stack.push(CIdCHAR.createWithAllocatedAddress(addr));
-                    } else if (pointer.getTargetType().equals(Types.Boolean)) {
+                    } else if (pointer.getTargetType().equals(CIdType.Boolean)) {
                         stack.push(CIdBOOLEAN.createWithAllocatedAddress(addr));
                     }
                 }
@@ -241,17 +238,17 @@ public class CInterpreter {
                 Variable varOp2 = stack.pop();
                 Variable varOp1 = stack.pop();
                 if (cur.matches("(\\|)|(>>)|(<<)|&|^")) {
-                    if (varOp1.getType() != Types.Int) {
+                    if (varOp1.getType() != CIdType.Int) {
                         throw new CIdGrammarException("位运算的操作数1必须是整数变量或整数常数");
                     }
-                    if (varOp2.getType() != Types.Int) {
+                    if (varOp2.getType() != CIdType.Int) {
                         throw new CIdGrammarException("位运算的操作数2必须是整数变量或整数常数");
                     }
                 }
                 stack.push(varOp1.procOperation(varOp2, cur));
             } else if (cur.matches("(\\+\\+)|(--)|~")) {
                 Variable varOp1 = stack.pop();
-                if (varOp1.getType() != Types.Int && varOp1.getType() != Types.Pointer) {
+                if (varOp1.getType() != CIdType.Int && varOp1.getType() != CIdType.Pointer) {
                     stack.push(varOp1.procOperation(null, cur));
                 }
             } else if (cur.matches(">|<|>=|<=|==")) {
@@ -290,7 +287,7 @@ public class CInterpreter {
                 }
                 stack.push(variable);
             } else if (TypeLookup.lookup(cur, treeNode.vars, functions) == TypeLookup.DECLEAR_POINTER) {
-                Types pointerType = Types.getPointerTypes(cur);
+                CIdPointerType pointerType = CIdType.getPointerType(cur);
                 treeNode.vars.put(res.get(i + 1), CIdPOINTER.createPOINTER(pointerType.lvl, 0, pointerType.type));
             } else stack.push(string2Variable(cur, treeNode.vars));
         }
@@ -318,13 +315,13 @@ public class CInterpreter {
     }
 
     private boolean checkArg(ArgTreeNode callArg, ArgTreeNode funcArg) {
-        ArrayList<Types> funcArgTypeArray = new ArrayList<>();
-        ArrayList<Types> callArgTypeArray = new ArrayList<>();
+        ArrayList<CIdType> funcArgTypeArray = new ArrayList<>();
+        ArrayList<CIdType> callArgTypeArray = new ArrayList<>();
         return callArg.subNode.size() == funcArg.subNode.size();
     }
     /*
-    private Types getExpressionValueType(List<String> expList, Variables tmpVars) {
-        Stack<Types> typeStack = new Stack<>();
+    private CIdType getExpressionValueType(List<String> expList, Variables tmpVars) {
+        Stack<CIdType> typeStack = new Stack<>();
         StringBuilder sb = new StringBuilder();
         for (String s : expList) sb.append(s);
         List<String> resExpList = MExp2FExp.convert(sb.toString(), functions);
@@ -332,34 +329,34 @@ public class CInterpreter {
             if (MExp2FExp.Operation.getValue(resExpList.get(i)) != 0) {
                 switch (resExpList.get(i)) {
                     case "+", "-", "*", "/", "%" -> {
-                        Types type2 = typeStack.pop();
-                        Types type1 = typeStack.pop();
-                        if (type1 == Types.Float || type2 == Types.Float) {
-                            typeStack.push(Types.Float);
-                        } else if (type1 == Types.Pointer && type2 == Types.Pointer) {
-                            typeStack.push(Types.Pointer);
-                        } else if (type1 == Types.Int || type2 == Types.Int) {
-                            typeStack.push(Types.Int);
-                        } else if (type1 == Types.Char || type2 == Types.Int) {
-                            typeStack.push(Types.Char);
+                        CIdType type2 = typeStack.pop();
+                        CIdType type1 = typeStack.pop();
+                        if (type1 == CIdType.Float || type2 == CIdType.Float) {
+                            typeStack.push(CIdType.Float);
+                        } else if (type1 == CIdType.Pointer && type2 == CIdType.Pointer) {
+                            typeStack.push(CIdType.Pointer);
+                        } else if (type1 == CIdType.Int || type2 == CIdType.Int) {
+                            typeStack.push(CIdType.Int);
+                        } else if (type1 == CIdType.Char || type2 == CIdType.Int) {
+                            typeStack.push(CIdType.Char);
                         }
                     }
                     case "+=", "-=", "*=", "/=", "%=" -> {
-                        Types type1 = typeStack.pop();
+                        CIdType type1 = typeStack.pop();
                         typeStack.push(type1);
                     }
                     case "|=", "^=", "&=", ">>=", "<<=", "|", "^", "&", "<<", ">>" -> {
-                        Types type2 = typeStack.pop();
-                        Types type1 = typeStack.pop();
-                        typeStack.push(Types.Int);
+                        CIdType type2 = typeStack.pop();
+                        CIdType type1 = typeStack.pop();
+                        typeStack.push(CIdType.Int);
                     }
                     case "++", "--", "~" -> {
-                        Types type1 = typeStack.pop();
-                        typeStack.push(Types.Int);
+                        CIdType type1 = typeStack.pop();
+                        typeStack.push(CIdType.Int);
                     }
                     case "A&" -> {
-                        Types type1 = typeStack.pop();
-                        typeStack.push(Types.Pointer);
+                        CIdType type1 = typeStack.pop();
+                        typeStack.push(CIdType.Pointer);
                     }
                 }
             } else {

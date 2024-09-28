@@ -1,26 +1,26 @@
 package dev.duanyper.cidcore.variable;
 
 import dev.duanyper.cidcore.memory.MemOperator;
-import dev.duanyper.cidcore.symbols.Types;
+import dev.duanyper.cidcore.symbols.CIdType;
 
 public class CIdPOINTER implements Variable {
     int addr;
     int level = 0;
-    Types targetType;
+    CIdType targetType;
 
-    protected CIdPOINTER(int address, int lvl, Types type) {
+    protected CIdPOINTER(int address, int lvl, CIdType type) {
         addr = address;
         level = lvl;
         targetType = type;
     }
 
-    public static CIdPOINTER createPOINTER(int lvl, int pAddress, Types type) {
+    public static CIdPOINTER createPOINTER(int lvl, int pAddress, CIdType type) {
         int address = MemOperator.allocateMemory(4);
         MemOperator.writeInt(address, pAddress);
         return new CIdPOINTER(address, lvl, type);
     }
 
-    public static CIdPOINTER createWithAllocatedAddress(int address, int lvl, Types type) {
+    public static CIdPOINTER createWithAllocatedAddress(int address, int lvl, CIdType type) {
         return new CIdPOINTER(address, lvl, type);
     }
 
@@ -34,11 +34,11 @@ public class CIdPOINTER implements Variable {
     }
 
     @Override
-    public Types getType() {
-        return Types.Pointer;
+    public CIdType getType() {
+        return CIdType.Pointer;
     }
 
-    public Types getTargetType() {
+    public CIdType getTargetType() {
         return targetType;
     }
 
@@ -79,35 +79,35 @@ public class CIdPOINTER implements Variable {
                 return createPOINTER(value, level, targetType);
             }
             case "&=" -> {
-                if (var.getType() != Types.Int) return null;
+                if (var.getType() != CIdType.Int) return null;
                 int value = setValue(getValue() & var.getValue().intValue());
                 return createPOINTER(value, level, targetType);
             }
             case "|=" -> {
-                if (var.getType() != Types.Int) return null;
+                if (var.getType() != CIdType.Int) return null;
                 int value = setValue(getValue() | var.getValue().intValue());
                 return createPOINTER(value, level, targetType);
             }
             case "^=" -> {
-                if (var.getType() != Types.Int) return null;
+                if (var.getType() != CIdType.Int) return null;
                 int value = setValue(getValue() ^ var.getValue().intValue());
                 return createPOINTER(value, level, targetType);
             }
             case ">>=" -> {
-                if (var.getType() != Types.Int) return null;
+                if (var.getType() != CIdType.Int) return null;
                 int value = setValue(getValue() >> var.getValue().intValue());
                 return createPOINTER(value, level, targetType);
             }
             case "<<=" -> {
-                if (var.getType() != Types.Int) return null;
+                if (var.getType() != CIdType.Int) return null;
                 int value = setValue(getValue() << var.getValue().intValue());
                 return createPOINTER(value, level, targetType);
             }
             case "++" -> {
                 int value = 0;
-                if (targetType == Types.Pointer || targetType == Types.Int || targetType == Types.Void || targetType == Types.Float) {
+                if (targetType == CIdType.Pointer || targetType == CIdType.Int || targetType == CIdType.Void || targetType == CIdType.Float) {
                     value = setValue(getValue() + 4);
-                } else if (targetType == Types.Char || targetType == Types.Boolean) {
+                } else if (targetType == CIdType.Char || targetType == CIdType.Boolean) {
                     value = setValue(getValue() + 1);
                 }
                 return createPOINTER(value, level, targetType);
@@ -118,7 +118,7 @@ public class CIdPOINTER implements Variable {
             }
         }
 
-        if (var.getType().equals(Types.Int)) {
+        if (var.getType().equals(CIdType.Int)) {
             int value = getValue();
             return switch (op) {
                 case "+" -> createPOINTER(value + var.getValue().intValue(), level, targetType);

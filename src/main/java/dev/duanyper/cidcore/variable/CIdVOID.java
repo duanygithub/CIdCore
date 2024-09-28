@@ -1,6 +1,6 @@
 package dev.duanyper.cidcore.variable;
 
-import dev.duanyper.cidcore.symbols.Types;
+import dev.duanyper.cidcore.symbols.CIdType;
 
 public class CIdVOID implements Variable {
     int addr;
@@ -15,8 +15,8 @@ public class CIdVOID implements Variable {
     }
 
     @Override
-    public Types getType() {
-        return Types.Void;
+    public CIdType getType() {
+        return CIdType.Void;
     }
 
     @Override

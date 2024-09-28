@@ -1,7 +1,7 @@
 package dev.duanyper.cidcore.variable;
 
 import dev.duanyper.cidcore.memory.MemOperator;
-import dev.duanyper.cidcore.symbols.Types;
+import dev.duanyper.cidcore.symbols.CIdType;
 
 public class CIdFLOAT implements Variable {
     int addr;
@@ -43,8 +43,8 @@ public class CIdFLOAT implements Variable {
     }
 
     @Override
-    public Types getType() {
-        return Types.Float;
+    public CIdType getType() {
+        return CIdType.Float;
     }
 
     @Override
@@ -54,7 +54,7 @@ public class CIdFLOAT implements Variable {
 
     @Override
     public Variable procOperation(Variable var, String op) {
-        if (var.getType().equals(Types.Float)) {
+        if (var.getType().equals(CIdType.Float)) {
             float value = getValue();
             return switch (op) {
                 case "+" -> createFLOAT(value + (float) var.getValue());
@@ -64,7 +64,7 @@ public class CIdFLOAT implements Variable {
                 case "%" -> createFLOAT(value % (float) var.getValue());
                 default -> null;
             };
-        } else if (var.getType().equals(Types.Int)) {
+        } else if (var.getType().equals(CIdType.Int)) {
             float value = getValue();
             return switch (op) {
                 case "+" -> createFLOAT(value + (int) var.getValue());

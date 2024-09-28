@@ -2,7 +2,7 @@ package dev.duanyper.cidcore.variable;
 
 import dev.duanyper.cidcore.grammar.StructureDescriptor;
 import dev.duanyper.cidcore.memory.MemOperator;
-import dev.duanyper.cidcore.symbols.Types;
+import dev.duanyper.cidcore.symbols.CIdType;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -11,7 +11,7 @@ public class CIdSTRUCT implements Variable {
     int size, addr;
     StructureDescriptor descriptor;
     Map<String, Integer> membersAddressOffsets = new HashMap<>();
-    Map<Types, String> members;
+    Map<CIdType, String> members;
 
     public static CIdSTRUCT createSTRUCT(StructureDescriptor descriptor) {
         return new CIdSTRUCT(descriptor, 0);
@@ -27,21 +27,21 @@ public class CIdSTRUCT implements Variable {
         int curOffset = 0;
         for (int i = 0; i < descriptor.members.size(); i++) {
             membersAddressOffsets.put((String) descriptor.members.keySet().toArray()[i], curOffset);
-            curOffset += Types.getSize((Types) descriptor.members.values().toArray()[i]);
+            curOffset += CIdType.getSize((CIdType) descriptor.members.values().toArray()[i]);
         }
         this.addr = addr == 0 ? MemOperator.allocateMemory(size) : addr;
     }
 
     public Variable getMember(int index) {
         int offset, memberSize;
-        Types memberType;
+        CIdType memberType;
         offset = (int) membersAddressOffsets.values().toArray()[index];
-        memberType = (Types) members.keySet().toArray()[index];
-        memberSize = Types.getSize(memberType);
-        if (memberType == Types.Int) return CIdINT.createWithAllocatedAddress(addr + offset);
-        if (memberType == Types.Boolean) return CIdBOOLEAN.createWithAllocatedAddress(addr + offset);
-        if (memberType == Types.Pointer) return CIdPOINTER.createWithAllocatedAddress(addr + offset, 1, Types.Void);
-        if (memberType == Types.Char) return CIdCHAR.createWithAllocatedAddress(addr + offset);
+        memberType = (CIdType) members.keySet().toArray()[index];
+        memberSize = CIdType.getSize(memberType);
+        if (memberType == CIdType.Int) return CIdINT.createWithAllocatedAddress(addr + offset);
+        if (memberType == CIdType.Boolean) return CIdBOOLEAN.createWithAllocatedAddress(addr + offset);
+        if (memberType == CIdType.Pointer) return CIdPOINTER.createWithAllocatedAddress(addr + offset, 1, CIdType.Void);
+        if (memberType == CIdType.Char) return CIdCHAR.createWithAllocatedAddress(addr + offset);
         return CIdVOID.createVOID();
     }
 
@@ -54,7 +54,7 @@ public class CIdSTRUCT implements Variable {
     }
 
     @Override
-    public Types getType() {
+    public CIdType getType() {
         return null;
     }
 
