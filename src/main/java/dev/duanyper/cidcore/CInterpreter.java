@@ -213,13 +213,13 @@ public class CInterpreter {
                     if (!treeNode.vars.containsValue(varOp1))
                         throw new CIdGrammarException("取地址对象必须为变量");
                     stack.push(CIdPOINTER.createPOINTER(
-                            varOp1.getType() == CIdType.Pointer ? ((CIdPOINTER) varOp1).getLevel() + 1 : 1,
+                            varOp1.getType() instanceof CIdPointerType ? ((CIdPOINTER) varOp1).getLevel() + 1 : 1,
                             varOp1.getAddress(),
-                            varOp1.getType() == CIdType.Pointer ? ((CIdPOINTER) varOp1).getTargetType() : varOp1.getType()
+                            varOp1.getType() instanceof CIdPointerType ? ((CIdPOINTER) varOp1).getTargetType() : varOp1.getType()
                     ));
                 } else if (cur.equals("A*")) {
                     Variable varOp1 = stack.pop();
-                    if (varOp1.getType() != CIdType.Pointer) {
+                    if (!(varOp1.getType() instanceof CIdPointerType)) {
                         throw new CIdGrammarException("取值对象必须为指针变量");
                     }
                     int addr = varOp1.getValue().intValue();
@@ -248,7 +248,7 @@ public class CInterpreter {
                 stack.push(varOp1.procOperation(varOp2, cur));
             } else if (cur.matches("(\\+\\+)|(--)|~")) {
                 Variable varOp1 = stack.pop();
-                if (varOp1.getType() != CIdType.Int && varOp1.getType() != CIdType.Pointer) {
+                if (varOp1.getType() != CIdType.Int && !(varOp1.getType() instanceof CIdPointerType)) {
                     stack.push(varOp1.procOperation(null, cur));
                 }
             } else if (cur.matches(">|<|>=|<=|==")) {

@@ -25,8 +25,8 @@ public class DbgStart {
         String str = "int main(){printf(666);}";
         Functions functions = new Functions();
         functions.funcList.put("printf", CIdType.Void);
-        functions.nativeFunctions.put("printf", Start.class.getMethod("printf", CInterpreter.class, ValuedArgTreeNode.class));
+        functions.nativeFunctions.put("printf", DbgStart.class.getMethod("printf", CInterpreter.class, ValuedArgTreeNode.class));
 
-        new CIdWrapper().executeCode("int i = 666; printf(999 + i);", new Environment(functions, null, null), null);
+        new CIdWrapper().executeCode("float i = 666; printf(999 + i);", new Environment(functions, null, null), null);
     }
 }

@@ -1,6 +1,7 @@
 package dev.duanyper.cidcore.variable;
 
 import dev.duanyper.cidcore.memory.MemOperator;
+import dev.duanyper.cidcore.symbols.CIdPointerType;
 import dev.duanyper.cidcore.symbols.CIdType;
 
 public class CIdPOINTER implements Variable {
@@ -34,8 +35,8 @@ public class CIdPOINTER implements Variable {
     }
 
     @Override
-    public CIdType getType() {
-        return CIdType.Pointer;
+    public CIdPointerType getType() {
+        return CIdType.createPointerType(level, targetType);
     }
 
     public CIdType getTargetType() {
@@ -105,7 +106,7 @@ public class CIdPOINTER implements Variable {
             }
             case "++" -> {
                 int value = 0;
-                if (targetType == CIdType.Pointer || targetType == CIdType.Int || targetType == CIdType.Void || targetType == CIdType.Float) {
+                if (targetType instanceof CIdPointerType || targetType == CIdType.Int || targetType == CIdType.Void || targetType == CIdType.Float) {
                     value = setValue(getValue() + 4);
                 } else if (targetType == CIdType.Char || targetType == CIdType.Boolean) {
                     value = setValue(getValue() + 1);

@@ -33,8 +33,9 @@ public class CIdFLOAT implements Variable {
         return new CIdFLOAT(address);
     }
 
-    public void setValue(float f) {
+    public float setValue(float f) {
         MemOperator.writeFloat(addr, f);
+        return f;
     }
 
     @Override
@@ -54,6 +55,28 @@ public class CIdFLOAT implements Variable {
 
     @Override
     public Variable procOperation(Variable var, String op) {
+        switch (op) {
+            case "=" -> {
+                float value = setValue(var.getValue().floatValue());
+                return createFLOAT(value);
+            }
+            case "+=" -> {
+                float value = setValue(var.getValue().floatValue() + getValue());
+                return createFLOAT(value);
+            }
+            case "-=" -> {
+                float value = setValue(var.getValue().floatValue() - getValue());
+                return createFLOAT(value);
+            }
+            case "*=" -> {
+                float value = setValue(var.getValue().floatValue() * getValue());
+                return createFLOAT(value);
+            }
+            case "/=" -> {
+                float value = setValue((int) (getValue() / var.getValue().floatValue()));
+                return createFLOAT(value);
+            }
+        }
         if (var.getType().equals(CIdType.Float)) {
             float value = getValue();
             return switch (op) {

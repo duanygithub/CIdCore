@@ -1,5 +1,7 @@
 package dev.duanyper.cidcore.symbols;
 
+import dev.duanyper.cidcore.grammar.StructureDescriptor;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -9,7 +11,6 @@ public class CIdType {
     public static final CIdType Char = new CIdType();
     public static final CIdType Float = new CIdType();
     public static final CIdType Boolean = new CIdType();
-    public static final CIdType Pointer = new CIdType();
     public static final CIdType Struct = new CIdType();
     public static final ArrayList<String> keywords = new ArrayList<>(Arrays.asList(
             "int", "float", "bool", "char", "struct", "enum", "union",
@@ -20,7 +21,11 @@ public class CIdType {
         return new CIdPointerType(level, type);
     }
 
-    public static CIdType string2Keywords(String type) {
+    public static CIdStructType createStructType(StructureDescriptor sd) {
+        return new CIdStructType(sd);
+    }
+
+    public static CIdType string2Type(String type) {
         switch (type) {
             case "int" -> {
                 return Int;
@@ -38,8 +43,8 @@ public class CIdType {
                 return Struct;
             }
             default -> {
-                if (type.matches("(int|char|float|void|struct)\\*+")) {
-                    return Pointer;
+                if (type.matches("(int|char|float|void|struct)\\*+")) {//int*
+                    return createPointerType(type.length() - type.indexOf('*'), string2Type(type.substring(0, type.indexOf('*'))));
                 } else return null;
             }
         }
@@ -71,7 +76,7 @@ public class CIdType {
     public static int getSize(CIdType type) {
         if (type == Int) return 4;
         if (type == Float) return 4;
-        if (type == Pointer) return 4;
+        if (type instanceof CIdPointerType) return 4;
         if (type == Char) return 1;
         if (type == Boolean) return 1;
         if (type == Void) return 0;
@@ -79,6 +84,6 @@ public class CIdType {
     }
 
     public static int getSize(String type) {
-        return getSize(string2Keywords(type));
+        return getSize(string2Type(type));
     }
 }

@@ -80,7 +80,7 @@ public class GrammarProc {
                             BlockTreeNode blockTreeNode = new BlockTreeNode(blockStart + 1, i - 1, functionTreeNode);
                             buildTree(blockTreeNode);
                             functionTreeNode.subNode.add(blockTreeNode);
-                            CIdType keywordType = CIdType.string2Keywords(str);
+                            CIdType keywordType = CIdType.string2Type(str);
                             String name = codeBlocks.get(funcBegin + 1);
                             functions.funcList.put(name, keywordType);
                             functions.codeIndex.put(name, blockTreeNode);
@@ -267,15 +267,20 @@ public class GrammarProc {
                     parentNode.subNode.add(returnTreeNode);
                 }
                 case TypeLookup.STRUCT -> {
-                    int blockBegin = i + 1;
+                    int blockBegin = i + 2, structBegin = i, blockEnd;
+                    if (codeBlocks.get(i + 1).equals("{")) {
+                        blockBegin = i + 1;
+                    }
                     int tmp = 0;
                     do {
                         if (codeBlocks.get(i).equals("{")) tmp++;
                         if (codeBlocks.get(i).equals("}")) tmp--;
                         i++;
                     } while (tmp != 0);
-                    StructureTreeNode structureTreeNode = new StructureTreeNode(blockBegin, i, parentNode);
-                    BlockTreeNode blockTreeNode = new BlockTreeNode(blockBegin + 2, i - 1, structureTreeNode);
+                    blockEnd = i - 1;
+                    while (!codeBlocks.get(i).equals(";")) i++;
+                    StructureTreeNode structureTreeNode = new StructureTreeNode(structBegin, i, parentNode);
+                    BlockTreeNode blockTreeNode = new BlockTreeNode(blockBegin, blockEnd, structureTreeNode);
                     buildTree(blockTreeNode);
                     structureTreeNode.subNode.add(structureTreeNode);
                 }

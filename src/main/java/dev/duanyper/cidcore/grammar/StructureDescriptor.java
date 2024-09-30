@@ -8,23 +8,24 @@ import java.util.Map;
 
 public class StructureDescriptor {
     public Map<CIdType, String> members = new HashMap<>();
-    public Map<String, CIdType> pointers = new HashMap<>();
-    public Map<String, StructureDescriptor> structures = new HashMap<>();
     public String name;
 
     public StructureDescriptor(StructureTreeNode treeNode, List<String> codeBlocks) {
-        for (TreeNode cur : treeNode.subNode) {
-            if (!(cur instanceof VarTreeNode)) {
-                continue;
-            }
-            CIdType type = CIdType.string2Keywords(codeBlocks.get(cur.lIndex));
+        for (TreeNode cur : treeNode.subNode.get(0).subNode) {
+            CIdType type = CIdType.string2Type(codeBlocks.get(cur.lIndex));
             String name = codeBlocks.get(cur.lIndex + 1);
-            members.put(type, name);
-            if (type == CIdType.Pointer) {
-                pointers.put(name, CIdType.getPointerType(codeBlocks.get(cur.lIndex)));
-            }
             if (type == CIdType.Struct) {
+                if (cur instanceof StructureTreeNode) {
+                    //结构体在当前结构体中定义
+                    type = CIdType.createStructType(new StructureDescriptor((StructureTreeNode) cur, codeBlocks));
+                    if (name.equals("{")) {
+                        name = codeBlocks.get(cur.rIndex - 1);
+                    }
+                } else {
+                    //结构体在全局定义，此时应该从全局范围查找
+                }
             }
+            members.put(type, name);
         }
         if (!(codeBlocks.get(treeNode.lIndex + 1)).equals("{")) {
             name = codeBlocks.get(treeNode.lIndex + 1);

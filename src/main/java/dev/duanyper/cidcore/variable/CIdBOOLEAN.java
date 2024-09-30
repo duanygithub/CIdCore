@@ -31,12 +31,12 @@ public class CIdBOOLEAN implements Variable {
 
     @Override
     public Number getValue() {
-        return null;
+        return MemOperator.readBoolean(addr) ? 1 : 0;
     }
 
     @Override
     public CIdType getType() {
-        return null;
+        return CIdType.Boolean;
     }
 
     @Override

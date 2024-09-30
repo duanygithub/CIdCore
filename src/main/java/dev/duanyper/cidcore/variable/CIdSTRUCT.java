@@ -2,10 +2,12 @@ package dev.duanyper.cidcore.variable;
 
 import dev.duanyper.cidcore.grammar.StructureDescriptor;
 import dev.duanyper.cidcore.memory.MemOperator;
+import dev.duanyper.cidcore.symbols.CIdPointerType;
 import dev.duanyper.cidcore.symbols.CIdType;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public class CIdSTRUCT implements Variable {
     int size, addr;
@@ -38,10 +40,19 @@ public class CIdSTRUCT implements Variable {
         offset = (int) membersAddressOffsets.values().toArray()[index];
         memberType = (CIdType) members.keySet().toArray()[index];
         memberSize = CIdType.getSize(memberType);
-        if (memberType == CIdType.Int) return CIdINT.createWithAllocatedAddress(addr + offset);
-        if (memberType == CIdType.Boolean) return CIdBOOLEAN.createWithAllocatedAddress(addr + offset);
-        if (memberType == CIdType.Pointer) return CIdPOINTER.createWithAllocatedAddress(addr + offset, 1, CIdType.Void);
-        if (memberType == CIdType.Char) return CIdCHAR.createWithAllocatedAddress(addr + offset);
+        if (memberType == CIdType.Int) {
+            return CIdINT.createINT(CIdINT.createWithAllocatedAddress(addr + offset).getValue());
+        }
+        if (memberType == CIdType.Boolean) {
+            return CIdBOOLEAN.createBOOLEAN(!Objects.equals(CIdBOOLEAN.createWithAllocatedAddress(addr + offset).getValue(), (Integer) 0));
+        }
+        if (memberType instanceof CIdPointerType) {
+            CIdPOINTER originalPointer = CIdPOINTER.createWithAllocatedAddress(addr + offset, 1, CIdType.Void);
+            return CIdPOINTER.createPOINTER(((CIdPointerType) memberType).lvl, originalPointer.getValue(), ((CIdPointerType) memberType).type);
+        }
+        if (memberType == CIdType.Char) {
+            return CIdCHAR.createCHAR(CIdCHAR.createWithAllocatedAddress(addr + offset).getValue());
+        }
         return CIdVOID.createVOID();
     }
 
