@@ -1,8 +1,11 @@
 package dev.duanyper.cidcore.variable;
 
+import dev.duanyper.cidcore.exception.CIdRuntimeException;
 import dev.duanyper.cidcore.memory.MemOperator;
 import dev.duanyper.cidcore.symbols.CIdPointerType;
 import dev.duanyper.cidcore.symbols.CIdType;
+
+import java.io.UnsupportedEncodingException;
 
 public class CIdPOINTER implements Variable {
     int addr;
@@ -15,7 +18,7 @@ public class CIdPOINTER implements Variable {
         targetType = type;
     }
 
-    public static CIdPOINTER createPOINTER(int lvl, int pAddress, CIdType type) {
+    public static CIdPOINTER createPOINTER(int lvl, int pAddress, CIdType type) throws CIdRuntimeException {
         int address = MemOperator.allocateMemory(4);
         MemOperator.writeInt(address, pAddress);
         return new CIdPOINTER(address, lvl, type);
@@ -25,12 +28,12 @@ public class CIdPOINTER implements Variable {
         return new CIdPOINTER(address, lvl, type);
     }
 
-    public int setValue(int address) {
+    public int setValue(int address) throws CIdRuntimeException {
         return MemOperator.writeInt(addr, address);
     }
 
     @Override
-    public Integer getValue() {
+    public Integer getValue() throws CIdRuntimeException {
         return MemOperator.readInt(addr);
     }
 
@@ -53,7 +56,7 @@ public class CIdPOINTER implements Variable {
     }
 
     @Override
-    public Variable procOperation(Variable var, String op) {
+    public Variable procOperation(Variable var, String op) throws CIdRuntimeException {
         switch (op) {
             case "=" -> {
                 int value = setValue(var.getValue().intValue());
@@ -140,7 +143,7 @@ public class CIdPOINTER implements Variable {
     }
 
     @Override
-    public int cmp(Variable var) {
+    public int cmp(Variable var) throws CIdRuntimeException {
         int value = getValue();
         float val = var.getValue().floatValue();
         if (val > value) return 1;
@@ -151,7 +154,45 @@ public class CIdPOINTER implements Variable {
 
     @Override
     public String toString() {
-        return String.format("%x", MemOperator.readInt(addr));
+        try {
+            int value = getValue();
+            if (getTargetType() == CIdType.Char
+                    && getLevel() == 1) {
+                StringBuilder sb = new StringBuilder();
+                int i = value, strlen = 0;
+                try {
+                    int b = MemOperator.readInt(i);
+                    while (b != 0) {
+                        strlen += 4;
+                        b = MemOperator.readInt(i);
+                        i += 4;
+                    }
+                } catch (CIdRuntimeException ignore) {
+                }
+                if (strlen == 0) {
+                    return ("");
+                } else {
+                    strlen -= 4;
+                    byte[] bytes = MemOperator.read(value, strlen);
+                    try {
+                        return (new String(bytes, "UTF-32"));
+                    } catch (UnsupportedEncodingException ignore) {
+                    }
+                }
+            } else {
+                try {
+                    return String.format("%x", MemOperator.readInt(addr));
+                } catch (CIdRuntimeException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        } catch (CIdRuntimeException ignore) {
+        }
+        try {
+            return String.format("%x", MemOperator.readInt(addr));
+        } catch (CIdRuntimeException e1) {
+            throw new RuntimeException(e1);
+        }
     }
 
     @Override

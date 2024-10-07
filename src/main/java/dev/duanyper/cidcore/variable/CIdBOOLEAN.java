@@ -1,5 +1,6 @@
 package dev.duanyper.cidcore.variable;
 
+import dev.duanyper.cidcore.exception.CIdRuntimeException;
 import dev.duanyper.cidcore.memory.MemOperator;
 import dev.duanyper.cidcore.symbols.CIdType;
 
@@ -15,7 +16,7 @@ public class CIdBOOLEAN implements Variable {
         MemOperator.freeMemory(addr, 1);
     }
 
-    public static CIdBOOLEAN createBOOLEAN(boolean bool) {
+    public static CIdBOOLEAN createBOOLEAN(boolean bool) throws CIdRuntimeException {
         int address = MemOperator.allocateMemory(1);
         MemOperator.writeBoolean(address, bool);
         return new CIdBOOLEAN(address);
@@ -25,12 +26,12 @@ public class CIdBOOLEAN implements Variable {
         return new CIdBOOLEAN(address);
     }
 
-    public int setValue(boolean b) {
+    public int setValue(boolean b) throws CIdRuntimeException {
         return MemOperator.writeBoolean(addr, b);
     }
 
     @Override
-    public Number getValue() {
+    public Number getValue() throws CIdRuntimeException {
         return MemOperator.readBoolean(addr) ? 1 : 0;
     }
 
@@ -57,5 +58,14 @@ public class CIdBOOLEAN implements Variable {
     @Override
     public int sizeOf() {
         return 1;
+    }
+
+    @Override
+    public String toString() {
+        try {
+            return getValue().intValue() == 0 ? "false" : "true";
+        } catch (CIdRuntimeException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

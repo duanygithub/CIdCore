@@ -1,5 +1,6 @@
 package dev.duanyper.cidcore.variable;
 
+import dev.duanyper.cidcore.exception.CIdRuntimeException;
 import dev.duanyper.cidcore.memory.MemOperator;
 import dev.duanyper.cidcore.symbols.CIdType;
 
@@ -15,11 +16,11 @@ public class CIdINT implements Variable {
         MemOperator.freeMemory(addr, 4);
     }
 
-    public static CIdINT createINT(String str) {
+    public static CIdINT createINT(String str) throws CIdRuntimeException {
         return createINT(Integer.parseInt(str));
     }
 
-    public static CIdINT createINT(int n) {
+    public static CIdINT createINT(int n) throws CIdRuntimeException {
         int address = MemOperator.allocateMemory(4);
         MemOperator.writeInt(address, n);
         return new CIdINT(address);
@@ -33,13 +34,13 @@ public class CIdINT implements Variable {
         return new CIdINT(address);
     }
 
-    public int setValue(int n) {
+    public int setValue(int n) throws CIdRuntimeException {
         MemOperator.writeInt(addr, n);
         return n;
     }
 
     @Override
-    public Integer getValue() {
+    public Integer getValue() throws CIdRuntimeException {
         return MemOperator.readInt(addr);
     }
 
@@ -54,7 +55,7 @@ public class CIdINT implements Variable {
     }
 
     @Override
-    public Variable procOperation(Variable var, String op) {
+    public Variable procOperation(Variable var, String op) throws CIdRuntimeException {
         switch (op) {
             case "=" -> {
                 int value = setValue(var.getValue().intValue());
@@ -146,7 +147,7 @@ public class CIdINT implements Variable {
     }
 
     @Override
-    public int cmp(Variable var) {
+    public int cmp(Variable var) throws CIdRuntimeException {
         int value = getValue();
         float val = var.getValue().floatValue();
         if (val > value) return 1;
@@ -157,7 +158,11 @@ public class CIdINT implements Variable {
 
     @Override
     public String toString() {
-        return ((Integer) MemOperator.readInt(addr)).toString();
+        try {
+            return ((Integer) MemOperator.readInt(addr)).toString();
+        } catch (CIdRuntimeException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

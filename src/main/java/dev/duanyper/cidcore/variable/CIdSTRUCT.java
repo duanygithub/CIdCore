@@ -1,5 +1,6 @@
 package dev.duanyper.cidcore.variable;
 
+import dev.duanyper.cidcore.exception.CIdRuntimeException;
 import dev.duanyper.cidcore.grammar.StructureDescriptor;
 import dev.duanyper.cidcore.memory.MemOperator;
 import dev.duanyper.cidcore.symbols.CIdPointerType;
@@ -34,7 +35,7 @@ public class CIdSTRUCT implements Variable {
         this.addr = addr == 0 ? MemOperator.allocateMemory(size) : addr;
     }
 
-    public Variable getMember(int index) {
+    public Variable getMember(int index) throws CIdRuntimeException {
         int offset, memberSize;
         CIdType memberType;
         offset = (int) membersAddressOffsets.values().toArray()[index];

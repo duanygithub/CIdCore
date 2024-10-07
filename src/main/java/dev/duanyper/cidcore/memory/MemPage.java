@@ -1,5 +1,7 @@
 package dev.duanyper.cidcore.memory;
 
+import dev.duanyper.cidcore.exception.CIdRuntimeException;
+
 public class MemPage {
     byte[] page = new byte[65536];
     byte[] allocMap = new byte[8192];
@@ -31,7 +33,7 @@ public class MemPage {
             if(bAvailable) {
                 for(int j = 0; j < size; j++) {
                     int mapIndex = (i + j) / 8;
-                    allocMap[mapIndex] |= (1 << ((i + j) % 8));
+                    allocMap[mapIndex] |= (byte) (1 << ((i + j) % 8));
                 }
                 bytesAllocated += size;
                 return i;
@@ -39,21 +41,25 @@ public class MemPage {
         }
         return -1;
     }
-    public byte[] readBytes(int index, int size) {
+
+    public byte[] readBytes(int index, int size) throws CIdRuntimeException {
         for(int i = 0; i < size; i++) {
             int mapIndex = (index + i) / 8;
             if ((allocMap[mapIndex] & (1 << ((index + i) % 8))) == 0) {
-                return null;
+                throw new CIdRuntimeException("无效的内存访问");
             }
         }
         byte[] data = new byte[size];
         System.arraycopy(page, index, data, 0, size);
         return data;
     }
-    public int writeBytes(int index, int size, byte[] data) {
+
+    public int writeBytes(int index, int size, byte[] data) throws CIdRuntimeException {
         for(int i = 0; i < size; i++) {
             int mapIndex = (index + i) / 8;
-            if((allocMap[mapIndex] & (1 << ((index + i) % 8))) == 0) {return 5;}
+            if ((allocMap[mapIndex] & (1 << ((index + i) % 8))) == 0) {
+                throw new CIdRuntimeException("无效的内存访问");
+            }
         }
         if (size >= 0) System.arraycopy(data, 0, page, index, size);
         return 0;
@@ -61,7 +67,7 @@ public class MemPage {
     public void freeBytes(int index, int size) {
         for(int i = 0; i < size; i++) {
             int mapIndex = (index + i) / 8;
-            allocMap[mapIndex] &= ~(1 << ((index + i) % 8));
+            allocMap[mapIndex] &= (byte) ~(1 << ((index + i) % 8));
         }
     }
 }

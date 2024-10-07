@@ -1,5 +1,6 @@
 package dev.duanyper.cidcore.variable;
 
+import dev.duanyper.cidcore.exception.CIdRuntimeException;
 import dev.duanyper.cidcore.memory.MemOperator;
 import dev.duanyper.cidcore.symbols.CIdType;
 
@@ -15,11 +16,11 @@ public class CIdFLOAT implements Variable {
         MemOperator.freeMemory(addr, 4);
     }
 
-    public static CIdFLOAT createFLOAT(String str) {
+    public static CIdFLOAT createFLOAT(String str) throws CIdRuntimeException {
         return createFLOAT(Float.parseFloat(str));
     }
 
-    public static CIdFLOAT createFLOAT(float f) {
+    public static CIdFLOAT createFLOAT(float f) throws CIdRuntimeException {
         int address = MemOperator.allocateMemory(4);
         MemOperator.writeFloat(address, f);
         return new CIdFLOAT(address);
@@ -33,13 +34,13 @@ public class CIdFLOAT implements Variable {
         return new CIdFLOAT(address);
     }
 
-    public float setValue(float f) {
+    public float setValue(float f) throws CIdRuntimeException {
         MemOperator.writeFloat(addr, f);
         return f;
     }
 
     @Override
-    public Float getValue() {
+    public Float getValue() throws CIdRuntimeException {
         return MemOperator.readFloat(addr);
     }
 
@@ -54,7 +55,7 @@ public class CIdFLOAT implements Variable {
     }
 
     @Override
-    public Variable procOperation(Variable var, String op) {
+    public Variable procOperation(Variable var, String op) throws CIdRuntimeException {
         switch (op) {
             case "=" -> {
                 float value = setValue(var.getValue().floatValue());
@@ -101,7 +102,7 @@ public class CIdFLOAT implements Variable {
     }
 
     @Override
-    public int cmp(Variable var) {
+    public int cmp(Variable var) throws CIdRuntimeException {
         float value = getValue();
         float val = var.getValue().floatValue();
         if (val > value) return 1;
@@ -112,7 +113,11 @@ public class CIdFLOAT implements Variable {
 
     @Override
     public String toString() {
-        return ((Float) MemOperator.readFloat(addr)).toString();
+        try {
+            return ((Float) MemOperator.readFloat(addr)).toString();
+        } catch (CIdRuntimeException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

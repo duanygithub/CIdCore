@@ -1,5 +1,6 @@
 package dev.duanyper.cidcore.variable;
 
+import dev.duanyper.cidcore.exception.CIdRuntimeException;
 import dev.duanyper.cidcore.symbols.CIdType;
 
 public interface Variable {
@@ -7,12 +8,14 @@ public interface Variable {
         return null;
     }
 
-    Number getValue();
+    Number getValue() throws CIdRuntimeException;
 
     CIdType getType();
     int getAddress();
-    Variable procOperation(Variable var, String op);
-    int cmp(Variable var);
+
+    Variable procOperation(Variable var, String op) throws CIdRuntimeException;
+
+    int cmp(Variable var) throws CIdRuntimeException;
     String toString();
 
     int sizeOf();

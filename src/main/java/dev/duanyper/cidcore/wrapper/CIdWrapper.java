@@ -40,14 +40,13 @@ public class CIdWrapper {
         return cInterpreter;
     }
 
-    public CInterpreter executeProgram(String code, Functions functions, CInterpreter cInterpreter) {
+    public int executeProgram(String code, Functions functions, CInterpreter cInterpreter) {
         if (functions == null)
             functions = new Functions();
         if (cInterpreter == null)
             cInterpreter = new CInterpreter(code, false);
         cInterpreter.setFunctions(functions);
-        cInterpreter.start();
-        return cInterpreter;
+        return cInterpreter.start();
     }
 
     public CInterpreter executeFunction(String function, String code, Functions functions, ValuedArgTreeNode arg, CInterpreter cInterpreter) throws CIdGrammarException, CIdRuntimeException {

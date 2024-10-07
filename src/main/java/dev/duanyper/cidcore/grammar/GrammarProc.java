@@ -20,6 +20,17 @@ public class GrammarProc {
         this.functions = functions;
     }
 
+    public boolean isComplex(TreeNode treeNode) {
+        for (TreeNode subNode : treeNode.subNode) {
+            if (subNode instanceof ForTreeNode || subNode instanceof WhileTreeNode
+                    || subNode instanceof StructureTreeNode
+                    || subNode instanceof FunctionTreeNode) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public int analyze(String codes) {
         preProcess(codes);
         root = new RootTreeNode(0, codeBlocks.size(), null, codeBlocks);

@@ -3,6 +3,7 @@ package dev.duanyper.cidcore;
 import dev.duanyper.cidcore.exception.CIdGrammarException;
 import dev.duanyper.cidcore.exception.CIdRuntimeException;
 import dev.duanyper.cidcore.grammar.*;
+import dev.duanyper.cidcore.memory.MemOperator;
 import dev.duanyper.cidcore.runtime.ValuedArgTreeNode;
 import dev.duanyper.cidcore.symbols.*;
 import dev.duanyper.cidcore.variable.*;
@@ -10,6 +11,7 @@ import dev.duanyper.cidcore.variable.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.util.*;
 
@@ -207,6 +209,15 @@ public class CInterpreter {
                     }
                 }
                 stack.push(callFunction(funcName, valuedArgTreeNode));
+            } else if (cur.matches("\"([^\"]*)\"")) {
+                try {
+                    byte[] strb = cur.substring(1, cur.length() - 1).getBytes("UTF-32");
+                    int addr = MemOperator.allocateMemory(strb.length + 4);
+                    MemOperator.set(addr + strb.length, 4, (byte) 0);
+                    MemOperator.write(addr, strb.length, strb);
+                    stack.push(CIdPOINTER.createPOINTER(1, addr, CIdType.Char));
+                } catch (UnsupportedEncodingException ignored) {
+                }
             } else if (cur.matches("(A&)|(A\\*)")) {
                 if (cur.equals("A&")) {
                     Variable varOp1 = stack.pop();
@@ -232,6 +243,8 @@ public class CInterpreter {
                         stack.push(CIdCHAR.createWithAllocatedAddress(addr));
                     } else if (pointer.getTargetType().equals(CIdType.Boolean)) {
                         stack.push(CIdBOOLEAN.createWithAllocatedAddress(addr));
+                    } else if (pointer.getTargetType() instanceof CIdPointerType) {
+                        stack.push(CIdPOINTER.createWithAllocatedAddress(addr, pointer.getLevel() - 1, pointer.getTargetType()));
                     }
                 }
             } else if (cur.matches("(\\+)|(-)|(\\*)|(/)|(\\^)|(\\|)|<<|>>|&|")) {
@@ -248,7 +261,7 @@ public class CInterpreter {
                 stack.push(varOp1.procOperation(varOp2, cur));
             } else if (cur.matches("(\\+\\+)|(--)|~")) {
                 Variable varOp1 = stack.pop();
-                if (varOp1.getType() != CIdType.Int && !(varOp1.getType() instanceof CIdPointerType)) {
+                if (varOp1.getType() == CIdType.Int || (varOp1.getType() instanceof CIdPointerType)) {
                     stack.push(varOp1.procOperation(null, cur));
                 }
             } else if (cur.matches(">|<|>=|<=|==")) {
@@ -294,7 +307,7 @@ public class CInterpreter {
         return stack.empty() ? null : stack.pop();
     }
 
-    private Variable string2Variable(String str, Variables vars) {
+    private Variable string2Variable(String str, Variables vars) throws CIdRuntimeException {
         switch (TypeLookup.lookup(str, vars, functions)) {
             case TypeLookup.INTEGER -> {
                 return CIdINT.createINT(str);

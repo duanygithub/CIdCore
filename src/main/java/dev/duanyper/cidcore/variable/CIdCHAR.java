@@ -1,5 +1,6 @@
 package dev.duanyper.cidcore.variable;
 
+import dev.duanyper.cidcore.exception.CIdRuntimeException;
 import dev.duanyper.cidcore.memory.MemOperator;
 import dev.duanyper.cidcore.symbols.CIdType;
 
@@ -15,7 +16,7 @@ public class CIdCHAR implements Variable {
         MemOperator.freeMemory(addr, 1);
     }
 
-    public static CIdCHAR createCHAR(int n) {
+    public static CIdCHAR createCHAR(int n) throws CIdRuntimeException {
         int address = MemOperator.allocateMemory(1);
         MemOperator.writeChar(address, (char) n);
         return new CIdCHAR(address);
@@ -29,12 +30,12 @@ public class CIdCHAR implements Variable {
         return new CIdCHAR(address);
     }
 
-    public int setValue(char c) {
+    public int setValue(char c) throws CIdRuntimeException {
         return MemOperator.writeChar(addr, c);
     }
 
     @Override
-    public Integer getValue() {
+    public Integer getValue() throws CIdRuntimeException {
         return (int) MemOperator.readChar(addr);
     }
 
@@ -49,7 +50,7 @@ public class CIdCHAR implements Variable {
     }
 
     @Override
-    public Variable procOperation(Variable var, String op) {
+    public Variable procOperation(Variable var, String op) throws CIdRuntimeException {
         if (!var.getType().equals(CIdType.Int)) return this;
         int value = getValue();
         return switch (op) {
@@ -60,7 +61,7 @@ public class CIdCHAR implements Variable {
     }
 
     @Override
-    public int cmp(Variable var) {
+    public int cmp(Variable var) throws CIdRuntimeException {
         int value = getValue();
         float val = var.getValue().floatValue();
         if (val > value) return 1;
@@ -71,7 +72,11 @@ public class CIdCHAR implements Variable {
 
     @Override
     public String toString() {
-        return String.valueOf(MemOperator.readChar(addr));
+        try {
+            return String.valueOf(MemOperator.readChar(addr));
+        } catch (CIdRuntimeException e) {
+            throw new RuntimeException(e);
+        }
 
     }
 
