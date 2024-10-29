@@ -1,5 +1,6 @@
 package dev.duanyper.cidcore.grammar;
 
+import dev.duanyper.cidcore.runtime.Environment;
 import dev.duanyper.cidcore.symbols.CIdType;
 import dev.duanyper.cidcore.symbols.Functions;
 
@@ -8,11 +9,12 @@ import java.util.List;
 import java.util.Stack;
 
 public class MExp2FExp {
-    public static List<String> convert(String s, Functions functions) {
-        if (s.charAt(s.length() - 1) == ';') {
-            s = s.substring(0, s.length() - 1);
+    public static List<String> convert(int l, int r, Environment env) {
+        Functions functions = env.functions;
+        if (env.codeBlocks.get(r - 1).equals(";")) {
+            r--;
         }
-        List<String> tmp = new GrammarProc(functions).splitCodes(s), result;
+        List<String> tmp = env.codeBlocks.subList(l, r);
         Stack<String> func = new Stack<>();
         for (int i = 0; i < tmp.size(); i++) {
             //替换*和&使其更方便索引
@@ -42,97 +44,9 @@ public class MExp2FExp {
                 }
             }catch(IndexOutOfBoundsException ignore){}
         }
-        result = parseSuffixExpression(tmp);
-        return result;
+        return parseSuffixExpression(tmp);
     }
-    private static List<String> toInfixExpressionList(String s) {
-        //定义List存放中缀表达对应的内容
-        List<String> ls = new ArrayList<String>();
-        //用于遍历中缀表达式字符串的指针
-        int index = 0;
-        //多位数的拼接
-        String str;
-        //遍历到的字符
-        char c;
-        do {
-            //空格跳过
-            if (s.charAt(index) == ' ') {
-                index++;
-                continue;
-            }
-            //引号跳过
-            if (s.charAt(index) == '\'') {
-                try {
-                    if (s.charAt(index + 2) == '\'') {
-                        String tmp = "";
-                        tmp += "'" + s.charAt(index + 1) + "'";
-                        ls.add(tmp);
-                        index += 3;
-                        continue;
-                    }
-                } catch (StringIndexOutOfBoundsException ignore) {
-                }
-            }
-            if (s.charAt(index) == '\"') {
-                boolean flag = false;
-                try {
-                    flag = s.charAt(index - 1) != '\\';
-                } catch (StringIndexOutOfBoundsException ignore) {
-                }
-                if (flag) {
-                    String tmp = "";
-                    while (true) {
-                        tmp += s.charAt(index);
-                        index++;
-                        try {
-                            if(s.charAt(index) == '\"' && s.charAt(index - 1) != '\\') {
-                                break;
-                            }
-                        }catch (StringIndexOutOfBoundsException ignore) {}
-                    }
-                    tmp += s.charAt(index);
-                    ls.add(tmp);
-                    index++;
-                    continue;
-                }
-            }
-            //如果是一个非数字，就需要加入ls
-            if (((c = s.charAt(index)) < 48 || (c = s.charAt(index)) > 57) && !String.valueOf(s.charAt(index)).matches("\\w")) {
-                //转化为字符串
-                String tmp = "" + c;
-                try {
-                    if (s.charAt(index + 1) == '=') {
-                        tmp += '=';
-                        index++;
-                    }
-                    if (s.charAt(index + 1) == '>') {
-                        tmp += '>';
-                        index++;
-                    }
-                    if (s.charAt(index + 1) == '<') {
-                        tmp += '<';
-                        index++;
-                    }
-                }catch(StringIndexOutOfBoundsException ignore){}
-                ls.add("" + tmp);
-                index++;
-            } else {
-                //如果是数，需要考虑多位数的问题
-                //先将str置成空串
-                str = "";
-                while ((index < s.length())
-                        && ((((c = s.charAt(index)) >= 48) && ((c = s.charAt(index)) <= 57))
-                        || String.valueOf(s.charAt(index)).matches("\\w"))) {
-                    //'0'-> [48] ;'9'->[57]
-                    //拼接字符串
-                    str += c;
-                    index++;
-                }
-                ls.add(str);
-            }
-        } while (index < s.length());
-        return ls;
-    }
+
     private static List<String> parseSuffixExpression(List<String> ls) {
         //定义两个栈
         //符号栈

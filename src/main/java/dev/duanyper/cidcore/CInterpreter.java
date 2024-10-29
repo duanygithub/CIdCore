@@ -4,6 +4,7 @@ import dev.duanyper.cidcore.exception.CIdGrammarException;
 import dev.duanyper.cidcore.exception.CIdRuntimeException;
 import dev.duanyper.cidcore.grammar.*;
 import dev.duanyper.cidcore.memory.MemOperator;
+import dev.duanyper.cidcore.runtime.Environment;
 import dev.duanyper.cidcore.runtime.ValuedArgTreeNode;
 import dev.duanyper.cidcore.symbols.*;
 import dev.duanyper.cidcore.variable.*;
@@ -170,16 +171,6 @@ public class CInterpreter {
     }
 
     public Variable calcExpression(TreeNode treeNode) throws CIdGrammarException, CIdRuntimeException {
-        String exp;
-        StringBuilder sb = new StringBuilder();
-        for (String tmp : gp.codeBlocks.subList(treeNode.lIndex, treeNode.rIndex)) {
-            sb.append(tmp).append(" ");
-        }
-        exp = sb.toString();
-        return calcExpression(exp, treeNode);
-    }
-
-    private Variable calcExpression(String exp, TreeNode treeNode) throws CIdGrammarException, CIdRuntimeException {
         Map<String, FunctionCallTreeNode> tempFuncCallMap = new HashMap<>();
         if (treeNode instanceof FunctionCallTreeNode) {
             tempFuncCallMap.put(gp.codeBlocks.get(treeNode.lIndex), (FunctionCallTreeNode) treeNode);
@@ -189,7 +180,7 @@ public class CInterpreter {
                 tempFuncCallMap.put(gp.codeBlocks.get(node.lIndex), (FunctionCallTreeNode) node);
             }
         }
-        List<String> res = MExp2FExp.convert(exp, functions);
+        List<String> res = MExp2FExp.convert(treeNode.lIndex, treeNode.rIndex, new Environment(functions, gp.codeBlocks));
         Stack<Variable> stack = new Stack<>();
         for (int i = 0; i < res.size(); i++) {
             String cur = res.get(i);

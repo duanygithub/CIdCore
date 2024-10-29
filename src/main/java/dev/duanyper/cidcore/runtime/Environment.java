@@ -19,4 +19,9 @@ public class Environment {
         this.variables = vars == null ? new Variables() : vars;
         this.descriptors = descriptorMap == null ? new HashMap<>() : descriptorMap;
     }
+
+    public Environment(Functions functions, List<String> codeBlocks) {
+        this.functions = functions;
+        this.codeBlocks = codeBlocks;
+    }
 }

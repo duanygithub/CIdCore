@@ -152,12 +152,15 @@ public class CIdPOINTER implements Variable {
         throw new AssertionError();
     }
 
+    public boolean isString() {
+        return getLevel() == 1 && getTargetType() == CIdType.Char;
+    }
+
     @Override
     public String toString() {
         try {
             int value = getValue();
-            if (getTargetType() == CIdType.Char
-                    && getLevel() == 1) {
+            if (isString()) {
                 StringBuilder sb = new StringBuilder();
                 int i = value, strlen = 0;
                 try {

@@ -395,8 +395,7 @@ public class GrammarProc {
             //判断字符，大多数都要分字符串内外来确保分割准确率
             if (c == '\n') {
                 if (!bInQua) {
-                    disableSpace = false;
-                    if (sb.length() != 0) {
+                    if (!sb.isEmpty()) {
                         statements.add(sb.toString());
                         sb.delete(0, sb.length());
                     }
@@ -426,14 +425,10 @@ public class GrammarProc {
                 sb.delete(0, sb.length());
                 continue;
             } else if (c == ' ' && !bInQua/* && !bInPar*/) {
-                if (sb.length() != 0 && !disableSpace) {
+                if (!sb.isEmpty() && !disableSpace) {
                     //遇到非字符串中的空格就提交一次
                     statements.add(sb.toString());
                     sb.delete(0, sb.length());
-                }
-                if (disableSpace)//没啥用处
-                {
-                    sb.append(' ');
                 }
                 continue;
             } else if (c == '\"' && pre != '\\') {
@@ -463,7 +458,7 @@ public class GrammarProc {
                 //这里原来检查预处理指令的，检查到了这行就不用换行了
                 //但现在感觉还是换行比较好
 //                disableSpace = true;
-            } else if (MExp2FExp.Operation.getValue(String.valueOf(c)) != 0) {
+            } else if (MExp2FExp.Operation.getValue(String.valueOf(c)) != 0 && !bInQua) {
                 statements.add(sb.toString());
                 sb.delete(0, sb.length());
                 if (c == '*' && nxt != '=') {
@@ -488,13 +483,13 @@ public class GrammarProc {
         }
         for (int i = 0; i < statements.size(); i++) {
             statements.set(i, statements.get(i).trim());
-            if (statements.get(i).equals("")) {
+            if (statements.get(i).isEmpty()) {
                 statements.remove(i);
                 i--;
             }
         }
         for (int i = 0; i < statements.size(); i++) {
-            if (statements.get(i).matches("[\\+-]")) {
+            if (statements.get(i).matches("[+-]")) {
                 try {
                     if (MExp2FExp.Operation.getValue(statements.get(i - 1)) != 0 && MExp2FExp.Operation.getValue(statements.get(i + 1)) == 0) {
                         if (statements.get(i).equals("-")) {
