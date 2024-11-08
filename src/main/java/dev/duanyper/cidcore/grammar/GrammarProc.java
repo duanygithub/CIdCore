@@ -2,6 +2,7 @@ package dev.duanyper.cidcore.grammar;
 
 import dev.duanyper.cidcore.DbgStart;
 import dev.duanyper.cidcore.memory.MemOperator;
+import dev.duanyper.cidcore.runtime.Environment;
 import dev.duanyper.cidcore.symbols.CIdType;
 import dev.duanyper.cidcore.symbols.Functions;
 import dev.duanyper.cidcore.symbols.TypeLookup;
@@ -12,7 +13,6 @@ import java.util.Stack;
 
 public class GrammarProc {
     public List<String> codeBlocks = new ArrayList<>();
-    public List<String> originalCodeBlocks = new ArrayList<>();
     public RootTreeNode root;
     public Functions functions;
 
@@ -46,9 +46,15 @@ public class GrammarProc {
         int l = parentNode.lIndex;
         int r = parentNode.rIndex;
         if (r <= l) return;
-        if (parentNode.type().equals("arg")) {
+        if (parentNode instanceof StatementTreeNode || parentNode instanceof VarTreeNode || parentNode instanceof FunctionCallTreeNode) {
+            ((StatementTreeNode) parentNode).postfixExpression = MExp2FExp.convert(l, r, new Environment(functions, codeBlocks));
+            if (parentNode instanceof VarTreeNode || parentNode instanceof FunctionCallTreeNode) {
+                return;
+            }
+        }
+        if (parentNode instanceof ArgTreeNode) {
             int last = l;
-            for (int i = l, splitCount = 0; i < r; i++) {
+            for (int i = l; i < r; i++) {
                 if (TypeLookup.lookup(codeBlocks.get(i), parentNode.vars, functions) == TypeLookup.SPLITPOINT || i == r - 1) {
                     if (i == r - 1) {
                         i++;
@@ -57,7 +63,6 @@ public class GrammarProc {
                     buildTree(node);
                     parentNode.subNode.add(node);
                     last = i + 1;
-                    splitCount++;
                 }
             }
             return;
@@ -100,25 +105,21 @@ public class GrammarProc {
                         } else {
                             int varStart = i;
                             int tmp = 0;
-                            while (true) {
-                                if (codeBlocks.get(i).equals("(")) tmp++;
-                                else if (codeBlocks.get(i).equals(")")) {
-                                    tmp--;
-                                } else if (TypeLookup.lookup(codeBlocks.get(i), parentNode.vars, functions) == TypeLookup.SPLITPOINT) {
-                                    if (tmp == 0) break;
+                            try {
+                                while (true) {
+                                    if (codeBlocks.get(i).equals("(")) tmp++;
+                                    else if (codeBlocks.get(i).equals(")")) {
+                                        tmp--;
+                                    } else if (TypeLookup.lookup(codeBlocks.get(i), parentNode.vars, functions) == TypeLookup.SPLITPOINT) {
+                                        if (tmp == 0) break;
+                                    }
+                                    if (tmp < 0) break;
+                                    i++;
                                 }
-                                i++;
+                            } catch (IndexOutOfBoundsException ignore) {
                             }
-                            int varEnd = i;
                             VarTreeNode varTreeNode = new VarTreeNode(varStart, i, parentNode);
-                            /*
-                            if (i - varStart > 1) {
-                                i = varStart + 1;
-                                StatementTreeNode statementTreeNode = new StatementTreeNode(i, varEnd, parentNode);
-                                buildTree(statementTreeNode);
-                                varTreeNode.subNode.add(statementTreeNode);
-                            }
-                            */
+                            buildTree(varTreeNode);
                             parentNode.subNode.add(varTreeNode);
                         }
                     }
@@ -143,6 +144,7 @@ public class GrammarProc {
                     ArgTreeNode argTreeNode = new ArgTreeNode(funcCallStart + 2, i - 1, parentNode);
                     buildTree(argTreeNode);
                     functionCallTreeNode.subNode.add(argTreeNode);
+                    buildTree(functionCallTreeNode);
                     parentNode.subNode.add(functionCallTreeNode);
                 }
                 case TypeLookup.PROC_CONTROL -> {
@@ -266,7 +268,7 @@ public class GrammarProc {
                 case TypeLookup.RETURN -> {
                     int returnBegin = i;
                     for (int j = returnBegin; j < r; j++) {
-                        if (originalCodeBlocks.get(j).equals(";")) {
+                        if (codeBlocks.get(j).equals(";")) {
                             i = j;
                             break;
                         }
@@ -314,16 +316,16 @@ public class GrammarProc {
                         }
                     }
                     StatementTreeNode statementTreeNode = new StatementTreeNode(begin, i, parentNode);
-                    if (somethingUseful) buildTree(statementTreeNode);
+                    if (somethingUseful || !(parentNode instanceof StatementTreeNode)) buildTree(statementTreeNode);
                     parentNode.subNode.add(statementTreeNode);
                 }
             }
         }
     }
 
-    public int preProcess(String codes) {
+    public void preProcess(String codes) {
         //先把代码分割一遍
-        originalCodeBlocks = new ArrayList<>(codeBlocks = splitCodes(codes));
+        codeBlocks = splitCodes(codes);
         DbgStart.codeBlocks = codeBlocks;
         //计算代码块总数
         int codeSize = 0;
@@ -331,19 +333,17 @@ public class GrammarProc {
             codeSize += s.length();
         }
         if (codeSize == 0) {
-            return -1;
+            return;
         }
         //目前没用
         int codesAddr = MemOperator.allocateMemory(codeSize);
         if (codesAddr == -1) {
-            return -1;
+            return;
         }
         expendHeader("");
-        return 0;
     }
 
-    private int expendHeader(String headerName) {
-        return 0;
+    private void expendHeader(String headerName) {
     }
 
     public List<String> splitCodes(String codes) {

@@ -60,52 +60,52 @@ public class CIdPOINTER implements Variable {
         switch (op) {
             case "=" -> {
                 int value = setValue(var.getValue().intValue());
-                return createPOINTER(value, level, targetType);
+                return createPOINTER(level, value, targetType);
             }
             case "+=" -> {
                 int value = setValue(var.getValue().intValue() + getValue());
-                return createPOINTER(value, level, targetType);
+                return createPOINTER(level, value, targetType);
             }
             case "-=" -> {
                 int value = setValue(var.getValue().intValue() - getValue());
-                return createPOINTER(value, level, targetType);
+                return createPOINTER(level, value, targetType);
             }
             case "*=" -> {
                 int value = setValue(var.getValue().intValue() * getValue());
-                return createPOINTER(value, level, targetType);
+                return createPOINTER(level, value, targetType);
             }
             case "/=" -> {
                 int value = setValue((int) (getValue() / var.getValue().floatValue()));
-                return createPOINTER(value, level, targetType);
+                return createPOINTER(level, value, targetType);
             }
             case "%=" -> {
                 int value = setValue(getValue() % var.getValue().intValue());
-                return createPOINTER(value, level, targetType);
+                return createPOINTER(level, value, targetType);
             }
             case "&=" -> {
                 if (var.getType() != CIdType.Int) return null;
                 int value = setValue(getValue() & var.getValue().intValue());
-                return createPOINTER(value, level, targetType);
+                return createPOINTER(level, value, targetType);
             }
             case "|=" -> {
                 if (var.getType() != CIdType.Int) return null;
                 int value = setValue(getValue() | var.getValue().intValue());
-                return createPOINTER(value, level, targetType);
+                return createPOINTER(level, value, targetType);
             }
             case "^=" -> {
                 if (var.getType() != CIdType.Int) return null;
                 int value = setValue(getValue() ^ var.getValue().intValue());
-                return createPOINTER(value, level, targetType);
+                return createPOINTER(level, value, targetType);
             }
             case ">>=" -> {
                 if (var.getType() != CIdType.Int) return null;
                 int value = setValue(getValue() >> var.getValue().intValue());
-                return createPOINTER(value, level, targetType);
+                return createPOINTER(level, value, targetType);
             }
             case "<<=" -> {
                 if (var.getType() != CIdType.Int) return null;
                 int value = setValue(getValue() << var.getValue().intValue());
-                return createPOINTER(value, level, targetType);
+                return createPOINTER(level, value, targetType);
             }
             case "++" -> {
                 int value = 0;
@@ -125,18 +125,18 @@ public class CIdPOINTER implements Variable {
         if (var.getType().equals(CIdType.Int)) {
             int value = getValue();
             return switch (op) {
-                case "+" -> createPOINTER(value + var.getValue().intValue(), level, targetType);
-                case "-" -> createPOINTER(value - var.getValue().intValue(), level, targetType);
-                case "*" -> createPOINTER(value * var.getValue().intValue(), level, targetType);
-                case "/" -> createPOINTER(value / var.getValue().intValue(), level, targetType);
-                case "%" -> createPOINTER(value % var.getValue().intValue(), level, targetType);
-                case ">>" -> createPOINTER(value >> var.getValue().intValue(), level, targetType);
-                case "<<" -> createPOINTER(value << var.getValue().intValue(), level, targetType);
-                case "&" -> createPOINTER(value & var.getValue().intValue(), level, targetType);
-                case "|" -> createPOINTER(value | var.getValue().intValue(), level, targetType);
-                case "~" -> createPOINTER(~value, level, targetType);
-                case "!" -> createPOINTER(value == 0 ? 1 : 0, level, targetType);
-                case "^" -> createPOINTER(value ^ var.getValue().intValue(), level, targetType);
+                case "+" -> createPOINTER(level, value + var.getValue().intValue(), targetType);
+                case "-" -> createPOINTER(level, value - var.getValue().intValue(), targetType);
+                case "*" -> createPOINTER(level, value * var.getValue().intValue(), targetType);
+                case "/" -> createPOINTER(level, value / var.getValue().intValue(), targetType);
+                case "%" -> createPOINTER(level, value % var.getValue().intValue(), targetType);
+                case ">>" -> createPOINTER(level, value >> var.getValue().intValue(), targetType);
+                case "<<" -> createPOINTER(level, value << var.getValue().intValue(), targetType);
+                case "&" -> createPOINTER(level, value & var.getValue().intValue(), targetType);
+                case "|" -> createPOINTER(level, value | var.getValue().intValue(), targetType);
+                case "~" -> createPOINTER(level, ~value, targetType);
+                case "!" -> createPOINTER(level, value == 0 ? 1 : 0, targetType);
+                case "^" -> createPOINTER(level, value ^ var.getValue().intValue(), targetType);
                 default -> null;
             };
         } else return null;

@@ -14,7 +14,7 @@ public class MExp2FExp {
         if (env.codeBlocks.get(r - 1).equals(";")) {
             r--;
         }
-        List<String> tmp = env.codeBlocks.subList(l, r);
+        List<String> tmp = new ArrayList<>(env.codeBlocks.subList(l, r));
         Stack<String> func = new Stack<>();
         for (int i = 0; i < tmp.size(); i++) {
             //替换*和&使其更方便索引
@@ -73,7 +73,7 @@ public class MExp2FExp {
                 s1.pop();
             } else {
                 //当item的优先级小于等于s1栈顶的运算符时，将s1栈顶的运算符弹出并加入到s2中
-                while (s1.size() != 0 && Operation.getValue(s1.peek()) >= Operation.getValue(item)) {
+                while (!s1.isEmpty() && Operation.getValue(s1.peek()) >= Operation.getValue(item)) {
                     s2.add(s1.pop());
                 }
                 //需要将item压入栈
@@ -81,13 +81,14 @@ public class MExp2FExp {
             }
         }
         //将s1中剩余的运算符依次弹出并压入s2
-        while (s1.size() != 0) {
+        while (!s1.isEmpty()) {
             s2.add(s1.pop());
         }
         //因为是存放到List,因此按顺序输出就是对应的后缀表达式对应的List
         return s2;
     }
-    public class Operation {
+
+    public static class Operation {
         //返回对应优先级的数字
         public static int getValue(String operation) {
             int result = 0;

@@ -4,7 +4,6 @@ import dev.duanyper.cidcore.exception.CIdGrammarException;
 import dev.duanyper.cidcore.exception.CIdRuntimeException;
 import dev.duanyper.cidcore.grammar.*;
 import dev.duanyper.cidcore.memory.MemOperator;
-import dev.duanyper.cidcore.runtime.Environment;
 import dev.duanyper.cidcore.runtime.ValuedArgTreeNode;
 import dev.duanyper.cidcore.symbols.*;
 import dev.duanyper.cidcore.variable.*;
@@ -61,7 +60,11 @@ public class CInterpreter {
         try {
             scanFunction();
             Variable res = callFunction("main", new ValuedArgTreeNode());
-            return res.getValue().intValue();
+            try {
+                return res.getValue().intValue();
+            } catch (NullPointerException e) {
+                return 0;
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -76,7 +79,11 @@ public class CInterpreter {
         try {
             scanFunction();
             Variable res = callFunction("main", new ValuedArgTreeNode());
-            return (Integer) res.getValue();
+            try {
+                return (Integer) res.getValue();
+            } catch (NullPointerException e) {
+                return 0;
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -172,6 +179,7 @@ public class CInterpreter {
 
     public Variable calcExpression(TreeNode treeNode) throws CIdGrammarException, CIdRuntimeException {
         Map<String, FunctionCallTreeNode> tempFuncCallMap = new HashMap<>();
+        /*
         if (treeNode instanceof FunctionCallTreeNode) {
             tempFuncCallMap.put(gp.codeBlocks.get(treeNode.lIndex), (FunctionCallTreeNode) treeNode);
         }
@@ -180,13 +188,23 @@ public class CInterpreter {
                 tempFuncCallMap.put(gp.codeBlocks.get(node.lIndex), (FunctionCallTreeNode) node);
             }
         }
-        List<String> res = MExp2FExp.convert(treeNode.lIndex, treeNode.rIndex, new Environment(functions, gp.codeBlocks));
+         */
+        Queue<TreeNode> bfs = new ArrayDeque<>();
+        bfs.add(treeNode);
+        while (!bfs.isEmpty()) {
+            TreeNode cur = bfs.poll();
+            if (cur instanceof FunctionCallTreeNode) {
+                tempFuncCallMap.put(gp.codeBlocks.get(cur.lIndex), (FunctionCallTreeNode) cur);
+            }
+            bfs.addAll(cur.subNode);
+        }
+        List<String> res = ((StatementTreeNode) treeNode).postfixExpression;
         Stack<Variable> stack = new Stack<>();
         for (int i = 0; i < res.size(); i++) {
             String cur = res.get(i);
             if (TypeLookup.lookup(cur, treeNode.vars, functions) == TypeLookup.FUNCTION) {
                 FunctionCallTreeNode functionCallTreeNode = tempFuncCallMap.get(cur);
-                String funcName = gp.originalCodeBlocks.get(functionCallTreeNode.lIndex);
+                String funcName = gp.codeBlocks.get(functionCallTreeNode.lIndex);
                 ArgTreeNode argTreeNode = functions.argIndex.get(funcName);
                 ValuedArgTreeNode valuedArgTreeNode = new ValuedArgTreeNode();
                 ArgTreeNode realArgTreeNode = (ArgTreeNode) functionCallTreeNode.subNode.get(0);

@@ -2,7 +2,6 @@ package dev.duanyper.cidcore;
 
 import dev.duanyper.cidcore.exception.CIdGrammarException;
 import dev.duanyper.cidcore.exception.CIdRuntimeException;
-import dev.duanyper.cidcore.runtime.Environment;
 import dev.duanyper.cidcore.runtime.ValuedArgTreeNode;
 import dev.duanyper.cidcore.symbols.CIdType;
 import dev.duanyper.cidcore.symbols.Functions;
@@ -22,11 +21,11 @@ public class DbgStart {
 
     public static void main(String[] args) throws IOException, CIdGrammarException, NoSuchMethodException, CIdRuntimeException {
         //DEBUG ONLY!!!!
-        String str = "int main(){printf(666);}";
+        String str = "int main(){int a = 1; int p = &a; int p1 = &p; printf(**p1); return 0;}";
         Functions functions = new Functions();
         functions.funcList.put("printf", CIdType.Void);
         functions.nativeFunctions.put("printf", DbgStart.class.getMethod("printf", CInterpreter.class, ValuedArgTreeNode.class));
 
-        new CIdWrapper().executeCode("float i = 666; printf(999 + i);", new Environment(functions, null, null), null);
+        new CIdWrapper().executeProgram(str, functions, null);
     }
 }

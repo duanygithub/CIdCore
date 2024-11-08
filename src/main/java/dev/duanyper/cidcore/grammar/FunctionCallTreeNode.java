@@ -1,6 +1,6 @@
 package dev.duanyper.cidcore.grammar;
 
-public class FunctionCallTreeNode extends TreeNode {
+public class FunctionCallTreeNode extends StatementTreeNode {
     @Override
     public String type() {
         return "funcCall";
