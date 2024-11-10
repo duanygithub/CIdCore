@@ -70,7 +70,15 @@ public class CIdType {
             case "struct" -> type = CIdType.Struct;
             default -> type = null;
         }
-        return CIdType.createPointerType(pointerLevel, type);
+        CIdPointerType finalType = null;
+        for (int i = 1; i <= pointerLevel; i++) {
+            if (i == 1) {
+                finalType = CIdType.createPointerType(1, type);
+            } else {
+                finalType = CIdType.createPointerType(i, finalType);
+            }
+        }
+        return finalType;
     }
 
     public static int getSize(CIdType type) {

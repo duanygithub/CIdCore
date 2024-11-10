@@ -73,7 +73,7 @@ public class MExp2FExp {
                 s1.pop();
             } else {
                 //当item的优先级小于等于s1栈顶的运算符时，将s1栈顶的运算符弹出并加入到s2中
-                while (!s1.isEmpty() && Operation.getValue(s1.peek()) >= Operation.getValue(item)) {
+                while (!s1.isEmpty() && Operation.getValue(s1.peek()) > Operation.getValue(item)) {
                     s2.add(s1.pop());
                 }
                 //需要将item压入栈

@@ -21,11 +21,10 @@ public class DbgStart {
 
     public static void main(String[] args) throws IOException, CIdGrammarException, NoSuchMethodException, CIdRuntimeException {
         //DEBUG ONLY!!!!
-        String str = "int main(){int a = 1; int p = &a; int p1 = &p; printf(**p1); return 0;}";
+        String str = "int main(){int a = 1; int *p = &a; int **p1 = &p; printf(**p1); return 0;}";
         Functions functions = new Functions();
         functions.funcList.put("printf", CIdType.Void);
         functions.nativeFunctions.put("printf", DbgStart.class.getMethod("printf", CInterpreter.class, ValuedArgTreeNode.class));
-
         new CIdWrapper().executeProgram(str, functions, null);
     }
 }

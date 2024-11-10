@@ -235,7 +235,7 @@ public class CInterpreter {
                     stack.push(CIdPOINTER.createPOINTER(
                             varOp1.getType() instanceof CIdPointerType ? ((CIdPOINTER) varOp1).getLevel() + 1 : 1,
                             varOp1.getAddress(),
-                            varOp1.getType() instanceof CIdPointerType ? ((CIdPOINTER) varOp1).getTargetType() : varOp1.getType()
+                            varOp1.getType()
                     ));
                 } else if (cur.equals("A*")) {
                     Variable varOp1 = stack.pop();
