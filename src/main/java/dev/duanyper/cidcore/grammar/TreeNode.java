@@ -24,8 +24,7 @@ public class TreeNode {
         }
         content = sb.toString();
         if (type().equals("Function") || type().equals("block")) {
-            Variables vars = new Variables(parent.vars);
-            this.vars = vars;
+            this.vars = new Variables(parent.vars);
         } else if (!type().equals("root")) {
             vars = parent.vars;
             codeBlocks = parent.codeBlocks;
@@ -34,19 +33,11 @@ public class TreeNode {
 
     public TreeNode() {
     }
-
-    public int getLIndex() {
-        return lIndex;
-    }
-
-    public int getRIndex() {
-        return rIndex;
-    }
-
     public String type() {
         return "nul";
     }
 
+    @Override
     public String toString() {
         StringBuilder ret = new StringBuilder();
         for (String str : codeBlocks.subList(lIndex, rIndex)) {

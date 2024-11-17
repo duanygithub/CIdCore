@@ -40,7 +40,7 @@ public class CIdShell {
         }
     }
 
-    public Variable exec(String s) throws CIdRuntimeException, CIdGrammarException {
+    public void exec(String s) throws CIdRuntimeException, CIdGrammarException {
         GrammarProc gp = new GrammarProc(env.functions);
         ci.setGrammarProc(gp);
         Variable value = null;
@@ -73,7 +73,6 @@ public class CIdShell {
             }
             System.out.print(">>> ");
         }
-        return wrapper.returnValue;
     }
 
     public static void exit(CInterpreter cInterpreter, ValuedArgTreeNode args) {
@@ -91,16 +90,16 @@ public class CIdShell {
         }
     }
 
-    public static void loop() throws IOException, NoSuchMethodException {
+    public static void loop() throws IOException {
         BufferedReader cin = new BufferedReader(new InputStreamReader(System.in));
         System.out.println("CIdShell -- CIdCore - made by duanyB");
         Functions functions = new Functions();
         functions.funcList.put("exit", CIdType.Void);
-        functions.nativeFunctions.put("exit", CIdShell.class.getMethod("exit", CInterpreter.class, ValuedArgTreeNode.class));
+        functions.nativeFunctions.put("exit", CIdShell::exit);
         functions.funcList.put("printf", CIdType.Void);
-        functions.nativeFunctions.put("printf", CIdShell.class.getMethod("printf", CInterpreter.class, ValuedArgTreeNode.class));
+        functions.nativeFunctions.put("printf", CIdShell::printf);
         functions.funcList.put("__typeof", CIdType.Void);
-        functions.nativeFunctions.put("__typeof", CIdShell.class.getMethod("__typeof", CInterpreter.class, ValuedArgTreeNode.class));
+        functions.nativeFunctions.put("__typeof", CIdShell::__typeof);
         CIdShell shell = new CIdShell(new Environment(functions, null, null), true);
         while (!exitLoop) {
             String c = cin.readLine();

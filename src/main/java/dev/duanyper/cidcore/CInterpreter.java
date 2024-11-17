@@ -1,5 +1,6 @@
 package dev.duanyper.cidcore;
 
+import dev.duanyper.cidcore.exception.CIdFunctionReturnException;
 import dev.duanyper.cidcore.exception.CIdGrammarException;
 import dev.duanyper.cidcore.exception.CIdRuntimeException;
 import dev.duanyper.cidcore.grammar.*;
@@ -12,7 +13,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Method;
 import java.util.*;
 
 public class CInterpreter {
@@ -118,14 +118,17 @@ public class CInterpreter {
     public Variable callFunction(String funcName, ValuedArgTreeNode args) throws CIdGrammarException, CIdRuntimeException {
         BlockTreeNode block = functions.codeIndex.get(funcName);
         if (block == null) {
-            try {
-                Method method = functions.nativeFunctions.get(funcName);
-                Variable var = (Variable) method.invoke(Start.class, new Object[]{this, args});
-                if (var == null) return CIdVOID.createVOID();
-                else return var;
-            } catch (Exception e) {
-                throw new CIdRuntimeException("无法调用native函数");
+            Variable retVal = CIdVOID.createVOID();
+            NativeFunctionInterface method = functions.nativeFunctions.get(funcName);
+            if (method == null) {
+                throw new CIdGrammarException("找不到函数 " + funcName + " 的定义");
             }
+            try {
+                method.invoke(this, args);
+            } catch (CIdFunctionReturnException e) {
+                retVal = e.getRetVal();
+            }
+                return retVal;
         }
         block.vars.clear();
         block.vars.putAll(args.argMap);
