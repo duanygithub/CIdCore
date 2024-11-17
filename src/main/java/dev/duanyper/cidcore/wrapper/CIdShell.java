@@ -17,8 +17,8 @@ import java.io.InputStreamReader;
 import java.util.HashMap;
 
 public class CIdShell {
-    CInterpreter ci;
-    CIdWrapper wrapper = new CIdWrapper();
+    final CInterpreter ci;
+    final CIdWrapper wrapper = new CIdWrapper();
     Environment env;
     boolean printPrompt;
     static boolean exitLoop = false;

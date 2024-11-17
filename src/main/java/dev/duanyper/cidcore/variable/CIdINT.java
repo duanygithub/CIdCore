@@ -5,7 +5,7 @@ import dev.duanyper.cidcore.memory.MemOperator;
 import dev.duanyper.cidcore.symbols.CIdType;
 
 public class CIdINT implements Variable {
-    int addr;
+    final int addr;
 
     protected CIdINT(int address) {
         addr = address;

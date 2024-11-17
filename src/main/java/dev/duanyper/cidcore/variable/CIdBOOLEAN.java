@@ -5,7 +5,7 @@ import dev.duanyper.cidcore.memory.MemOperator;
 import dev.duanyper.cidcore.symbols.CIdType;
 
 public class CIdBOOLEAN implements Variable {
-    int addr;
+    final int addr;
 
     private CIdBOOLEAN(int address) {
         addr = address;

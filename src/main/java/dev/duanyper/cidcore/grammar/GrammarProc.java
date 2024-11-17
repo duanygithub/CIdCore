@@ -14,7 +14,7 @@ import java.util.Stack;
 public class GrammarProc {
     public List<String> codeBlocks = new ArrayList<>();
     public RootTreeNode root;
-    public Functions functions;
+    public final Functions functions;
 
     public GrammarProc(Functions functions) {
         this.functions = functions;
@@ -148,52 +148,92 @@ public class GrammarProc {
                     parentNode.subNode.add(functionCallTreeNode);
                 }
                 case TypeLookup.PROC_CONTROL -> {
-                    if (str.equals("if")) {
-                        int tmp = 0, ifBegin = i;
-                        do {
-                            i++;
-                            if (codeBlocks.get(i).equals("(")) tmp++;
-                            else if (codeBlocks.get(i).equals(")")) tmp--;
-                        } while (tmp != 0);
-                        IfStatementTreeNode ifStatementTreeNode = new IfStatementTreeNode(ifBegin, i + 1, parentNode);
-                        ArgTreeNode argTreeNode = new ArgTreeNode(ifBegin + 2, i, ifStatementTreeNode);
-                        buildTree(argTreeNode);
-                        ifStatementTreeNode.subNode.add(argTreeNode);
-                        if (codeBlocks.get(i + 1).equals("{")) {
-                            int blockBegin = i + 2;
+                    switch (str) {
+                        case "if" -> {
+                            int tmp = 0, ifBegin = i;
                             do {
                                 i++;
-                                if (codeBlocks.get(i).equals("{")) tmp++;
-                                else if (codeBlocks.get(i).equals("}")) tmp--;
-                            } while (tmp != 0);
-                            BlockTreeNode blockTreeNode = new BlockTreeNode(blockBegin, i, ifStatementTreeNode);
-                            buildTree(blockTreeNode);
-                            ifStatementTreeNode.subNode.add(blockTreeNode);
-                        } else {
-                            int blockBegin = i + 1;
-                            while (!codeBlocks.get(i).equals(";")) i++;
-                            BlockTreeNode blockTreeNode = new BlockTreeNode(blockBegin, i, ifStatementTreeNode);
-                            buildTree(blockTreeNode);
-                            ifStatementTreeNode.subNode.add(blockTreeNode);
-                        }
-                        parentNode.subNode.add(ifStatementTreeNode);
-                    } else if (str.equals("while")) {
-                        if (parentNode.type().equals("do")) {
-                            i += 2;
-                            int conditionBegin = i + 2;
-                            int tmp = 1;
-                            while (tmp > 0) {
                                 if (codeBlocks.get(i).equals("(")) tmp++;
                                 else if (codeBlocks.get(i).equals(")")) tmp--;
+                            } while (tmp != 0);
+                            IfStatementTreeNode ifStatementTreeNode = new IfStatementTreeNode(ifBegin, i + 1, parentNode);
+                            ArgTreeNode argTreeNode = new ArgTreeNode(ifBegin + 2, i, ifStatementTreeNode);
+                            buildTree(argTreeNode);
+                            ifStatementTreeNode.subNode.add(argTreeNode);
+                            if (codeBlocks.get(i + 1).equals("{")) {
+                                int blockBegin = i + 2;
+                                do {
+                                    i++;
+                                    if (codeBlocks.get(i).equals("{")) tmp++;
+                                    else if (codeBlocks.get(i).equals("}")) tmp--;
+                                } while (tmp != 0);
+                                BlockTreeNode blockTreeNode = new BlockTreeNode(blockBegin, i, ifStatementTreeNode);
+                                buildTree(blockTreeNode);
+                                ifStatementTreeNode.subNode.add(blockTreeNode);
+                            } else {
+                                int blockBegin = i + 1;
+                                while (!codeBlocks.get(i).equals(";")) i++;
+                                BlockTreeNode blockTreeNode = new BlockTreeNode(blockBegin, i, ifStatementTreeNode);
+                                buildTree(blockTreeNode);
+                                ifStatementTreeNode.subNode.add(blockTreeNode);
+                            }
+                            parentNode.subNode.add(ifStatementTreeNode);
+                        }
+                        case "while" -> {
+                            if (parentNode.type().equals("do")) {
+                                i += 2;
+                                int conditionBegin = i + 2;
+                                int tmp = 1;
+                                while (tmp > 0) {
+                                    if (codeBlocks.get(i).equals("(")) tmp++;
+                                    else if (codeBlocks.get(i).equals(")")) tmp--;
+                                    i++;
+                                }
+                                ArgTreeNode argTreeNode = new ArgTreeNode(conditionBegin, i - 1, parentNode);
+                                buildTree(argTreeNode);
+                                parentNode.subNode.add(argTreeNode);
+                            } else {
+                                int whileBegin = i;
+                                i += 2;
+                                int conditionBegin = i, conditionEnd = 0, blockBegin = 0, blockEnd = 0;
+                                int tmp = 1;
+                                while (tmp > 0) {
+                                    if (codeBlocks.get(i).equals("(")) tmp++;
+                                    else if (codeBlocks.get(i).equals(")")) tmp--;
+                                    i++;
+                                }
+                                conditionEnd = i - 1;
+                                i++;
+                                if (codeBlocks.get(i).equals("{")) {
+                                    tmp = 1;
+                                    i++;
+                                    blockBegin = i;
+                                    while (tmp > 0) {
+                                        if (codeBlocks.get(i).equals("{")) tmp++;
+                                        else if (codeBlocks.get(i).equals("}")) tmp--;
+                                        i++;
+                                    }
+                                    blockEnd = i - 1;
+                                } else {
+                                    blockBegin = i;
+                                    //for (; !codeBlocks.get(i).equals(";"); i++) ;
+                                    while (!codeBlocks.get(i).equals(";")) i++;
+                                    blockEnd = i;
+                                }
+                                WhileTreeNode whileTreeNode = new WhileTreeNode(whileBegin, blockEnd + 2, parentNode);
+                                ArgTreeNode argTreeNode = new ArgTreeNode(conditionBegin, conditionEnd, whileTreeNode);
+                                buildTree(argTreeNode);
+                                whileTreeNode.subNode.add(argTreeNode);
+                                BlockTreeNode blockTreeNode = new BlockTreeNode(blockBegin, blockEnd, whileTreeNode);
+                                buildTree(blockTreeNode);
+                                whileTreeNode.subNode.add(blockTreeNode);
+                                parentNode.subNode.add(whileTreeNode);
                                 i++;
                             }
-                            ArgTreeNode argTreeNode = new ArgTreeNode(conditionBegin, i - 1, parentNode);
-                            buildTree(argTreeNode);
-                            parentNode.subNode.add(argTreeNode);
-                        } else {
-                            int whileBegin = i;
+                        }
+                        case "for" -> {
                             i += 2;
-                            int conditionBegin = i, conditionEnd = 0, blockBegin = 0, blockEnd = 0;
+                            int conditionBegin = i, conditionEnd, blockBegin, blockEnd;
                             int tmp = 1;
                             while (tmp > 0) {
                                 if (codeBlocks.get(i).equals("(")) tmp++;
@@ -218,51 +258,15 @@ public class GrammarProc {
                                 while (!codeBlocks.get(i).equals(";")) i++;
                                 blockEnd = i;
                             }
-                            WhileTreeNode whileTreeNode = new WhileTreeNode(whileBegin, blockEnd + 2, parentNode);
-                            ArgTreeNode argTreeNode = new ArgTreeNode(conditionBegin, conditionEnd, whileTreeNode);
+                            ForTreeNode forTreeNode = new ForTreeNode(conditionEnd - 2, blockEnd + 1, parentNode);
+                            ArgTreeNode argTreeNode = new ArgTreeNode(conditionBegin, i - 1, forTreeNode);
                             buildTree(argTreeNode);
-                            whileTreeNode.subNode.add(argTreeNode);
-                            BlockTreeNode blockTreeNode = new BlockTreeNode(blockBegin, blockEnd, whileTreeNode);
+                            forTreeNode.subNode.add(argTreeNode);
+                            BlockTreeNode blockTreeNode = new BlockTreeNode(blockBegin, blockEnd, forTreeNode);
                             buildTree(blockTreeNode);
-                            whileTreeNode.subNode.add(blockTreeNode);
-                            parentNode.subNode.add(whileTreeNode);
-                            i++;
+                            forTreeNode.subNode.add(blockTreeNode);
+                            parentNode.subNode.add(forTreeNode);
                         }
-                    } else if (str.equals("for")) {
-                        i += 2;
-                        int conditionBegin = i, conditionEnd, blockBegin, blockEnd;
-                        int tmp = 1;
-                        while (tmp > 0) {
-                            if (codeBlocks.get(i).equals("(")) tmp++;
-                            else if (codeBlocks.get(i).equals(")")) tmp--;
-                            i++;
-                        }
-                        conditionEnd = i - 1;
-                        i++;
-                        if (codeBlocks.get(i).equals("{")) {
-                            tmp = 1;
-                            i++;
-                            blockBegin = i;
-                            while (tmp > 0) {
-                                if (codeBlocks.get(i).equals("{")) tmp++;
-                                else if (codeBlocks.get(i).equals("}")) tmp--;
-                                i++;
-                            }
-                            blockEnd = i - 1;
-                        } else {
-                            blockBegin = i;
-                            //for (; !codeBlocks.get(i).equals(";"); i++) ;
-                            while (!codeBlocks.get(i).equals(";")) i++;
-                            blockEnd = i;
-                        }
-                        ForTreeNode forTreeNode = new ForTreeNode(conditionEnd - 2, blockEnd + 1, parentNode);
-                        ArgTreeNode argTreeNode = new ArgTreeNode(conditionBegin, i - 1, forTreeNode);
-                        buildTree(argTreeNode);
-                        forTreeNode.subNode.add(argTreeNode);
-                        BlockTreeNode blockTreeNode = new BlockTreeNode(blockBegin, blockEnd, forTreeNode);
-                        buildTree(blockTreeNode);
-                        forTreeNode.subNode.add(blockTreeNode);
-                        parentNode.subNode.add(forTreeNode);
                     }
                 }
                 case TypeLookup.RETURN -> {
@@ -455,9 +459,7 @@ public class GrammarProc {
                 statements.add(sb.toString());
                 sb.delete(0, sb.length());
             } else if (c == '#' && !bInQua) {
-                //这里原来检查预处理指令的，检查到了这行就不用换行了
-                //但现在感觉还是换行比较好
-//                disableSpace = true;
+                //TODO: 这里原来检查预处理指令的，检查到了这行就不用换行了
             } else if (MExp2FExp.Operation.getValue(String.valueOf(c)) != 0 && !bInQua) {
                 statements.add(sb.toString());
                 sb.delete(0, sb.length());

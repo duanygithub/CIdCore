@@ -11,10 +11,11 @@ import java.util.Map;
 import java.util.Objects;
 
 public class CIdSTRUCT implements Variable {
-    int size, addr;
-    StructureDescriptor descriptor;
-    Map<String, Integer> membersAddressOffsets = new HashMap<>();
-    Map<CIdType, String> members;
+    int size;
+    final int addr;
+    final StructureDescriptor descriptor;
+    final Map<String, Integer> membersAddressOffsets = new HashMap<>();
+    final Map<CIdType, String> members;
 
     public static CIdSTRUCT createSTRUCT(StructureDescriptor descriptor) {
         return new CIdSTRUCT(descriptor, 0);
@@ -45,7 +46,7 @@ public class CIdSTRUCT implements Variable {
             return CIdINT.createINT(CIdINT.createWithAllocatedAddress(addr + offset).getValue());
         }
         if (memberType == CIdType.Boolean) {
-            return CIdBOOLEAN.createBOOLEAN(!Objects.equals(CIdBOOLEAN.createWithAllocatedAddress(addr + offset).getValue(), (Integer) 0));
+            return CIdBOOLEAN.createBOOLEAN(!Objects.equals(CIdBOOLEAN.createWithAllocatedAddress(addr + offset).getValue(), 0));
         }
         if (memberType instanceof CIdPointerType) {
             CIdPOINTER originalPointer = CIdPOINTER.createWithAllocatedAddress(addr + offset, 1, CIdType.Void);

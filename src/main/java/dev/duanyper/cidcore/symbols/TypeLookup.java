@@ -91,11 +91,6 @@ public class TypeLookup {
         if (vars.get(str) != null) {
             return vars.get(str).getType();
         }
-        /*
-        if (str.matches("\"([^\"]*)\"")) {
-            return CIdType.Pointer;
-        }
-        */
         if (functions.funcList.get(str) != null) {
             return functions.funcList.get(str);
         }

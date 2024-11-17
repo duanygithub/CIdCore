@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ValuedArgTreeNode extends TreeNode {
-    public Map<String, Variable> argMap = new HashMap<>();
+    public final Map<String, Variable> argMap = new HashMap<>();
 
     public ValuedArgTreeNode() {
         super();

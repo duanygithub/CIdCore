@@ -3,8 +3,8 @@ package dev.duanyper.cidcore.memory;
 import dev.duanyper.cidcore.exception.CIdRuntimeException;
 
 public class MemPage {
-    byte[] page = new byte[65536];
-    byte[] allocMap = new byte[8192];
+    final byte[] page = new byte[65536];
+    final byte[] allocMap = new byte[8192];
     int bytesAllocated = 0;
     public MemPage(boolean bDisableFirst4KB) {
         if(bDisableFirst4KB) {
@@ -26,8 +26,9 @@ public class MemPage {
             for(int j = 0; j < size; j++) {
                 int mapIndex = (i + j) / 8;
                 int curAllocStatus = allocMap[mapIndex] & (1 << ((i + j) % 8));
-                if(curAllocStatus != 0) {
+                if (curAllocStatus != 0) {
                     bAvailable = false;
+                    break;
                 }
             }
             if(bAvailable) {

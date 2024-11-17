@@ -5,10 +5,8 @@ public class CIdAssert {
 
     public static void _assert(boolean b, String failMessage) throws CIdGrammarException {
         if (!b) {
-            switch (failMessage) {
-                case INCORRECT_TYPE -> {
-                    throw new CIdGrammarException(failMessage);
-                }
+            if (failMessage.equals(INCORRECT_TYPE)) {
+                throw new CIdGrammarException(failMessage);
             }
         }
     }

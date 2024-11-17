@@ -101,18 +101,6 @@ public class CInterpreter {
     }
 
     private void scanFunction() {
-        /*
-        RootTreeNode root = gp.getRoot();
-        for (TreeNode node : root.subNode) {
-            if (node.type().equals("Function")) {
-                CIdType keywordType = CIdType.string2Keywords(gp.originalCodeBlocks.get(node.lIndex));
-                String name = gp.originalCodeBlocks.get(node.lIndex + 1);
-                Functions.funcList.put(name, keywordType);
-                Functions.codeIndex.put(name, (BlockTreeNode) node.subNode.get(1));
-                Functions.argIndex.put(name, (ArgTreeNode) node.subNode.get(0));
-            }
-        }
-         */
     }
 
     public Variable callFunction(String funcName, ValuedArgTreeNode args) throws CIdGrammarException, CIdRuntimeException {
@@ -182,16 +170,6 @@ public class CInterpreter {
 
     public Variable calcExpression(TreeNode treeNode) throws CIdGrammarException, CIdRuntimeException {
         Map<String, FunctionCallTreeNode> tempFuncCallMap = new HashMap<>();
-        /*
-        if (treeNode instanceof FunctionCallTreeNode) {
-            tempFuncCallMap.put(gp.codeBlocks.get(treeNode.lIndex), (FunctionCallTreeNode) treeNode);
-        }
-        for (TreeNode node : treeNode.subNode) {
-            if (node instanceof FunctionCallTreeNode) {
-                tempFuncCallMap.put(gp.codeBlocks.get(node.lIndex), (FunctionCallTreeNode) node);
-            }
-        }
-         */
         Queue<TreeNode> bfs = new ArrayDeque<>();
         bfs.add(treeNode);
         while (!bfs.isEmpty()) {
@@ -213,7 +191,7 @@ public class CInterpreter {
                 ArgTreeNode realArgTreeNode = (ArgTreeNode) functionCallTreeNode.subNode.get(0);
                 if (realArgTreeNode.lIndex < realArgTreeNode.rIndex) {
                     for (int j = 0; j < realArgTreeNode.subNode.size(); j++) {
-                        String argName = "";
+                        String argName;
                         if (argTreeNode == null) {
                             argName = "%" + j;
                         } else argName = gp.codeBlocks.get(argTreeNode.subNode.get(j).lIndex + 1);
@@ -344,52 +322,4 @@ public class CInterpreter {
         ArrayList<CIdType> callArgTypeArray = new ArrayList<>();
         return callArg.subNode.size() == funcArg.subNode.size();
     }
-    /*
-    private CIdType getExpressionValueType(List<String> expList, Variables tmpVars) {
-        Stack<CIdType> typeStack = new Stack<>();
-        StringBuilder sb = new StringBuilder();
-        for (String s : expList) sb.append(s);
-        List<String> resExpList = MExp2FExp.convert(sb.toString(), functions);
-        for (int i = 0; i < resExpList.size(); i++) {
-            if (MExp2FExp.Operation.getValue(resExpList.get(i)) != 0) {
-                switch (resExpList.get(i)) {
-                    case "+", "-", "*", "/", "%" -> {
-                        CIdType type2 = typeStack.pop();
-                        CIdType type1 = typeStack.pop();
-                        if (type1 == CIdType.Float || type2 == CIdType.Float) {
-                            typeStack.push(CIdType.Float);
-                        } else if (type1 == CIdType.Pointer && type2 == CIdType.Pointer) {
-                            typeStack.push(CIdType.Pointer);
-                        } else if (type1 == CIdType.Int || type2 == CIdType.Int) {
-                            typeStack.push(CIdType.Int);
-                        } else if (type1 == CIdType.Char || type2 == CIdType.Int) {
-                            typeStack.push(CIdType.Char);
-                        }
-                    }
-                    case "+=", "-=", "*=", "/=", "%=" -> {
-                        CIdType type1 = typeStack.pop();
-                        typeStack.push(type1);
-                    }
-                    case "|=", "^=", "&=", ">>=", "<<=", "|", "^", "&", "<<", ">>" -> {
-                        CIdType type2 = typeStack.pop();
-                        CIdType type1 = typeStack.pop();
-                        typeStack.push(CIdType.Int);
-                    }
-                    case "++", "--", "~" -> {
-                        CIdType type1 = typeStack.pop();
-                        typeStack.push(CIdType.Int);
-                    }
-                    case "A&" -> {
-                        CIdType type1 = typeStack.pop();
-                        typeStack.push(CIdType.Pointer);
-                    }
-                }
-            } else {
-                typeStack.push(TypeLookup.lookupKeywords(resExpList.get(i), tmpVars, functions));
-            }
-        }
-        return typeStack.pop();
-    }
-
-     */
 }

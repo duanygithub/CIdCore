@@ -8,9 +8,9 @@ import dev.duanyper.cidcore.symbols.CIdType;
 import java.io.UnsupportedEncodingException;
 
 public class CIdPOINTER implements Variable {
-    int addr;
-    int level = 0;
-    CIdType targetType;
+    final int addr;
+    int level;
+    final CIdType targetType;
 
     protected CIdPOINTER(int address, int lvl, CIdType type) {
         addr = address;

@@ -5,7 +5,7 @@ import dev.duanyper.cidcore.memory.MemOperator;
 import dev.duanyper.cidcore.symbols.CIdType;
 
 public class CIdFLOAT implements Variable {
-    int addr;
+    final int addr;
 
     private CIdFLOAT(int address) {
         addr = address;

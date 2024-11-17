@@ -9,7 +9,7 @@ import java.util.List;
 public class TreeNode {
     public int lIndex = -1, rIndex = -1;
     String content;
-    public ArrayList<TreeNode> subNode = new ArrayList<>();
+    public final ArrayList<TreeNode> subNode = new ArrayList<>();
     public TreeNode parentNode;
     public Variables vars = new Variables();
     public List<String> codeBlocks;

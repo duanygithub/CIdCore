@@ -7,18 +7,17 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 public class MemOperator {
-    static ArrayList<MemPage> pages = new ArrayList<>();
+    static final ArrayList<MemPage> pages = new ArrayList<>();
     static public int allocateMemory(int size) {
         for(int i = 0; i < pages.size(); i++) {
             MemPage page = pages.get(i);
             int index = page.allocateBytes(size);
             if(index == -1)continue;
-            int address = i * 65536 + index;
-            return address;
+            return i * 65536 + index;
         }
         if(pages.size() < 16 * 8) {
             MemPage newPage;
-            if(pages.size() == 0) {
+            if(pages.isEmpty()) {
                 newPage = new MemPage(true);
             }
             else newPage = new MemPage(false);
@@ -27,8 +26,7 @@ public class MemOperator {
             if(index == -1) {
                 return -1;
             }
-            int address = (pages.size() - 1) * 65536 + index;
-            return address;
+            return (pages.size() - 1) * 65536 + index;
         }
         return -1;
     }

@@ -7,8 +7,8 @@ import java.util.List;
 import java.util.Map;
 
 public class StructureDescriptor {
-    public Map<CIdType, String> members = new HashMap<>();
-    public String name;
+    public final Map<CIdType, String> members = new HashMap<>();
+    public final String name;
 
     public StructureDescriptor(StructureTreeNode treeNode, List<String> codeBlocks) {
         for (TreeNode cur : treeNode.subNode.get(0).subNode) {
@@ -22,7 +22,7 @@ public class StructureDescriptor {
                         name = codeBlocks.get(cur.rIndex - 1);
                     }
                 } else {
-                    //结构体在全局定义，此时应该从全局范围查找
+                    //TODO: 结构体在全局定义，此时应该从全局范围查找
                 }
             }
             members.put(type, name);
