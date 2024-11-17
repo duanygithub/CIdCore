@@ -94,4 +94,25 @@ public class CIdType {
     public static int getSize(String type) {
         return getSize(string2Type(type));
     }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("{Type: ");
+        if(this==Int) {
+            sb.append("int }");
+        } else if (this == Float) {
+            sb.append("float }");
+        } else if (this == Boolean) {
+            sb.append("bool }");
+        } else if (this == Char) {
+            sb.append("char }");
+        } else if (this instanceof CIdPointerType) {
+            sb.append("Pointer, Level: ");
+            sb.append(((CIdPointerType) this).lvl);
+            sb.append(", TargetType: ").append(((CIdPointerType) this).type.toString()).append(" }");
+        } else {
+            sb.append("Struct }");
+        }
+        return sb.toString();
+    }
 }

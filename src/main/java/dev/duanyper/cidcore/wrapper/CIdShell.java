@@ -85,6 +85,12 @@ public class CIdShell {
         System.out.println(var.toString());
     }
 
+    public static void __typeof(CInterpreter cInterpreter, ValuedArgTreeNode args) {
+        for(Variable var : args.argMap.values()) {
+            System.out.println(var.getType().toString());
+        }
+    }
+
     public static void loop() throws IOException, NoSuchMethodException {
         BufferedReader cin = new BufferedReader(new InputStreamReader(System.in));
         System.out.println("CIdShell -- CIdCore - made by duanyB");
@@ -93,6 +99,8 @@ public class CIdShell {
         functions.nativeFunctions.put("exit", CIdShell.class.getMethod("exit", CInterpreter.class, ValuedArgTreeNode.class));
         functions.funcList.put("printf", CIdType.Void);
         functions.nativeFunctions.put("printf", CIdShell.class.getMethod("printf", CInterpreter.class, ValuedArgTreeNode.class));
+        functions.funcList.put("__typeof", CIdType.Void);
+        functions.nativeFunctions.put("__typeof", CIdShell.class.getMethod("__typeof", CInterpreter.class, ValuedArgTreeNode.class));
         CIdShell shell = new CIdShell(new Environment(functions, null, null), true);
         while (!exitLoop) {
             String c = cin.readLine();
