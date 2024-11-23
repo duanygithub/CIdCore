@@ -11,11 +11,6 @@ public class CIdFLOAT implements Variable {
         addr = address;
     }
 
-    @Override
-    protected void finalize() {
-        MemOperator.freeMemory(addr, 4);
-    }
-
     public static CIdFLOAT createFLOAT(String str) throws CIdRuntimeException {
         return createFLOAT(Float.parseFloat(str));
     }

@@ -26,7 +26,7 @@ public class CIdWrapper {
         if (env == null)
             env = new Environment(null, null, null);
         if (cInterpreter == null)
-            cInterpreter = new CInterpreter(code, false);
+            cInterpreter = CInterpreter.create(null, code, null);
         cInterpreter.setFunctions(env.functions);
         GrammarProc gp = new GrammarProc(env.functions);
         cInterpreter.setGrammarProc(gp);
@@ -44,7 +44,7 @@ public class CIdWrapper {
         if (functions == null)
             functions = new Functions();
         if (cInterpreter == null)
-            cInterpreter = new CInterpreter(code, false);
+            cInterpreter = CInterpreter.create(null, code, null);
         cInterpreter.setFunctions(functions);
         return cInterpreter.start();
     }
@@ -53,7 +53,7 @@ public class CIdWrapper {
         if (functions == null)
             functions = new Functions();
         if (cInterpreter == null)
-            cInterpreter = new CInterpreter(code, false);
+            cInterpreter = CInterpreter.create(null, code, null);
         if (arg == null)
             arg = new ValuedArgTreeNode();
         GrammarProc gp = new GrammarProc(functions);
@@ -66,7 +66,7 @@ public class CIdWrapper {
         if (env == null)
             env = new Environment(null, null, null);
         if (cInterpreter == null)
-            cInterpreter = new CInterpreter();
+            cInterpreter = CInterpreter.create(null, null, null);
         GrammarProc gp = new GrammarProc(env.functions);
         cInterpreter.setFunctions(env.functions);
         cInterpreter.setGrammarProc(gp);

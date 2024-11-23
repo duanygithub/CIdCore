@@ -11,11 +11,6 @@ public class CIdCHAR implements Variable {
         addr = address;
     }
 
-    @Override
-    protected void finalize() {
-        MemOperator.freeMemory(addr, 1);
-    }
-
     public static CIdCHAR createCHAR(int n) throws CIdRuntimeException {
         int address = MemOperator.allocateMemory(1);
         MemOperator.writeChar(address, (char) n);

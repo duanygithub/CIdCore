@@ -24,17 +24,18 @@ public class CIdShell {
     static boolean exitLoop = false;
 
     public CIdShell() {
-        ci = new CInterpreter();
+        ci = CInterpreter.create(null, null, null);
     }
 
     public CIdShell(Environment env, boolean printPrompt) {
         this.env = env;
         this.printPrompt = printPrompt;
         if (env == null || env.functions == null) {
-            ci = new CInterpreter();
+            ci = CInterpreter.createEmpty();
+            assert ci != null;
             this.env = new Environment(new Functions(), new Variables(), new HashMap<>());
             ci.setFunctions(this.env.functions);
-        } else ci = new CInterpreter(env.functions);
+        } else ci = CInterpreter.create(null, null, env.functions);
         if (this.printPrompt) {
             System.out.print(">>> ");
         }

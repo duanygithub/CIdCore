@@ -11,11 +11,6 @@ public class CIdINT implements Variable {
         addr = address;
     }
 
-    @Override
-    protected void finalize() {
-        MemOperator.freeMemory(addr, 4);
-    }
-
     public static CIdINT createINT(String str) throws CIdRuntimeException {
         return createINT(Integer.parseInt(str));
     }

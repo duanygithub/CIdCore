@@ -3,7 +3,6 @@ package dev.duanyper.cidcore.variable;
 import dev.duanyper.cidcore.symbols.CIdType;
 
 public class CIdVOID implements Variable {
-    int addr;
 
     public static CIdVOID createVOID() {
         return new CIdVOID();

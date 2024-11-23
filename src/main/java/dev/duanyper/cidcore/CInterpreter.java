@@ -16,40 +16,65 @@ import java.io.UnsupportedEncodingException;
 import java.util.*;
 
 public class CInterpreter {
+    static int tot = 0;
     String codes;
     GrammarProc gp;
     Functions functions;
 
-    public CInterpreter() {
-    }
-
-    public CInterpreter(Functions functions) {
+    private CInterpreter(Functions functions) {
         this.functions = functions;
     }
 
-    public CInterpreter(String f) throws IOException {
-        File file = new File(f);
+    private CInterpreter(File file) throws IOException {
         if (!file.exists()) {
             System.out.println("Cannot read file completely!");
             return;
         }
         byte[] tmp = new byte[(int) file.length() + 1];
-        FileInputStream inputStream = new FileInputStream(file);
-        int readLen = inputStream.read(tmp);
-        if (readLen != file.length()) {
-            System.out.println("Cannot read file completely!");
-            return;
+        try (FileInputStream inputStream = new FileInputStream(file)) {
+            int readLen = inputStream.read(tmp);
+            if (readLen != file.length()) {
+                System.out.println("Cannot read file completely!");
+                return;
+            }
+            codes = new String(tmp);
+            codes = codes.trim();
+        } catch (IOException e) {
         }
-        codes = new String(tmp);
-        codes = codes.trim();
     }
 
-    public CInterpreter(String s, boolean dummy) {
+    private CInterpreter(String s) {
         codes = s;
     }
 
     public void setFunctions(Functions functions) {
         this.functions = functions;
+    }
+
+    public static CInterpreter create(String file, String codes, Functions functions) {
+        if ((file != null && codes != null)) {
+            return null;
+        }
+        CInterpreter ci;
+        if (file != null) {
+            try {
+                ci = new CInterpreter(new File(file));
+            } catch (IOException e) {
+                ci = null;
+            }
+        } else if (codes != null) {
+            ci = new CInterpreter(codes);
+        } else {
+            ci = new CInterpreter(functions);
+        }
+        if (ci != null) {
+            ci.setFunctions(functions);
+        }
+        return ci;
+    }
+
+    public static CInterpreter createEmpty() {
+        return CInterpreter.create(null, null, null);
     }
 
     public int start() {
