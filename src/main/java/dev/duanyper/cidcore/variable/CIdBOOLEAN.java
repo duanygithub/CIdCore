@@ -21,8 +21,9 @@ public class CIdBOOLEAN implements Variable {
         return new CIdBOOLEAN(address);
     }
 
-    public int setValue(boolean b) throws CIdRuntimeException {
-        return MemOperator.writeBoolean(addr, b);
+    public boolean setValue(boolean b) throws CIdRuntimeException {
+        MemOperator.writeBoolean(addr, b);
+        return b;
     }
 
     @Override
@@ -41,8 +42,11 @@ public class CIdBOOLEAN implements Variable {
     }
 
     @Override
-    public Variable procOperation(Variable var, String op) {
-        return null;
+    public Variable procOperation(Variable var, String op) throws CIdRuntimeException {
+        if (op.equals("=")) {
+            return CIdBOOLEAN.createBOOLEAN(setValue((Integer) var.getValue() != 0));
+        }
+        throw new CIdRuntimeException(String.format("不支持的操作, 操作数类型: %s, 被操作数类型: %s", var.getType().toString(), getType().toString()));
     }
 
     @Override
