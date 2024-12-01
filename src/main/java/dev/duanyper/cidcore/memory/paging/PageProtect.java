@@ -13,6 +13,6 @@ public class PageProtect {
     public static final int PAGE_EXECUTE_WRITECOPY = 15;//1111
 
     boolean haveProtect(int protect1, int protect2) {
-        return (protect1 | protect2) != 0;
+        return (protect1 & protect2) != 0;
     }
 }

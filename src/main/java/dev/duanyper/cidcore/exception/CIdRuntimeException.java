@@ -1,6 +1,6 @@
 package dev.duanyper.cidcore.exception;
 
-public class CIdRuntimeException extends Exception {
+public class CIdRuntimeException extends RuntimeException {
     public CIdRuntimeException(String msg) {
         super(msg);
     }
