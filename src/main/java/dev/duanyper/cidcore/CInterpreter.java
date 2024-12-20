@@ -314,7 +314,7 @@ public class CInterpreter {
                     case "char" -> treeNode.vars.put(res.get(i + 1), (variable = CIdCHAR.createCHAR()));
                 }
                 stack.push(variable);
-            } else if (TypeLookup.lookup(cur, treeNode.vars, functions) == TypeLookup.DECLEAR_POINTER) {
+            } else if (TypeLookup.lookup(cur, treeNode.vars, functions) == TypeLookup.DECLARE_POINTER) {
                 CIdPointerType pointerType = CIdType.getPointerType(cur);
                 treeNode.vars.put(res.get(i + 1), CIdPOINTER.createPOINTER(pointerType.lvl, 0, pointerType.type));
             } else stack.push(string2Variable(cur, treeNode.vars));

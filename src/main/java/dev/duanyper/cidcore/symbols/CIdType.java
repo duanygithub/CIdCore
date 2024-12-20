@@ -5,6 +5,9 @@ import dev.duanyper.cidcore.grammar.StructureDescriptor;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import static dev.duanyper.cidcore.Patterns.DECLARE_POINTER;
+import static dev.duanyper.cidcore.Patterns.isMatch;
+
 public class CIdType {
     public static final CIdType Int = new CIdType();
     public static final CIdType Void = new CIdType();
@@ -43,7 +46,7 @@ public class CIdType {
                 return Struct;
             }
             default -> {
-                if (type.matches("(int|char|float|void|struct)\\*+")) {//int*
+                if (isMatch(type, DECLARE_POINTER)) {//int*
                     return createPointerType(type.length() - type.indexOf('*'), string2Type(type.substring(0, type.indexOf('*'))));
                 } else return null;
             }

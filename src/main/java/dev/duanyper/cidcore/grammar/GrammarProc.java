@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
+import static dev.duanyper.cidcore.Patterns.*;
+
 public class GrammarProc {
     public List<String> codeBlocks = new ArrayList<>();
     public RootTreeNode root;
@@ -71,7 +73,7 @@ public class GrammarProc {
             String str = codeBlocks.get(i);
             switch (TypeLookup.lookup(str, parentNode.vars, functions)) {
                 case TypeLookup.BASICTYPE -> {
-                    if (codeBlocks.get(i + 1).matches("\\w+")) {
+                    if (isMatch(codeBlocks.get(i + 1), IDENTIFIER)) {
                         if (codeBlocks.get(i + 2).equals("(")) {
                             int funcBegin = i;
                             FunctionTreeNode functionTreeNode = new FunctionTreeNode(i, i + 2, parentNode);
@@ -314,7 +316,7 @@ public class GrammarProc {
                 default -> {
                     int begin = i;
                     boolean somethingUseful = false;
-                    for (; i < r && !codeBlocks.get(i).matches(";"); i++) {
+                    for (; i < r && !isMatch(codeBlocks.get(i), SIGN); i++) {
                         if (TypeLookup.lookup(codeBlocks.get(i), parentNode.vars, functions) == TypeLookup.FUNCTION) {
                             somethingUseful = true;
                         }
@@ -406,8 +408,8 @@ public class GrammarProc {
                     continue;
                 }
             } else if (c == '.') {
-                if (String.valueOf(nxt).matches("[0-9]")) {
-                    if (String.valueOf(pre).matches("[0-9]") || pre == ' ' || MExp2FExp.Operation.getValue(String.valueOf(pre)) != 0) {
+                if (isMatch(String.valueOf(nxt), NUMBER)) {
+                    if (isMatch(String.valueOf(pre), NUMBER) || pre == ' ' || MExp2FExp.Operation.getValue(String.valueOf(pre)) != 0) {
                         sb.append(c);
                         continue;
                     }
@@ -491,7 +493,7 @@ public class GrammarProc {
             }
         }
         for (int i = 0; i < statements.size(); i++) {
-            if (statements.get(i).matches("[+-]")) {
+            if (isMatch(statements.get(i), SIGN)) {
                 try {
                     if (MExp2FExp.Operation.getValue(statements.get(i - 1)) != 0 && MExp2FExp.Operation.getValue(statements.get(i + 1)) == 0) {
                         if (statements.get(i).equals("-")) {
@@ -504,7 +506,7 @@ public class GrammarProc {
                 }
             }
             if (TypeLookup.lookup(statements.get(i), null, functions) == TypeLookup.BASICTYPE ||
-                    TypeLookup.lookup(statements.get(i), null, functions) == TypeLookup.DECLEAR_POINTER) {
+                    TypeLookup.lookup(statements.get(i), null, functions) == TypeLookup.DECLARE_POINTER) {
                 while (statements.get(i + 1).equals("*")) {
                     statements.set(i, statements.get(i) + "*");
                     statements.remove(i + 1);

@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
+import static dev.duanyper.cidcore.Patterns.*;
+
 public class MExp2FExp {
     public static List<String> convert(int l, int r, Environment env) {
         Functions functions = env.functions;
@@ -58,7 +60,7 @@ public class MExp2FExp {
         List<String> s2 = new ArrayList<String>();
 
         for (String item : ls) {
-            if (Operation.getValue(item) == 0 && !item.matches("[()]")) {
+            if (Operation.getValue(item) == 0 && !isMatch(item, BRACKET)) {
                 //如果是一个数，直接加入S2
                 s2.add(item);
             } else if (item.equals("(")) {
@@ -92,7 +94,7 @@ public class MExp2FExp {
         //返回对应优先级的数字
         public static int getValue(String operation) {
             int result = 0;
-            if (operation.matches("(<<=)|(>>=)")) return 2;
+            if (isMatch(operation, LEFTEQUAL_OR_RIGHTEQUAL)) return 2;
             switch (operation) {
                 case ",":
                     result = 1; break;
