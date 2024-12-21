@@ -6,12 +6,14 @@ import dev.duanyper.cidcore.exception.CIdRuntimeException;
 public class VirtualMemoryPage {
     PhysicalMemoryPage physicalPage;
     Integer protect;
+    int pageIndex;
     long virtualAddress;
     boolean isMissing;
 
     public VirtualMemoryPage(PhysicalMemoryPage physical, long virtualAddress) {
         physicalPage = physical;
         this.virtualAddress = virtualAddress;
+        pageIndex = (int) (virtualAddress >> 12);
     }
 
     public boolean isMissing() {
