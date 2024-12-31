@@ -4,34 +4,51 @@ import dev.duanyper.cidcore.exception.CIdRuntimeException;
 
 import java.util.ArrayList;
 
+import static dev.duanyper.cidcore.memory.paging.MathHelper.*;
+
 public class PageTable extends ArrayList<VirtualMemoryPage> {
     long tid;
 
     public PageTable(long thread) {
         super(1024 * 1024);
         tid = thread;
+        add(new VirtualMemoryPage(null, 0));
     }
 
     public VirtualMemoryPage getWithVirtualAddress(long virtualAddress) {
-        virtualAddress &= 4294963200L;
-        int pageIndex = (int) (virtualAddress >> 12);
-        return get(pageIndex);
+        virtualAddress = round4096(virtualAddress);
+        int pageIndex = (int) divide4096(virtualAddress);
+        try {
+            return get(pageIndex);
+        } catch (IndexOutOfBoundsException e) {
+            return null;
+        }
     }
 
     public void addSingleAddressMappingToTable(long virtualAddress, long physicalAddress) {
-        if ((virtualAddress & 4095) != 0 || (physicalAddress & 4095) != 0) {
+        if (mod4096(virtualAddress) != 0 || mod4096(physicalAddress) != 0) {
             throw new CIdRuntimeException("页表操作地址必须为页面大小的整数倍");
         }
-        PhysicalMemoryPage physicalPage = PagingManager.getPhysicalPages().get((int) (physicalAddress / 4096));
-        VirtualMemoryPage virtualPage = get((int) (virtualAddress >> 12));
-        if (virtualPage == null) {
+        PhysicalMemoryPage physicalPage;
+        try {
+            physicalPage = PagingManager.getPhysicalPages().get((int) divide4096(physicalAddress));
+        } catch (IndexOutOfBoundsException e) {
+            physicalPage = new PhysicalMemoryPage();
+            PagingManager.getPhysicalPages().add(physicalPage);
+        }
+        VirtualMemoryPage virtualPage;
+        try {
+            virtualPage = get((int) (virtualAddress >> 12));
+        } catch (IndexOutOfBoundsException e) {
             virtualPage = new VirtualMemoryPage(physicalPage, virtualAddress);
             addTableElement(virtualPage);
-        } else virtualPage.physicalPage = physicalPage;
+            return;
+        }
+        virtualPage.physicalPage = physicalPage;
     }
 
     public void removeSingleAddressMapping(long virtualAddress) {
-        if ((virtualAddress & 4095) != 0) {
+        if (mod4096(virtualAddress) != 0) {
             throw new CIdRuntimeException("页表操作地址必须为页面大小的整数倍");
         }
         removeTableElement(getWithVirtualAddress(virtualAddress));

@@ -12,7 +12,7 @@ public class PageProtect {
     public static final int PAGE_WRITECOPY = 11;        //1011能读写，写操作将导致页面复制
     public static final int PAGE_EXECUTE_WRITECOPY = 15;//1111能执行和读写，写操作将导致页面复制
 
-    public static boolean haveProtect(int protect, int requiredProtect) {
-        return (protect & requiredProtect) != 0;
+    public static boolean notHaveProtect(int protect, int requiredProtect) {
+        return (protect & requiredProtect) == 0;
     }
 }

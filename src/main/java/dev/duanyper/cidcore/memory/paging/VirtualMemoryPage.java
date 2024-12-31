@@ -5,7 +5,7 @@ import dev.duanyper.cidcore.exception.CIdRuntimeException;
 
 public class VirtualMemoryPage {
     PhysicalMemoryPage physicalPage;
-    Integer protect;
+    int protect;
     int pageIndex;
     long virtualAddress;
     boolean isMissing;
@@ -32,7 +32,10 @@ public class VirtualMemoryPage {
     }
 
     public byte[] read(long addr, int size) {
-        if (!PageProtect.haveProtect(protect, PageProtect.PAGE_READ)) {
+        if (addr + size > 4096) {
+            throw new CIdRuntimeException("试图跨页面读取物理内存");
+        }
+        if (PageProtect.notHaveProtect(protect, PageProtect.PAGE_READ)) {
             throw new CIdRuntimeException(String.format("访问违规, 试图读取0x%x, 但该页面无法读取", addr + virtualAddress));
         }
         if (isMissing) {
@@ -42,7 +45,7 @@ public class VirtualMemoryPage {
     }
 
     public void write(long addr, byte[] data, int size) {
-        if (!PageProtect.haveProtect(protect, PageProtect.PAGE_WRITE)) {
+        if (PageProtect.notHaveProtect(protect, PageProtect.PAGE_WRITE)) {
             throw new CIdRuntimeException(String.format("访问违规, 试图写入0x%x, 但该页面无法写入", addr + virtualAddress));
         }
         if (isMissing) {

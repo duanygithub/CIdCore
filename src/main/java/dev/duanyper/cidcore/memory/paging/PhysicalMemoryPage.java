@@ -10,8 +10,12 @@ public class PhysicalMemoryPage {
     static Unsafe unsafe = null;
     long address;
     int pageIndex;
+    int totPage = 0;
 
-    public PhysicalMemoryPage(int index) {
+    public PhysicalMemoryPage() {
+        if (totPage >= 1024 * 1024) {
+            throw new OutOfMemoryError();
+        }
         if (unsafe == null) {
             try {
                 Constructor<Unsafe> unsafeConstructor = Unsafe.class.getDeclaredConstructor();
@@ -22,7 +26,8 @@ public class PhysicalMemoryPage {
                 throw new CIdFatalException("无法初始化堆外内存分配, 原因: " + e.getMessage());
             }
         }
-        pageIndex = index;
+        pageIndex = totPage;
+        totPage++;
         commit();
     }
 
@@ -44,6 +49,9 @@ public class PhysicalMemoryPage {
     }
 
     public void write(long addr, byte[] data, int size) {
+        if (addr >= 4096) {
+            throw new IndexOutOfBoundsException(addr);
+        }
         for (int i = 0; i < size; i++) {
             unsafe.putByte(i + address + addr, data[i]);
         }

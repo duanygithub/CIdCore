@@ -1,8 +1,10 @@
 package dev.duanyper.cidcore;
 
+import dev.duanyper.cidcore.memory.paging.PageProtect;
 import dev.duanyper.cidcore.memory.paging.PageTable;
 import dev.duanyper.cidcore.memory.paging.PagingManager;
 
+import java.util.Arrays;
 import java.util.List;
 
 public class DbgStart {
@@ -26,7 +28,10 @@ public class DbgStart {
          */
     public static void main(String[] args) {
         PageTable dummy = PagingManager.getCurrentPageTable();
-
+        long addr = PagingManager.allocateMemory(0, 4096, PageProtect.PAGE_READ);
+        byte[] b = {1};
+        PagingManager.getPhysicalPages().get(0).write(0, b, 1);
+        System.out.println(Arrays.toString(PagingManager.readMemory(addr, 10)));
         return;
     }
 }
