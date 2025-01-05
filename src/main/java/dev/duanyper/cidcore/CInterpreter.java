@@ -227,7 +227,7 @@ public class CInterpreter {
             } else if (cur.matches("\"([^\"]*)\"")) {
                 try {
                     byte[] strb = cur.substring(1, cur.length() - 1).getBytes("UTF-32");
-                    int addr = MemOperator.allocateMemory(strb.length + 4);
+                    long addr = (int) MemOperator.allocateMemory(strb.length + 4);
                     MemOperator.set(addr + strb.length, 4, (byte) 0);
                     MemOperator.write(addr, strb.length, strb);
                     stack.push(CIdPOINTER.createPOINTER(1, addr, CIdType.Char));

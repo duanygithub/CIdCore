@@ -8,33 +8,33 @@ import dev.duanyper.cidcore.symbols.CIdType;
 import java.io.UnsupportedEncodingException;
 
 public class CIdPOINTER implements Variable {
-    final int addr;
+    final long addr;
     int level;
     final CIdType targetType;
 
-    protected CIdPOINTER(int address, int lvl, CIdType type) {
+    protected CIdPOINTER(long address, int lvl, CIdType type) {
         addr = address;
         level = lvl;
         targetType = type;
     }
 
-    public static CIdPOINTER createPOINTER(int lvl, int pAddress, CIdType type) throws CIdRuntimeException {
-        int address = MemOperator.allocateMemory(4);
-        MemOperator.writeInt(address, pAddress);
+    public static CIdPOINTER createPOINTER(int lvl, long pAddress, CIdType type) throws CIdRuntimeException {
+        long address = MemOperator.allocateMemory(4);
+        MemOperator.writeInt(address, (int) pAddress);
         return new CIdPOINTER(address, lvl, type);
     }
 
-    public static CIdPOINTER createWithAllocatedAddress(int address, int lvl, CIdType type) {
+    public static CIdPOINTER createWithAllocatedAddress(long address, int lvl, CIdType type) {
         return new CIdPOINTER(address, lvl, type);
     }
 
-    public int setValue(int address) throws CIdRuntimeException {
-        return MemOperator.writeInt(addr, address);
+    public long setValue(long address) throws CIdRuntimeException {
+        return MemOperator.writeLong(addr, address);
     }
 
     @Override
-    public Integer getValue() throws CIdRuntimeException {
-        return MemOperator.readInt(addr);
+    public Long getValue() throws CIdRuntimeException {
+        return MemOperator.readLong(addr);
     }
 
     @Override
@@ -47,7 +47,7 @@ public class CIdPOINTER implements Variable {
     }
 
     @Override
-    public int getAddress() {
+    public long getAddress() {
         return addr;
     }
 
@@ -59,84 +59,84 @@ public class CIdPOINTER implements Variable {
     public Variable procOperation(Variable var, String op) throws CIdRuntimeException {
         switch (op) {
             case "=" -> {
-                int value = setValue(var.getValue().intValue());
+                long value = setValue(var.getValue().longValue());
                 return createPOINTER(level, value, targetType);
             }
             case "+=" -> {
-                int value = setValue(var.getValue().intValue() + getValue());
+                long value = setValue(var.getValue().longValue() + getValue());
                 return createPOINTER(level, value, targetType);
             }
             case "-=" -> {
-                int value = setValue(var.getValue().intValue() - getValue());
+                long value = setValue(var.getValue().longValue() - getValue());
                 return createPOINTER(level, value, targetType);
             }
             case "*=" -> {
-                int value = setValue(var.getValue().intValue() * getValue());
+                long value = setValue(var.getValue().longValue() * getValue());
                 return createPOINTER(level, value, targetType);
             }
             case "/=" -> {
-                int value = setValue((int) (getValue() / var.getValue().floatValue()));
+                long value = setValue((int) (getValue() / var.getValue().floatValue()));
                 return createPOINTER(level, value, targetType);
             }
             case "%=" -> {
-                int value = setValue(getValue() % var.getValue().intValue());
+                long value = setValue(getValue() % var.getValue().longValue());
                 return createPOINTER(level, value, targetType);
             }
             case "&=" -> {
                 if (var.getType() != CIdType.Int) return null;
-                int value = setValue(getValue() & var.getValue().intValue());
+                long value = setValue(getValue() & var.getValue().longValue());
                 return createPOINTER(level, value, targetType);
             }
             case "|=" -> {
                 if (var.getType() != CIdType.Int) return null;
-                int value = setValue(getValue() | var.getValue().intValue());
+                long value = setValue(getValue() | var.getValue().longValue());
                 return createPOINTER(level, value, targetType);
             }
             case "^=" -> {
                 if (var.getType() != CIdType.Int) return null;
-                int value = setValue(getValue() ^ var.getValue().intValue());
+                long value = setValue(getValue() ^ var.getValue().longValue());
                 return createPOINTER(level, value, targetType);
             }
             case ">>=" -> {
                 if (var.getType() != CIdType.Int) return null;
-                int value = setValue(getValue() >> var.getValue().intValue());
+                long value = setValue(getValue() >> var.getValue().longValue());
                 return createPOINTER(level, value, targetType);
             }
             case "<<=" -> {
                 if (var.getType() != CIdType.Int) return null;
-                int value = setValue(getValue() << var.getValue().intValue());
+                long value = setValue(getValue() << var.getValue().longValue());
                 return createPOINTER(level, value, targetType);
             }
             case "++" -> {
-                int value = 0;
+                long value = 0;
                 if (targetType instanceof CIdPointerType || targetType == CIdType.Int || targetType == CIdType.Void || targetType == CIdType.Float) {
                     value = setValue(getValue() + 4);
                 } else if (targetType == CIdType.Char || targetType == CIdType.Boolean) {
                     value = setValue(getValue() + 1);
                 }
-                return createPOINTER(value, level, targetType);
+                return createPOINTER(level, value, targetType);
             }
             case "--" -> {
-                int value = setValue(getValue() - 1);
-                return createPOINTER(value, level, targetType);
+                long value = setValue(getValue() - 1);
+                return createPOINTER(level, value, targetType);
             }
         }
 
         if (var.getType().equals(CIdType.Int)) {
-            int value = getValue();
+            long value = getValue();
             return switch (op) {
-                case "+" -> createPOINTER(level, value + var.getValue().intValue(), targetType);
-                case "-" -> createPOINTER(level, value - var.getValue().intValue(), targetType);
-                case "*" -> createPOINTER(level, value * var.getValue().intValue(), targetType);
-                case "/" -> createPOINTER(level, value / var.getValue().intValue(), targetType);
-                case "%" -> createPOINTER(level, value % var.getValue().intValue(), targetType);
-                case ">>" -> createPOINTER(level, value >> var.getValue().intValue(), targetType);
-                case "<<" -> createPOINTER(level, value << var.getValue().intValue(), targetType);
-                case "&" -> createPOINTER(level, value & var.getValue().intValue(), targetType);
-                case "|" -> createPOINTER(level, value | var.getValue().intValue(), targetType);
+                case "+" -> createPOINTER(level, value + var.getValue().longValue(), targetType);
+                case "-" -> createPOINTER(level, value - var.getValue().longValue(), targetType);
+                case "*" -> createPOINTER(level, value * var.getValue().longValue(), targetType);
+                case "/" -> createPOINTER(level, value / var.getValue().longValue(), targetType);
+                case "%" -> createPOINTER(level, value % var.getValue().longValue(), targetType);
+                case ">>" -> createPOINTER(level, value >> var.getValue().longValue(), targetType);
+                case "<<" -> createPOINTER(level, value << var.getValue().longValue(), targetType);
+                case "&" -> createPOINTER(level, value & var.getValue().longValue(), targetType);
+                case "|" -> createPOINTER(level, value | var.getValue().longValue(), targetType);
                 case "~" -> createPOINTER(level, ~value, targetType);
                 case "!" -> createPOINTER(level, value == 0 ? 1 : 0, targetType);
-                case "^" -> createPOINTER(level, value ^ var.getValue().intValue(), targetType);
+                case "^" -> createPOINTER(level, value ^ var.getValue().longValue(), targetType);
                 default -> null;
             };
         } else return null;
@@ -144,7 +144,7 @@ public class CIdPOINTER implements Variable {
 
     @Override
     public int cmp(Variable var) throws CIdRuntimeException {
-        int value = getValue();
+        long value = getValue();
         float val = var.getValue().floatValue();
         if (val > value) return 1;
         else if (val < value) return -1;
@@ -159,10 +159,10 @@ public class CIdPOINTER implements Variable {
     @Override
     public String toString() {
         try {
-            int value = getValue();
+            long value = getValue();
             if (isString()) {
-                StringBuilder sb = new StringBuilder();
-                int i = value, strlen = 0;
+                long i = value;
+                int strlen = 0;
                 try {
                     int b = MemOperator.readInt(i);
                     while (b != 0) {
@@ -184,7 +184,7 @@ public class CIdPOINTER implements Variable {
                 }
             } else {
                 try {
-                    return String.format("%x", MemOperator.readInt(addr));
+                    return String.format("0x%x", MemOperator.readInt(addr));
                 } catch (CIdRuntimeException e) {
                     throw new RuntimeException(e);
                 }
@@ -192,7 +192,7 @@ public class CIdPOINTER implements Variable {
         } catch (CIdRuntimeException ignore) {
         }
         try {
-            return String.format("%x", MemOperator.readInt(addr));
+            return String.format("0x%x", MemOperator.readInt(addr));
         } catch (CIdRuntimeException e1) {
             throw new RuntimeException(e1);
         }

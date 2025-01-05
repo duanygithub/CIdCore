@@ -342,7 +342,7 @@ public class GrammarProc {
             return;
         }
         //目前没用
-        int codesAddr = MemOperator.allocateMemory(codeSize);
+        long codesAddr = MemOperator.allocateMemory(codeSize);
         if (codesAddr == -1) {
             return;
         }

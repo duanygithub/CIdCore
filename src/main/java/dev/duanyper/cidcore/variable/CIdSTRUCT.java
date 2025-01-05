@@ -12,7 +12,7 @@ import java.util.Objects;
 
 public class CIdSTRUCT implements Variable {
     int size;
-    final int addr;
+    final long addr;
     final StructureDescriptor descriptor;
     final Map<String, Integer> membersAddressOffsets = new HashMap<>();
     final Map<CIdType, String> members;
@@ -21,11 +21,7 @@ public class CIdSTRUCT implements Variable {
         return new CIdSTRUCT(descriptor, 0);
     }
 
-    public static CIdSTRUCT createWithAllocatedAddress(int addr, StructureDescriptor descriptor) {
-        return new CIdSTRUCT(descriptor, addr);
-    }
-
-    public CIdSTRUCT(StructureDescriptor descriptor, int addr) {
+    public CIdSTRUCT(StructureDescriptor descriptor, long addr) {
         this.descriptor = descriptor;
         members = new HashMap<>(descriptor.members);
         int curOffset = 0;
@@ -34,6 +30,10 @@ public class CIdSTRUCT implements Variable {
             curOffset += CIdType.getSize((CIdType) descriptor.members.values().toArray()[i]);
         }
         this.addr = addr == 0 ? MemOperator.allocateMemory(size) : addr;
+    }
+
+    public static CIdSTRUCT createWithAllocatedAddress(long addr, StructureDescriptor descriptor) {
+        return new CIdSTRUCT(descriptor, addr);
     }
 
     public Variable getMember(int index) throws CIdRuntimeException {
@@ -72,7 +72,7 @@ public class CIdSTRUCT implements Variable {
     }
 
     @Override
-    public int getAddress() {
+    public long getAddress() {
         return 0;
     }
 

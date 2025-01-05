@@ -12,10 +12,6 @@ public class PagingManager {
     //储存每个线程(CId进程)的页表
     static HashMap<Long, PageTable> pageTables = new HashMap<>();
 
-    static {
-        init();
-    }
-
     static public ArrayList<PhysicalMemoryPage> getPhysicalPages() {
         return physicalMemoryPages;
     }
@@ -32,7 +28,7 @@ public class PagingManager {
     }
 
     public static void init() {
-        physicalMemoryPages = new ArrayList<>(1024 * 1024);
+        physicalMemoryPages = new ArrayList<>();
     }
 
     public static PageTable createNewPageTable() {
@@ -43,7 +39,7 @@ public class PagingManager {
 
     static int getNextFreePhysicalPage() {
         curFreePhysicalMemoryPage++;
-        if (curFreePhysicalMemoryPage > 1024 * 1024) {
+        if (curFreePhysicalMemoryPage > divide4096(PagingMemoryManager.maxMemorySize)) {
             curFreePhysicalMemoryPage = 0;
         }
         return curFreePhysicalMemoryPage;
@@ -105,5 +101,30 @@ public class PagingManager {
             }
         }
         return data;
+    }
+
+    public static void writeMemory(long address, byte[] data, int size) {
+        int basePageIndex = (int) divide4096(address);
+        PageTable currentPageTable = getCurrentPageTable();
+        int dataIndex = 0;
+        for (int i = 0; size > 0; i++, size -= 4096) {
+            VirtualMemoryPage virtualMemoryPage = currentPageTable.get(basePageIndex + i);
+            if (i == 0) {
+                int writeSize = Math.min((int) (4096 - mod4096(address)), size);
+                byte[] write = new byte[writeSize];
+                for (int j = 0; dataIndex < writeSize; dataIndex++, j++) {
+                    write[j] = data[dataIndex];
+                }
+                virtualMemoryPage.write(mod4096(address), write, writeSize);
+
+            } else {
+                int writeSize = Math.min(size, 4096);
+                byte[] write = new byte[writeSize];
+                for (int j = 0; dataIndex < writeSize; dataIndex++, j++) {
+                    write[j] = data[dataIndex];
+                }
+                virtualMemoryPage.write(0, write, writeSize);
+            }
+        }
     }
 }

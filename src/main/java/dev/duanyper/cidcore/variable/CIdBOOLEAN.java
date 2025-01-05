@@ -5,19 +5,19 @@ import dev.duanyper.cidcore.memory.MemOperator;
 import dev.duanyper.cidcore.symbols.CIdType;
 
 public class CIdBOOLEAN implements Variable {
-    final int addr;
+    final long addr;
 
-    private CIdBOOLEAN(int address) {
+    private CIdBOOLEAN(long address) {
         addr = address;
     }
 
     public static CIdBOOLEAN createBOOLEAN(boolean bool) throws CIdRuntimeException {
-        int address = MemOperator.allocateMemory(1);
+        long address = MemOperator.allocateMemory(1);
         MemOperator.writeBoolean(address, bool);
         return new CIdBOOLEAN(address);
     }
 
-    public static CIdBOOLEAN createWithAllocatedAddress(int address) {
+    public static CIdBOOLEAN createWithAllocatedAddress(long address) {
         return new CIdBOOLEAN(address);
     }
 
@@ -37,7 +37,7 @@ public class CIdBOOLEAN implements Variable {
     }
 
     @Override
-    public int getAddress() {
+    public long getAddress() {
         return addr;
     }
 

@@ -11,7 +11,8 @@ public interface Variable {
     Number getValue() throws CIdRuntimeException;
 
     CIdType getType();
-    int getAddress();
+
+    long getAddress();
 
     Variable procOperation(Variable var, String op) throws CIdRuntimeException;
 

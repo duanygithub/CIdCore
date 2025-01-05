@@ -5,9 +5,9 @@ import dev.duanyper.cidcore.memory.MemOperator;
 import dev.duanyper.cidcore.symbols.CIdType;
 
 public class CIdFLOAT implements Variable {
-    final int addr;
+    final long addr;
 
-    private CIdFLOAT(int address) {
+    private CIdFLOAT(long address) {
         addr = address;
     }
 
@@ -16,7 +16,7 @@ public class CIdFLOAT implements Variable {
     }
 
     public static CIdFLOAT createFLOAT(float f) throws CIdRuntimeException {
-        int address = MemOperator.allocateMemory(4);
+        long address = MemOperator.allocateMemory(4);
         MemOperator.writeFloat(address, f);
         return new CIdFLOAT(address);
     }
@@ -45,7 +45,7 @@ public class CIdFLOAT implements Variable {
     }
 
     @Override
-    public int getAddress() {
+    public long getAddress() {
         return addr;
     }
 

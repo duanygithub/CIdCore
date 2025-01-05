@@ -19,7 +19,7 @@ public class CIdVOID implements Variable {
     }
 
     @Override
-    public int getAddress() {
+    public long getAddress() {
         return 0;
     }
 

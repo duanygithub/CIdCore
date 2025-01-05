@@ -5,14 +5,14 @@ import dev.duanyper.cidcore.memory.MemOperator;
 import dev.duanyper.cidcore.symbols.CIdType;
 
 public class CIdCHAR implements Variable {
-    final int addr;
+    final long addr;
 
-    private CIdCHAR(int address) {
+    private CIdCHAR(long address) {
         addr = address;
     }
 
     public static CIdCHAR createCHAR(int n) throws CIdRuntimeException {
-        int address = MemOperator.allocateMemory(1);
+        long address = MemOperator.allocateMemory(1);
         MemOperator.writeChar(address, (char) n);
         return new CIdCHAR(address);
     }
@@ -21,7 +21,7 @@ public class CIdCHAR implements Variable {
         return new CIdCHAR(MemOperator.allocateMemory(1));
     }
 
-    public static CIdCHAR createWithAllocatedAddress(int address) {
+    public static CIdCHAR createWithAllocatedAddress(long address) {
         return new CIdCHAR(address);
     }
 
@@ -40,7 +40,7 @@ public class CIdCHAR implements Variable {
     }
 
     @Override
-    public int getAddress() {
+    public long getAddress() {
         return addr;
     }
 

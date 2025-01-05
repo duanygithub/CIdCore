@@ -10,7 +10,7 @@ public class PageTable extends ArrayList<VirtualMemoryPage> {
     long tid;
 
     public PageTable(long thread) {
-        super(1024 * 1024);
+        super();
         tid = thread;
         add(new VirtualMemoryPage(null, 0));
     }
