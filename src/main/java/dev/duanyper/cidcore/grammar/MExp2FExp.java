@@ -8,6 +8,7 @@ import dev.duanyper.cidcore.symbols.Functions;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
+import java.util.regex.Pattern;
 
 import static dev.duanyper.cidcore.Patterns.LEFTEQUAL_OR_RIGHTEQUAL;
 import static dev.duanyper.cidcore.Patterns.isMatch;
@@ -105,7 +106,7 @@ public class MExp2FExp {
                 continue; // 忽略空白
             }
 
-            if (Character.isLetterOrDigit(token.charAt(0))) {
+            if (!Operation.isOperator(token)) {
                 // 如果是操作数，直接添加到后缀表达式
                 postfix.add(token);
             } else if (Operation.isOperator(token)) {
@@ -153,8 +154,9 @@ public class MExp2FExp {
         }
 
         //判断右结合性
+        static final Pattern pattern = Pattern.compile("(\\+\\+)|(--)|!|(A&)|~|(A*)|(sizeof)");
         private static boolean isRightAssociative(String operator) {
-            return "++".equals(operator) || "--".equals(operator) || "!".equals(operator);
+            return isMatch(operator, pattern);
         }
 
         // 判断是否是后缀运算符
@@ -164,7 +166,7 @@ public class MExp2FExp {
 
         // 判断是否是前缀运算符
         private static boolean isPrefixOperator(String token, String prevToken) {
-            return ("++".equals(token) || "--".equals(token)) && (prevToken == null || isOperator(prevToken));
+            return isMatch(token, pattern) && (prevToken == null || isOperator(prevToken));
         }
 
         //返回对应优先级的数字

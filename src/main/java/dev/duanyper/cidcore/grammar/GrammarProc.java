@@ -317,7 +317,7 @@ public class GrammarProc {
                 default -> {
                     int begin = i;
                     boolean somethingUseful = false;
-                    for (; i < r && !isMatch(codeBlocks.get(i), SIGN); i++) {
+                    for (; i < r && !codeBlocks.get(i).equals(";"); i++) {
                         if (TypeLookup.lookup(codeBlocks.get(i), parentNode.vars, functions) == TypeLookup.FUNCTION) {
                             somethingUseful = true;
                         }

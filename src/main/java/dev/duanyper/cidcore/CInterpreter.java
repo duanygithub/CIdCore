@@ -263,6 +263,9 @@ public class CInterpreter {
                         stack.push(CIdPOINTER.createWithAllocatedAddress(addr, pointer.getLevel() - 1, pointer.getTargetType()));
                     }
                 }
+            } else if (cur.equals("sizeof")) {
+                Variable varOp1 = stack.pop();
+                stack.push(CIdINT.createINT(varOp1.sizeOf()));
             } else if (cur.matches("(\\+)|(-)|(\\*)|(/)|(\\^)|(\\|)|<<|>>|&|")) {
                 Variable varOp2 = stack.pop();
                 Variable varOp1 = stack.pop();
