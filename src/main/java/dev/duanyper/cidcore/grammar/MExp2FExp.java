@@ -1,5 +1,6 @@
 package dev.duanyper.cidcore.grammar;
 
+import dev.duanyper.cidcore.exception.CIdGrammarException;
 import dev.duanyper.cidcore.runtime.Environment;
 import dev.duanyper.cidcore.symbols.CIdType;
 import dev.duanyper.cidcore.symbols.Functions;
@@ -8,10 +9,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
-import static dev.duanyper.cidcore.Patterns.*;
+import static dev.duanyper.cidcore.Patterns.LEFTEQUAL_OR_RIGHTEQUAL;
+import static dev.duanyper.cidcore.Patterns.isMatch;
 
 public class MExp2FExp {
-    public static List<String> convert(int l, int r, Environment env) {
+    public static List<String> convert(int l, int r, Environment env) throws CIdGrammarException {
         Functions functions = env.functions;
         if (env.codeBlocks.get(r - 1).equals(";")) {
             r--;
@@ -49,7 +51,8 @@ public class MExp2FExp {
         return parseSuffixExpression(tmp);
     }
 
-    private static List<String> parseSuffixExpression(List<String> ls) {
+    private static List<String> parseSuffixExpression(List<String> tokens) throws CIdGrammarException {
+        /*
         //定义两个栈
         //符号栈
         Stack<String> s1 = new Stack<String>();
@@ -88,9 +91,82 @@ public class MExp2FExp {
         }
         //因为是存放到List,因此按顺序输出就是对应的后缀表达式对应的List
         return s2;
+
+         */
+        Stack<String> stack = new Stack<>();
+        List<String> postfix = new ArrayList<>();
+
+        String prevToken = null;
+        for (int i = 0; i < tokens.size(); i++) {
+            String token = tokens.get(i);
+            String nextToken = (i + 1 < tokens.size()) ? tokens.get(i + 1) : null;
+
+            if (token.isBlank()) {
+                continue; // 忽略空白
+            }
+
+            if (Character.isLetterOrDigit(token.charAt(0))) {
+                // 如果是操作数，直接添加到后缀表达式
+                postfix.add(token);
+            } else if (Operation.isOperator(token)) {
+                if (token.equals("(")) {
+                    stack.push(token); // 左括号直接入栈
+                } else if (token.equals(")")) {
+                    // 遇到右括号，弹出所有运算符直到左括号
+                    while (!stack.isEmpty() && !stack.peek().equals("(")) {
+                        postfix.add(stack.pop());
+                    }
+                    stack.pop(); // 弹出左括号
+                } else if (Operation.isPostfixOperator(token, nextToken)) {
+                    // 后缀自增或自减
+                    postfix.add(prevToken);
+                    postfix.add(token);
+                } else if (Operation.isPrefixOperator(token, prevToken)) {
+                    // 前缀自增或自减
+                    stack.push(token);
+                } else {
+                    // 普通运算符
+                    while (!stack.isEmpty() && Operation.getValue(stack.peek()) >= Operation.getValue(token) &&
+                            !Operation.isRightAssociative(token)) {
+                        postfix.add(stack.pop());
+                    }
+                    stack.push(token);
+                }
+            } else {
+                throw new CIdGrammarException("无效的字符: " + token);
+            }
+            prevToken = token;
+        }
+
+        // 弹出剩余运算符
+        while (!stack.isEmpty()) {
+            postfix.add(stack.pop());
+        }
+
+        return postfix;
     }
 
     public static class Operation {
+        //判断是否为运算符
+        public static boolean isOperator(String str) {
+            return getValue(str) != 0;
+        }
+
+        //判断右结合性
+        private static boolean isRightAssociative(String operator) {
+            return "++".equals(operator) || "--".equals(operator) || "!".equals(operator);
+        }
+
+        // 判断是否是后缀运算符
+        private static boolean isPostfixOperator(String token, String nextToken) {
+            return ("++".equals(token) || "--".equals(token)) && (nextToken == null || isOperator(nextToken));
+        }
+
+        // 判断是否是前缀运算符
+        private static boolean isPrefixOperator(String token, String prevToken) {
+            return ("++".equals(token) || "--".equals(token)) && (prevToken == null || isOperator(prevToken));
+        }
+
         //返回对应优先级的数字
         public static int getValue(String operation) {
             int result = 0;

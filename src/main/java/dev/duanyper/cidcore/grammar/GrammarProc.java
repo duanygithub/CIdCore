@@ -1,6 +1,7 @@
 package dev.duanyper.cidcore.grammar;
 
 import dev.duanyper.cidcore.DbgStart;
+import dev.duanyper.cidcore.exception.CIdGrammarException;
 import dev.duanyper.cidcore.memory.MemOperator;
 import dev.duanyper.cidcore.runtime.Environment;
 import dev.duanyper.cidcore.symbols.CIdType;
@@ -33,7 +34,7 @@ public class GrammarProc {
         return false;
     }
 
-    public int analyze(String codes) {
+    public int analyze(String codes) throws CIdGrammarException {
         preProcess(codes);
         root = new RootTreeNode(0, codeBlocks.size(), null, codeBlocks);
         buildTree(root);
@@ -44,7 +45,7 @@ public class GrammarProc {
         return root;
     }
 
-    public void buildTree(TreeNode parentNode) {
+    public void buildTree(TreeNode parentNode) throws CIdGrammarException {
         int l = parentNode.lIndex;
         int r = parentNode.rIndex;
         if (r <= l) return;

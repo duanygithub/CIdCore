@@ -77,7 +77,7 @@ public class CInterpreter {
         return CInterpreter.create(null, null, null);
     }
 
-    public int start() {
+    public int start() throws CIdGrammarException {
         if (functions == null)
             functions = new Functions();
         gp = new GrammarProc(functions);
@@ -95,7 +95,8 @@ public class CInterpreter {
         }
         return -1;
     }
-    public int start(String c) {
+
+    public int start(String c) throws CIdGrammarException {
         if (functions == null)
             functions = new Functions();
         codes = c;

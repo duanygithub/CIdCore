@@ -40,7 +40,7 @@ public class CIdWrapper {
         return cInterpreter;
     }
 
-    public int executeProgram(String code, Functions functions, CInterpreter cInterpreter) {
+    public int executeProgram(String code, Functions functions, CInterpreter cInterpreter) throws CIdGrammarException {
         if (functions == null)
             functions = new Functions();
         if (cInterpreter == null)
