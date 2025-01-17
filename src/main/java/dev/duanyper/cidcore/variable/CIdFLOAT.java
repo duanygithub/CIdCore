@@ -16,13 +16,13 @@ public class CIdFLOAT implements Variable {
     }
 
     public static CIdFLOAT createFLOAT(float f) throws CIdRuntimeException {
-        long address = MemOperator.allocateMemory(4);
+        long address = MemOperator.getPool().allocateMemory(4);
         MemOperator.writeFloat(address, f);
         return new CIdFLOAT(address);
     }
 
     public static CIdFLOAT createFLOAT() {
-        return new CIdFLOAT(MemOperator.allocateMemory(4));
+        return new CIdFLOAT(MemOperator.getPool().allocateMemory(4));
     }
 
     public static CIdFLOAT createWithAllocatedAddress(int address) {

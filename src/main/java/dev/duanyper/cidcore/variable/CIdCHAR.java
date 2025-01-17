@@ -12,13 +12,13 @@ public class CIdCHAR implements Variable {
     }
 
     public static CIdCHAR createCHAR(int n) throws CIdRuntimeException {
-        long address = MemOperator.allocateMemory(1);
+        long address = MemOperator.getPool().allocateMemory(1);
         MemOperator.writeChar(address, (char) n);
         return new CIdCHAR(address);
     }
 
     public static CIdCHAR createCHAR() {
-        return new CIdCHAR(MemOperator.allocateMemory(1));
+        return new CIdCHAR(MemOperator.getPool().allocateMemory(1));
     }
 
     public static CIdCHAR createWithAllocatedAddress(long address) {

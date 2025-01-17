@@ -12,7 +12,7 @@ public class CIdBOOLEAN implements Variable {
     }
 
     public static CIdBOOLEAN createBOOLEAN(boolean bool) throws CIdRuntimeException {
-        long address = MemOperator.allocateMemory(1);
+        long address = MemOperator.getPool().allocateMemory(1);
         MemOperator.writeBoolean(address, bool);
         return new CIdBOOLEAN(address);
     }

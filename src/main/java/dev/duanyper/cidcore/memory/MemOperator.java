@@ -2,15 +2,22 @@ package dev.duanyper.cidcore.memory;
 
 import dev.duanyper.cidcore.exception.CIdRuntimeException;
 import dev.duanyper.cidcore.memory.paging.PagingMemoryManager;
+import dev.duanyper.cidcore.memory.pool.MemoryPool;
 
 import java.nio.ByteBuffer;
 
 public class MemOperator {
     static CIdMemoryManager memoryManager;
+    static MemoryPool memoryPool;
 
     static {
         memoryManager = new PagingMemoryManager();
         memoryManager.init();
+        memoryPool = new MemoryPool(memoryManager);
+    }
+
+    public static MemoryPool getPool() {
+        return memoryPool;
     }
 
     public static long allocateMemory(int size) {
@@ -88,4 +95,6 @@ public class MemOperator {
     public static void set(long addr, int size, byte b) {
         memoryManager.set((int) addr, size, b);
     }
+
+
 }

@@ -16,13 +16,13 @@ public class CIdINT implements Variable {
     }
 
     public static CIdINT createINT(int n) throws CIdRuntimeException {
-        long address = MemOperator.allocateMemory(4);
+        long address = MemOperator.getPool().allocateMemory(4);
         MemOperator.writeInt(address, n);
         return new CIdINT(address);
     }
 
     public static CIdINT createINT() {
-        return new CIdINT(MemOperator.allocateMemory(4));
+        return new CIdINT(MemOperator.getPool().allocateMemory(4));
     }
 
     public static CIdINT createWithAllocatedAddress(long address) {

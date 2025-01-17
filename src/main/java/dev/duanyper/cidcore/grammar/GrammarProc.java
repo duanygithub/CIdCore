@@ -2,7 +2,6 @@ package dev.duanyper.cidcore.grammar;
 
 import dev.duanyper.cidcore.DbgStart;
 import dev.duanyper.cidcore.exception.CIdGrammarException;
-import dev.duanyper.cidcore.memory.MemOperator;
 import dev.duanyper.cidcore.runtime.Environment;
 import dev.duanyper.cidcore.symbols.CIdType;
 import dev.duanyper.cidcore.symbols.Functions;
@@ -343,10 +342,12 @@ public class GrammarProc {
             return;
         }
         //目前没用
+        /*
         long codesAddr = MemOperator.allocateMemory(codeSize);
         if (codesAddr == -1) {
             return;
         }
+        */
         expendHeader("");
     }
 

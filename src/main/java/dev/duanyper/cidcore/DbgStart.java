@@ -27,6 +27,7 @@ public class DbgStart {
         }
          */
     public static void main(String[] args) {
+        PagingManager.init();
         PageTable dummy = PagingManager.getCurrentPageTable();
         long addr = PagingManager.allocateMemory(0, 4096, PageProtect.PAGE_READWRITE);
         byte[] b = {1, 2, 3};
