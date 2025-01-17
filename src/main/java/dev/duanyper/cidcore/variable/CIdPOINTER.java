@@ -183,19 +183,11 @@ public class CIdPOINTER implements Variable {
                     }
                 }
             } else {
-                try {
-                    return String.format("0x%x", MemOperator.readInt(addr));
-                } catch (CIdRuntimeException e) {
-                    throw new RuntimeException(e);
-                }
+                return String.format("0x%x", MemOperator.readInt(addr));
             }
         } catch (CIdRuntimeException ignore) {
         }
-        try {
-            return String.format("0x%x", MemOperator.readInt(addr));
-        } catch (CIdRuntimeException e1) {
-            throw new RuntimeException(e1);
-        }
+        return String.format("0x%x", MemOperator.readInt(addr));
     }
 
     @Override

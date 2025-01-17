@@ -61,10 +61,6 @@ public class CIdBOOLEAN implements Variable {
 
     @Override
     public String toString() {
-        try {
-            return getValue().intValue() == 0 ? "false" : "true";
-        } catch (CIdRuntimeException e) {
-            throw new RuntimeException(e);
-        }
+        return getValue().intValue() == 0 ? "false" : "true";
     }
 }

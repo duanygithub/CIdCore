@@ -108,11 +108,7 @@ public class CIdFLOAT implements Variable {
 
     @Override
     public String toString() {
-        try {
-            return ((Float) MemOperator.readFloat(addr)).toString();
-        } catch (CIdRuntimeException e) {
-            throw new RuntimeException(e);
-        }
+        return ((Float) MemOperator.readFloat(addr)).toString();
     }
 
     @Override

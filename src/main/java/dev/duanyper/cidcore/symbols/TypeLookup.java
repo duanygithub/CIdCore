@@ -30,7 +30,7 @@ public class TypeLookup {
         if (str.equals("{")) {
             return BLOCK_START;
         }
-        if (isMatch(str, SIGNED_NUMBER)) {
+        if (isMatch(str, SIGNED_NUMBER) || isMatch(str, HEX_NUMBER)) {
             return INTEGER;
         }
         if (isMatch(str, FLOAT_NUMBER)) {

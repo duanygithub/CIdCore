@@ -1,5 +1,7 @@
 package dev.duanyper.cidcore.memory.paging;
 
+import dev.duanyper.cidcore.exception.CIdRuntimeException;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -85,7 +87,12 @@ public class PagingManager {
         byte[] data = new byte[size];
         int dataIndex = 0;
         for (int i = 0; size > 0; i++, size -= 4096) {
-            VirtualMemoryPage virtualMemoryPage = currentPageTable.get(basePageIndex + i);
+            VirtualMemoryPage virtualMemoryPage;
+            try {
+                virtualMemoryPage = currentPageTable.get(basePageIndex + i);
+            } catch (IndexOutOfBoundsException e) {
+                throw new CIdRuntimeException(String.format("试图访问页面%d，但实际上并无此页面", basePageIndex + i));
+            }
             if (i == 0) {
                 int readSize = Math.min((int) (4096 - mod4096(address)), size);
                 byte[] read = virtualMemoryPage.read(mod4096(address), readSize);

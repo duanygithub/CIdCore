@@ -326,7 +326,7 @@ public class CInterpreter {
         return stack.empty() ? null : stack.pop();
     }
 
-    private Variable string2Variable(String str, Variables vars) throws CIdRuntimeException {
+    private Variable string2Variable(String str, Variables vars) throws CIdGrammarException {
         switch (TypeLookup.lookup(str, vars, functions)) {
             case TypeLookup.INTEGER -> {
                 return CIdINT.createINT(str);

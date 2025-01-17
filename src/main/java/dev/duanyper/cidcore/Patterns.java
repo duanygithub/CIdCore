@@ -5,6 +5,7 @@ import java.util.regex.Pattern;
 public class Patterns {
     public static Pattern IDENTIFIER = Pattern.compile("\\w+");
     public static Pattern NUMBER = Pattern.compile("[0-9]");
+    public static Pattern HEX_NUMBER = Pattern.compile("([+\\-])?^(0x|0X)?[0-9a-fA-F]+$");
     public static Pattern SIGN = Pattern.compile("[+-]");
     public static Pattern BRACKET = Pattern.compile("[()]");
     public static Pattern LEFTEQUAL_OR_RIGHTEQUAL = Pattern.compile("(<<=)|(>>=)");

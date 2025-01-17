@@ -1,5 +1,7 @@
 package dev.duanyper.cidcore.variable;
 
+import dev.duanyper.cidcore.Patterns;
+import dev.duanyper.cidcore.exception.CIdGrammarException;
 import dev.duanyper.cidcore.exception.CIdRuntimeException;
 import dev.duanyper.cidcore.memory.MemOperator;
 import dev.duanyper.cidcore.symbols.CIdType;
@@ -11,8 +13,14 @@ public class CIdINT implements Variable {
         addr = address;
     }
 
-    public static CIdINT createINT(String str) throws CIdRuntimeException {
-        return createINT(Integer.parseInt(str));
+    public static CIdINT createINT(String str) throws CIdGrammarException {
+        if (Patterns.isMatch(str, Patterns.SIGNED_NUMBER))
+            return createINT(Integer.parseInt(str));
+        else if (Patterns.isMatch(str, Patterns.HEX_NUMBER)) {
+            if (str.startsWith("0x") || str.startsWith("0X")) {
+                return createINT(Integer.parseInt(str.substring(2), 16));
+            } else return createINT(Integer.parseInt(str, 16));
+        } else throw new CIdGrammarException("不恰当的整数格式: \"" + str + "\"");
     }
 
     public static CIdINT createINT(int n) throws CIdRuntimeException {
@@ -153,11 +161,7 @@ public class CIdINT implements Variable {
 
     @Override
     public String toString() {
-        try {
-            return ((Integer) MemOperator.readInt(addr)).toString();
-        } catch (CIdRuntimeException e) {
-            throw new RuntimeException(e);
-        }
+        return ((Integer) MemOperator.readInt(addr)).toString();
     }
 
     @Override

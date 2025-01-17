@@ -67,12 +67,7 @@ public class CIdCHAR implements Variable {
 
     @Override
     public String toString() {
-        try {
-            return String.valueOf(MemOperator.readChar(addr));
-        } catch (CIdRuntimeException e) {
-            throw new RuntimeException(e);
-        }
-
+        return String.valueOf(MemOperator.readChar(addr));
     }
 
     @Override

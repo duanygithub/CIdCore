@@ -35,7 +35,7 @@ public class CIdVOID implements Variable {
 
     @Override
     public String toString() {
-        return "";
+        return "VOID";
     }
 
     @Override
