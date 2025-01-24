@@ -44,6 +44,36 @@ public class GrammarProc {
         return root;
     }
 
+    public static String typeStringToFormat(String type) {
+        switch (type) {
+            case "int" -> {
+                return "I";
+            }
+            case "float" -> {
+                return "F";
+            }
+            case "char" -> {
+                return "C";
+            }
+            case "bool" -> {
+                return "B";
+            }
+            case "void" -> {
+                return "V";
+            }
+            default -> {
+                if (isMatch(type, IDENTIFIER)) {
+                    return "S" + type + ";";
+                }
+                if (isMatch(type, DECLARE_POINTER)) {
+                    String format = "P" + typeStringToFormat(type.substring(0, type.indexOf('*')));
+                    format += type.lastIndexOf('*') - type.indexOf('*') + 1;
+                    return format;
+                } else throw new IllegalArgumentException("不合法的类型: " + type);
+            }
+        }
+    }
+
     public void buildTree(TreeNode parentNode) throws CIdGrammarException {
         int l = parentNode.lIndex;
         int r = parentNode.rIndex;
@@ -88,6 +118,14 @@ public class GrammarProc {
                             ArgTreeNode argTreeNode = new ArgTreeNode(argStart, i - 1, functionTreeNode);
                             buildTree(argTreeNode);
                             functionTreeNode.subNode.add(argTreeNode);
+                            StringBuilder formatString = new StringBuilder();
+                            formatString.append(typeStringToFormat(codeBlocks.get(funcBegin)));
+                            formatString.append(codeBlocks.get(funcBegin + 1)).append('(');
+                            for (var treeNode : argTreeNode.subNode) {
+                                formatString.append(codeBlocks.get(treeNode.lIndex));
+                            }
+                            formatString.append(')');
+                            functionTreeNode.format = formatString.toString();
                             tmp = 1;
                             int blockStart = i;
                             i++;

@@ -1,5 +1,6 @@
 int main()
 {
-    printf("666");
-    return 0;
+    for (int i = 0; i < 10; i++) {
+        printf("%d\n", i);
+    }
 }

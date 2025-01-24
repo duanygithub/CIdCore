@@ -1,10 +1,8 @@
 package dev.duanyper.cidcore;
 
-import dev.duanyper.cidcore.memory.paging.PageProtect;
-import dev.duanyper.cidcore.memory.paging.PageTable;
-import dev.duanyper.cidcore.memory.paging.PagingManager;
+import dev.duanyper.cidcore.exception.CIdGrammarException;
+import dev.duanyper.cidcore.libraries.CStdIO;
 
-import java.util.Arrays;
 import java.util.List;
 
 public class DbgStart {
@@ -26,13 +24,8 @@ public class DbgStart {
             new CIdWrapper().executeProgram(str, functions, null);
         }
          */
-    public static void main(String[] args) {
-        PagingManager.init();
-        PageTable dummy = PagingManager.getCurrentPageTable();
-        long addr = PagingManager.allocateMemory(0, 4096, PageProtect.PAGE_READWRITE);
-        byte[] b = {1, 2, 3};
-        PagingManager.writeMemory(addr, b, b.length);
-        System.out.println(Arrays.toString(PagingManager.readMemory(addr, 10)));
-        return;
+    public static void main(String[] args) throws CIdGrammarException {
+        CInterpreter ci = CInterpreter.create("test.c", null, CStdIO.include());
+        ci.start();
     }
 }

@@ -1,6 +1,8 @@
 package dev.duanyper.cidcore.grammar;
 
 public class FunctionTreeNode extends TreeNode {
+    public String format;
+
     @Override
     public String type() {
         return "Function";

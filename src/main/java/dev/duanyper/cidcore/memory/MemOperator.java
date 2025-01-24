@@ -24,6 +24,10 @@ public class MemOperator {
         return memoryManager.allocateMemory(size);
     }
 
+    public static long allocateMemory(long preferredAddress, int size, int pageProtect) {
+        return memoryManager.allocateMemory(preferredAddress, size, pageProtect);
+    }
+
     public static byte[] read(long addr, int size) {
         return memoryManager.read((int) addr, size);
     }
