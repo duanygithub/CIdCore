@@ -24,6 +24,7 @@ public class CStdIO implements CIdNativeLibrary {
                 varObjects.add(var.getValue());
             }
         }
+        varObjects.remove(0);
         String text = String.format(format, varObjects.toArray());
         System.out.print(text);
     }

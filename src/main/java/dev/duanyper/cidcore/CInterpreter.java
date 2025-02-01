@@ -139,10 +139,11 @@ public class CInterpreter {
             }
             try {
                 method.invoke(this, args);
+                return CIdVOID.createVOID();
             } catch (CIdFunctionReturnException e) {
                 retVal = e.getRetVal();
             }
-                return retVal;
+            return retVal;
         }
         block.vars.clear();
         block.vars.putAll(args.argMap);
@@ -221,9 +222,10 @@ public class CInterpreter {
                         if (argTreeNode == null) {
                             argName = "%" + j;
                         } else argName = gp.codeBlocks.get(argTreeNode.subNode.get(j).lIndex + 1);
-                        valuedArgTreeNode.argMap.put(argName, calcExpression(realArgTreeNode.subNode.get(j)));
+                        valuedArgTreeNode.argMap.put(argName, stack.pop());
                     }
                 }
+                Variable retVal = callFunction(funcName, valuedArgTreeNode);
                 stack.push(callFunction(funcName, valuedArgTreeNode));
             } else if (cur.matches("\"([^\"]*)\"")) {
                 try {

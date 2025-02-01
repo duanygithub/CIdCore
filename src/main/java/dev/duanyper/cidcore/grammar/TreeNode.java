@@ -39,10 +39,6 @@ public class TreeNode {
 
     @Override
     public String toString() {
-        StringBuilder ret = new StringBuilder();
-        for (String str : codeBlocks.subList(lIndex, rIndex)) {
-            ret.append(str).append(" ");
-        }
-        return ret.toString();
+        return content;
     }
 }

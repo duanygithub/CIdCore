@@ -272,6 +272,7 @@ public class GrammarProc {
                             }
                         }
                         case "for" -> {
+                            int forBegin = i;
                             i += 2;
                             int conditionBegin = i, conditionEnd, blockBegin, blockEnd;
                             int tmp = 1;
@@ -281,7 +282,6 @@ public class GrammarProc {
                                 i++;
                             }
                             conditionEnd = i - 1;
-                            i++;
                             if (codeBlocks.get(i).equals("{")) {
                                 tmp = 1;
                                 i++;
@@ -298,8 +298,8 @@ public class GrammarProc {
                                 while (!codeBlocks.get(i).equals(";")) i++;
                                 blockEnd = i;
                             }
-                            ForTreeNode forTreeNode = new ForTreeNode(conditionEnd - 2, blockEnd + 1, parentNode);
-                            ArgTreeNode argTreeNode = new ArgTreeNode(conditionBegin, i - 1, forTreeNode);
+                            ForTreeNode forTreeNode = new ForTreeNode(forBegin, blockEnd + 1, parentNode);
+                            ArgTreeNode argTreeNode = new ArgTreeNode(conditionBegin, conditionEnd, forTreeNode);
                             buildTree(argTreeNode);
                             forTreeNode.subNode.add(argTreeNode);
                             BlockTreeNode blockTreeNode = new BlockTreeNode(blockBegin, blockEnd, forTreeNode);

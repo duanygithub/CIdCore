@@ -40,6 +40,8 @@ public class MExp2FExp {
                         func.push(tmp.get(i - 1));
                         tmp.remove(i - 1);
                         i--;
+                        tmp.remove(i);
+                        i--;
                     } else func.push("");
                 } else if(n.equals(")")) {
                     String peekStr = func.pop();
