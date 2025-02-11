@@ -48,7 +48,7 @@ public class TypeLookup {
         if (str.equals("struct")) {
             return STRUCT;
         }
-        if (functions.funcList.getOrDefault(str, null) != null) {
+        if (functions.funcList.get(str) != null) {
             return FUNCTION;
         }
         try {
@@ -68,9 +68,6 @@ public class TypeLookup {
         }
         if (isMatch(str, Patterns.BOOLEAN)) {
             return BOOLEAN;
-        }
-        if (functions.funcList.get(str) != null) {
-            return FUNCTION;
         }
         if (isMatch(str, IDENTIFIER)) {
             return VARIABLE_FORMAT;

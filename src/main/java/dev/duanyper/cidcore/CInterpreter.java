@@ -12,7 +12,6 @@ import dev.duanyper.cidcore.variable.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.*;
 
 public class CInterpreter {
@@ -130,6 +129,9 @@ public class CInterpreter {
     }
 
     public Variable callFunction(String funcName, ValuedArgTreeNode args) throws CIdGrammarException, CIdRuntimeException {
+        if (functions.funcList.get(funcName) == null) {
+            throw new CIdGrammarException("找不到函数 " + funcName + " 的声明");
+        }
         BlockTreeNode block = functions.codeIndex.get(funcName);
         if (block == null) {
             Variable retVal = CIdVOID.createVOID();
@@ -147,7 +149,7 @@ public class CInterpreter {
         }
         block.vars.clear();
         block.vars.putAll(args.argMap);
-        return execBlock(functions.codeIndex.get(funcName));
+        return execBlock(block);
     }
 
     public Variable execBlock(BlockTreeNode block) throws CIdGrammarException, CIdRuntimeException {
@@ -188,7 +190,7 @@ public class CInterpreter {
                     if (result.getType() != CIdType.Void) {
                         return result;
                     }
-                    calcExpression(condition);
+                    calcExpression(it);
                 }
             } else calcExpression(node);
         }
@@ -225,17 +227,22 @@ public class CInterpreter {
                         valuedArgTreeNode.argMap.put(argName, stack.pop());
                     }
                 }
-                Variable retVal = callFunction(funcName, valuedArgTreeNode);
                 stack.push(callFunction(funcName, valuedArgTreeNode));
             } else if (cur.matches("\"([^\"]*)\"")) {
+                String str = cur.substring(1, cur.length() - 1);
+                str = str.replace("\\n", "\n");
+                str = str.replace("\\r", "\r");
+                str = str.replace("\\t", "\t");
+                str = str.replace("\\0", "\0");
+                byte[] strb = {0, 0, 0, 0};
                 try {
-                    byte[] strb = cur.substring(1, cur.length() - 1).getBytes("UTF-32");
-                    long addr = (int) MemOperator.allocateMemory(strb.length + 4);
-                    MemOperator.set(addr + strb.length, 4, (byte) 0);
-                    MemOperator.write(addr, strb.length, strb);
-                    stack.push(CIdPOINTER.createPOINTER(1, addr, CIdType.Char));
-                } catch (UnsupportedEncodingException ignored) {
+                    strb = str.getBytes("UTF-32");
+                } catch (Exception ignored) {
                 }
+                long addr = (int) MemOperator.allocateMemory(strb.length + 4);
+                MemOperator.set(addr + strb.length, 4, (byte) 0);
+                MemOperator.write(addr, strb.length, strb);
+                stack.push(CIdPOINTER.createPOINTER(1, addr, CIdType.Char));
             } else if (cur.matches("(A&)|(A\\*)")) {
                 if (cur.equals("A&")) {
                     Variable varOp1 = stack.pop();
@@ -343,7 +350,7 @@ public class CInterpreter {
                 return CIdBOOLEAN.createBOOLEAN(str.equals("true"));
             }
             default -> {
-                return null;
+                throw new CIdGrammarException("未声明的符号: " + str);
             }
         }
     }

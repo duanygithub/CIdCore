@@ -45,6 +45,9 @@ public class CIdType {
             case "struct" -> {
                 return Struct;
             }
+            case "void" -> {
+                return Void;
+            }
             default -> {
                 if (isMatch(type, DECLARE_POINTER)) {//int*
                     return createPointerType(type.length() - type.indexOf('*'), string2Type(type.substring(0, type.indexOf('*'))));

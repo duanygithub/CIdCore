@@ -177,15 +177,14 @@ public class CIdPOINTER implements Variable {
                 } else {
                     strlen -= 4;
                     byte[] bytes = MemOperator.read(value, strlen);
-                    try {
-                        return (new String(bytes, "UTF-32"));
-                    } catch (UnsupportedEncodingException ignore) {
-                    }
+                    return new String(bytes, "UTF-32");
                 }
             } else {
                 return String.format("0x%x", MemOperator.readInt(addr));
             }
         } catch (CIdRuntimeException ignore) {
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
         }
         return String.format("0x%x", MemOperator.readInt(addr));
     }

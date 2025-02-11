@@ -15,7 +15,7 @@ public class CStdIO implements CIdNativeLibrary {
         if (!(args.argMap.get("%0") instanceof CIdPOINTER) || !((CIdPOINTER) args.argMap.get("%0")).isString()) {
             throw new CIdGrammarException("printf的第一个参数必须为char*类型");
         }
-        String format = ((CIdPOINTER) args.argMap.get("%0")).toString();
+        String format = args.argMap.get("%0").toString();
         ArrayList<Object> varObjects = new ArrayList<>();
         for (Variable var : args.argMap.values()) {
             if (var instanceof CIdPOINTER && ((CIdPOINTER) var).isString()) {

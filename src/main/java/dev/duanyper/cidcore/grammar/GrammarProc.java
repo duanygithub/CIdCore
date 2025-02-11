@@ -78,9 +78,19 @@ public class GrammarProc {
         int l = parentNode.lIndex;
         int r = parentNode.rIndex;
         if (r <= l) return;
-        if (parentNode instanceof StatementTreeNode || parentNode instanceof VarTreeNode || parentNode instanceof FunctionCallTreeNode) {
+        if (parentNode instanceof StatementTreeNode) {
+            if (parentNode instanceof FunctionCallTreeNode) {
+                String funcName = codeBlocks.get(parentNode.lIndex);
+                List<String> postfixExpression = new ArrayList<>();
+                for (var args : parentNode.subNode.get(0).subNode) {
+                    postfixExpression.addAll(0, ((StatementTreeNode) args).postfixExpression);
+                }
+                postfixExpression.add(funcName);
+                ((FunctionCallTreeNode) parentNode).postfixExpression = postfixExpression;
+                return;
+            }
             ((StatementTreeNode) parentNode).postfixExpression = MExp2FExp.convert(l, r, new Environment(functions, codeBlocks));
-            if (parentNode instanceof VarTreeNode || parentNode instanceof FunctionCallTreeNode) {
+            if (parentNode instanceof VarTreeNode) {
                 return;
             }
         }
@@ -160,6 +170,7 @@ public class GrammarProc {
                             }
                             VarTreeNode varTreeNode = new VarTreeNode(varStart, i, parentNode);
                             buildTree(varTreeNode);
+                            checkFunctionCall(varTreeNode);
                             parentNode.subNode.add(varTreeNode);
                         }
                     }
@@ -272,7 +283,6 @@ public class GrammarProc {
                             }
                         }
                         case "for" -> {
-                            int forBegin = i;
                             i += 2;
                             int conditionBegin = i, conditionEnd, blockBegin, blockEnd;
                             int tmp = 1;
@@ -292,13 +302,14 @@ public class GrammarProc {
                                     i++;
                                 }
                                 blockEnd = i - 1;
+                                i--;
                             } else {
                                 blockBegin = i;
                                 //for (; !codeBlocks.get(i).equals(";"); i++) ;
                                 while (!codeBlocks.get(i).equals(";")) i++;
                                 blockEnd = i;
                             }
-                            ForTreeNode forTreeNode = new ForTreeNode(forBegin, blockEnd + 1, parentNode);
+                            ForTreeNode forTreeNode = new ForTreeNode(conditionBegin - 2, blockEnd + 1, parentNode);
                             ArgTreeNode argTreeNode = new ArgTreeNode(conditionBegin, conditionEnd, forTreeNode);
                             buildTree(argTreeNode);
                             forTreeNode.subNode.add(argTreeNode);
@@ -364,6 +375,35 @@ public class GrammarProc {
                     parentNode.subNode.add(statementTreeNode);
                 }
             }
+        }
+    }
+
+    private void checkFunctionCall(TreeNode parentNode) throws CIdGrammarException {
+        for (int i = parentNode.lIndex; i < parentNode.rIndex; i++) {
+            if (TypeLookup.lookup(codeBlocks.get(i), parentNode.vars, functions) != TypeLookup.FUNCTION) {
+                continue;
+            }
+            int funcCallStart = i;
+            if (!codeBlocks.get(++i).equals("(")) {
+                System.out.println("不标准的函数调用");
+                break;
+            }
+            i++;
+            int parCnt = 1;
+            while (parCnt != 0) {
+                if (codeBlocks.get(i).equals("(")) {
+                    parCnt++;
+                } else if (codeBlocks.get(i).equals(")")) {
+                    parCnt--;
+                }
+                i++;
+            }
+            FunctionCallTreeNode functionCallTreeNode = new FunctionCallTreeNode(funcCallStart, i, parentNode);
+            ArgTreeNode argTreeNode = new ArgTreeNode(funcCallStart + 2, i - 1, parentNode);
+            buildTree(argTreeNode);
+            functionCallTreeNode.subNode.add(argTreeNode);
+            buildTree(functionCallTreeNode);
+            parentNode.subNode.add(functionCallTreeNode);
         }
     }
 

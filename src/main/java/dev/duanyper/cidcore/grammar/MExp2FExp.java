@@ -31,23 +31,42 @@ public class MExp2FExp {
                     continue;
                 }
             }
-
+        }
+        for (int i = 0; i < tmp.size(); i++) {
             //修改函数调用方便解析
             //printf(a+b) -> (a+b)printf
+            String n = tmp.get(i);
             try {
                 if (n.equals("(")) {
                     if (functions.funcList.get(tmp.get(i - 1)) != null) {
-                        func.push(tmp.get(i - 1));
-                        tmp.remove(i - 1);
-                        i--;
-                        tmp.remove(i);
+                        int stack = 1;
+                        while (stack > 0) {
+                            n = tmp.get(i);
+                            if (n.equals("(")) {
+                                func.push(tmp.get(i - 1));
+                                tmp.remove(i - 1);
+                                i--;
+                                tmp.remove(i);
+                                i--;
+                                stack++;
+                            }
+                            if (n.equals(")")) {
+                                String peekStr = func.pop();
+                                if (functions.funcList.get(peekStr) != null) {
+                                    tmp.remove(i);
+                                    i--;
+                                    tmp.add(i + 1, peekStr);
+                                }
+                                stack--;
+                            }
+                            if (n.equals(",")) {
+                                tmp.remove(i);
+                                i--;
+                            }
+                            i++;
+                        }
                         i--;
                     } else func.push("");
-                } else if(n.equals(")")) {
-                    String peekStr = func.pop();
-                    if (functions.funcList.get(peekStr) != null) {
-                        tmp.add(i + 1, peekStr);
-                    }
                 }
             }catch(IndexOutOfBoundsException ignore){}
         }
