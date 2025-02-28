@@ -20,7 +20,7 @@ public class MemoryPool {
     }
 
     public long allocateMemory(int size) {
-        if (size <= 0) throw new IllegalArgumentException("Size must be positive.");
+        if (size <= 0) throw new IllegalArgumentException("大小必须为正数");
 
         size = alignToPowerOfTwo(size);
 
@@ -56,7 +56,7 @@ public class MemoryPool {
     public void free(long addr) {
         Integer size = allocationMap.remove(addr);
         if (size == null) {
-            throw new IllegalArgumentException("Invalid address or already freed.");
+            throw new IllegalArgumentException("无效或已经释放的地址");
         }
 
         mergeFreeList(addr, size);
@@ -64,7 +64,7 @@ public class MemoryPool {
 
     public byte[] read(long addr, int size) {
         if (isNotAllocated(addr, size)) {
-            throw new IllegalArgumentException("Invalid address or size.");
+            throw new IllegalArgumentException("无效的地址或大小");
         }
 
         return memoryManager.read(addr, size);
@@ -72,7 +72,7 @@ public class MemoryPool {
 
     public void write(long addr, int size, byte[] data) {
         if (isNotAllocated(addr, size)) {
-            throw new IllegalArgumentException("Invalid address or size.");
+            throw new IllegalArgumentException("无效的地址或大小");
         }
 
         memoryManager.write(addr, size, data);
@@ -80,7 +80,7 @@ public class MemoryPool {
 
     public void set(long addr, int size, byte b) {
         if (isNotAllocated(addr, size)) {
-            throw new IllegalArgumentException("Invalid address or size.");
+            throw new IllegalArgumentException("无效的地址或大小");
         }
 
         memoryManager.set(addr, size, b);
