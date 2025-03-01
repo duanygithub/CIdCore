@@ -74,88 +74,44 @@ public class MExp2FExp {
     }
 
     private static List<String> parseSuffixExpression(List<String> tokens) throws CIdGrammarException {
-        /*
-        //定义两个栈
-        //符号栈
-        Stack<String> s1 = new Stack<String>();
-        //因为S2这个栈，转换过程中没有pop操作，且还需逆序输出，可以不用Stack<String>
-        //直接使用List<String> s2
-        //Stack<String> s2 =new Stack<String> ();
-        //储存中间结果的List2
-        List<String> s2 = new ArrayList<String>();
-
-        for (String item : ls) {
-            if (Operation.getValue(item) == 0 && !isMatch(item, BRACKET)) {
-                //如果是一个数，直接加入S2
-                s2.add(item);
-            } else if (item.equals("(")) {
-                //左括号也直接加入
-                s1.push(item);
-            } else if (item.equals(")")) {
-                //如果为有括号，则需要弹出s1中的运算符，直到遇到左括号
-                while (!s1.peek().equals("(")) {
-                    s2.add(s1.pop());
-                }
-                //将左括号弹出
-                s1.pop();
-            } else {
-                //当item的优先级小于等于s1栈顶的运算符时，将s1栈顶的运算符弹出并加入到s2中
-                while (!s1.isEmpty() && Operation.getValue(s1.peek()) > Operation.getValue(item)) {
-                    s2.add(s1.pop());
-                }
-                //需要将item压入栈
-                s1.push(item);
-            }
-        }
-        //将s1中剩余的运算符依次弹出并压入s2
-        while (!s1.isEmpty()) {
-            s2.add(s1.pop());
-        }
-        //因为是存放到List,因此按顺序输出就是对应的后缀表达式对应的List
-        return s2;
-
-         */
         Stack<String> stack = new Stack<>();
         List<String> postfix = new ArrayList<>();
 
         String prevToken = null;
         for (int i = 0; i < tokens.size(); i++) {
             String token = tokens.get(i);
-            String nextToken = (i + 1 < tokens.size()) ? tokens.get(i + 1) : null;
 
-            if (token.isBlank()) {
-                continue; // 忽略空白
-            }
+            if (token.isBlank()) continue;
 
+            // 处理操作数
             if (!Operation.isOperator(token)) {
-                // 如果是操作数，直接添加到后缀表达式
                 postfix.add(token);
-            } else if (Operation.isOperator(token)) {
-                if (token.equals("(")) {
-                    stack.push(token); // 左括号直接入栈
-                } else if (token.equals(")")) {
-                    // 遇到右括号，弹出所有运算符直到左括号
-                    while (!stack.isEmpty() && !stack.peek().equals("(")) {
-                        postfix.add(stack.pop());
-                    }
-                    stack.pop(); // 弹出左括号
-                } else if (Operation.isPostfixOperator(token, nextToken)) {
-                    // 后缀自增或自减
-                    postfix.add(prevToken);
-                    postfix.add(token);
-                } else if (Operation.isPrefixOperator(token, prevToken)) {
-                    // 前缀自增或自减
+                // 处理栈中的单目运算符（例如 A* A* p -> p A* A*）
+                while (!stack.isEmpty() && Operation.isPrefixOperator(stack.peek(), prevToken)) {
+                    postfix.add(stack.pop());
+                }
+            }
+            // 处理括号
+            else if (token.equals("(")) {
+                stack.push(token);
+            } else if (token.equals(")")) {
+                while (!stack.isEmpty() && !stack.peek().equals("(")) {
+                    postfix.add(stack.pop());
+                }
+                stack.pop(); // 弹出 '('
+            }
+            // 处理运算符
+            else {
+                // 单目运算符直接入栈（高优先级）
+                if (Operation.isPrefixOperator(token, prevToken)) {
                     stack.push(token);
                 } else {
-                    // 普通运算符
-                    while (!stack.isEmpty() && Operation.getValue(stack.peek()) >= Operation.getValue(token) &&
-                            !Operation.isRightAssociative(token)) {
+                    // 普通运算符处理
+                    while (!stack.isEmpty() && comparePrecedence(stack.peek(), token) >= 0) {
                         postfix.add(stack.pop());
                     }
                     stack.push(token);
                 }
-            } else {
-                throw new CIdGrammarException("无效的字符: " + token);
             }
             prevToken = token;
         }
@@ -168,6 +124,21 @@ public class MExp2FExp {
         return postfix;
     }
 
+    // 比较运算符优先级和结合性
+    private static int comparePrecedence(String stackOp, String currentOp) {
+        int stackPrec = Operation.getValue(stackOp);
+        int currentPrec = Operation.getValue(currentOp);
+
+        // 右结合运算符（如 =）仅在栈顶优先级严格大于当前优先级时弹出
+        if (Operation.isRightAssociative(currentOp)) {
+            return (stackPrec > currentPrec) ? 1 : -1;
+        }
+        // 左结合运算符（如 +, A*）在栈顶优先级 >= 当前优先级时弹出
+        else {
+            return Integer.compare(stackPrec, currentPrec);
+        }
+    }
+
     public static class Operation {
         //判断是否为运算符
         public static boolean isOperator(String str) {
@@ -175,7 +146,7 @@ public class MExp2FExp {
         }
 
         //判断右结合性
-        static final Pattern pattern = Pattern.compile("(\\+\\+)|(--)|!|(A&)|~|(A*)|(sizeof)");
+        static final Pattern pattern = Pattern.compile("(\\+\\+)|(--)|!|(A&)|~|(A\\*)|(sizeof)");
         private static boolean isRightAssociative(String operator) {
             return isMatch(operator, pattern);
         }

@@ -3,6 +3,7 @@ package dev.duanyper.cidcore;
 import dev.duanyper.cidcore.exception.CIdGrammarException;
 import dev.duanyper.cidcore.libraries.CStdIO;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
 public class DbgStart {
@@ -24,8 +25,22 @@ public class DbgStart {
             new CIdWrapper().executeProgram(str, functions, null);
         }
          */
-    public static void main(String[] args) throws CIdGrammarException {
+    public static void main(String[] args) throws CIdGrammarException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+
         CInterpreter ci = CInterpreter.create("test.c", null, CStdIO.include());
         ci.start();
+        /*
+        GrammarProc gp = new GrammarProc(new Functions());
+        List<String> code = gp.splitCodes("a = **p");
+        for (int i = 0; i < code.size(); i++)
+        {
+            if (code.get(i).equals("*")) code.set(i, "A*");
+        }
+        System.out.println(code);
+        Method parseSuffixExpression = MExp2FExp.class.getDeclaredMethod("parseSuffixExpression", List.class);
+        parseSuffixExpression.setAccessible(true);
+        System.out.println(parseSuffixExpression.invoke(null, code));
+
+         */
     }
 }
