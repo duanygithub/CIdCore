@@ -1,7 +1,8 @@
 package dev.duanyper.cidcore;
 
 import dev.duanyper.cidcore.exception.CIdGrammarException;
-import dev.duanyper.cidcore.libraries.CStdIO;
+import dev.duanyper.cidcore.grammar.GrammarProc;
+import dev.duanyper.cidcore.symbols.Functions;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
@@ -26,15 +27,27 @@ public class DbgStart {
         }
          */
     public static void main(String[] args) throws CIdGrammarException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-
+        /*
         CInterpreter ci = CInterpreter.create("test.c", null, CStdIO.include());
         ci.start();
+         */
         /*
         GrammarProc gp = new GrammarProc(new Functions());
-        List<String> code = gp.splitCodes("a = **p");
+        List<String> code = gp.splitCodes("int ** a;");
         for (int i = 0; i < code.size(); i++)
         {
             if (code.get(i).equals("*")) code.set(i, "A*");
+        }
+        for (int i = 0; i < code.size(); i++) {
+            try {
+                if (code.get(i).equals("[") && code.get(i + 2).equals("]")) {
+                    if (isMatch(code.get(i + 1), NUMBER) || isMatch(code.get(i + 1), HEX_NUMBER)) {
+                        String index = code.remove(i + 1);
+                        code.remove(i + 1);
+                        code.set(i, "[" + index + "]");
+                    }
+                }
+            } catch (IndexOutOfBoundsException ignore){}
         }
         System.out.println(code);
         Method parseSuffixExpression = MExp2FExp.class.getDeclaredMethod("parseSuffixExpression", List.class);
@@ -42,5 +55,8 @@ public class DbgStart {
         System.out.println(parseSuffixExpression.invoke(null, code));
 
          */
+        GrammarProc gp = new GrammarProc(new Functions());
+        int ret = gp.analyze("int *a = 0, b = 3, c[100] = {0, 1, 2, 3};");
+        System.out.println(ret);
     }
 }

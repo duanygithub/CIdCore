@@ -5,6 +5,7 @@ import dev.duanyper.cidcore.exception.CIdGrammarException;
 import dev.duanyper.cidcore.exception.CIdRuntimeException;
 import dev.duanyper.cidcore.grammar.*;
 import dev.duanyper.cidcore.memory.MemOperator;
+import dev.duanyper.cidcore.runtime.Environment;
 import dev.duanyper.cidcore.runtime.ValuedArgTreeNode;
 import dev.duanyper.cidcore.symbols.*;
 import dev.duanyper.cidcore.variable.*;
@@ -198,6 +199,40 @@ public class CInterpreter {
     }
 
     public Variable calcExpression(TreeNode treeNode) throws CIdGrammarException, CIdRuntimeException {
+        if (treeNode instanceof VarTreeNode) {
+            Variable ret = null;
+            String typeString = treeNode.codeBlocks.get(treeNode.lIndex);
+            for (var statementTreeNode : treeNode.subNode) {
+                String name = statementTreeNode.codeBlocks.get(statementTreeNode.lIndex);
+                if (name.matches("\\*+")) {
+                    int pointerLevel = name.length();
+                    name = statementTreeNode.codeBlocks.get(statementTreeNode.lIndex + 1);
+                    ret = switch (typeString) {
+                        case "int" -> CIdPOINTER.createPOINTER(pointerLevel, 0, CIdType.Int);
+                        case "float" -> CIdPOINTER.createPOINTER(pointerLevel, 0, CIdType.Float);
+                        case "char" -> CIdPOINTER.createPOINTER(pointerLevel, 0, CIdType.Char);
+                        case "bool" -> CIdPOINTER.createPOINTER(pointerLevel, 0, CIdType.Boolean);
+                        case "void" -> CIdPOINTER.createPOINTER(pointerLevel, 0, CIdType.Void);
+                        default -> throw new IllegalStateException("Unexpected value: " + typeString);
+                    };
+                    treeNode.vars.put(name, ret);
+                    ret = calcExpression(new StatementTreeNode(statementTreeNode.lIndex + 1, statementTreeNode.rIndex, treeNode));
+                } else {
+                    ret = switch (typeString) {
+                        case "int" -> CIdINT.createINT();
+                        case "float" -> CIdFLOAT.createFLOAT();
+                        case "char" -> CIdCHAR.createCHAR();
+                        case "bool" -> CIdBOOLEAN.createBOOLEAN(false);
+                        case "void" -> throw new CIdGrammarException("不可定义void类型变量");
+                        default -> throw new IllegalStateException("Unexpected value: " + typeString);
+                    };
+                    treeNode.vars.put(name, ret);
+                    ret = calcExpression(statementTreeNode);
+                }
+            }
+            assert ret != null;
+            return ret;
+        }
         Map<String, FunctionCallTreeNode> tempFuncCallMap = new HashMap<>();
         Queue<TreeNode> bfs = new ArrayDeque<>();
         bfs.add(treeNode);
@@ -209,6 +244,9 @@ public class CInterpreter {
             bfs.addAll(cur.subNode);
         }
         List<String> res = ((StatementTreeNode) treeNode).postfixExpression;
+        if (res == null) {
+            res = ((StatementTreeNode) treeNode).postfixExpression = MExp2FExp.convert(treeNode.lIndex, treeNode.rIndex, new Environment(functions, treeNode.codeBlocks));
+        }
         Stack<Variable> stack = new Stack<>();
         for (int i = 0; i < res.size(); i++) {
             String cur = res.get(i);
@@ -318,7 +356,7 @@ public class CInterpreter {
                 Variable varOp2 = stack.pop();
                 Variable varOp1 = stack.pop();
                 stack.push(varOp1.procOperation(varOp2, cur));
-            } else if (TypeLookup.lookup(cur, treeNode.vars, functions) == TypeLookup.BASICTYPE) {
+            } /*else if (TypeLookup.lookup(cur, treeNode.vars, functions) == TypeLookup.BASICTYPE) {
                 if (TypeLookup.lookup(res.get(i + 1), treeNode.vars, functions) != TypeLookup.VARIABLE_FORMAT) continue;
                 Variable variable = null;
                 switch (cur) {
@@ -330,7 +368,7 @@ public class CInterpreter {
             } else if (TypeLookup.lookup(cur, treeNode.vars, functions) == TypeLookup.DECLARE_POINTER) {
                 CIdPointerType pointerType = CIdType.getPointerType(cur);
                 treeNode.vars.put(res.get(i + 1), CIdPOINTER.createPOINTER(pointerType.lvl, 0, pointerType.type));
-            } else stack.push(string2Variable(cur, treeNode.vars));
+            }*/ else stack.push(string2Variable(cur, treeNode.vars));
         }
         return stack.empty() ? null : stack.pop();
     }

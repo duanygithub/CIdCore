@@ -5,6 +5,6 @@ int main()
     int** p1 = &p;
     int b = 0;
     b = **p1;
-    printf("%x", b);
+    printf("%x\n", &b);
     return 0;
 }

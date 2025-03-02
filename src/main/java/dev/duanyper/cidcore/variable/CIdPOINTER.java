@@ -19,8 +19,8 @@ public class CIdPOINTER implements Variable {
     }
 
     public static CIdPOINTER createPOINTER(int lvl, long pAddress, CIdType type) throws CIdRuntimeException {
-        long address = MemOperator.getPool().allocateMemory(4);
-        MemOperator.writeInt(address, (int) pAddress);
+        long address = MemOperator.getPool().allocateMemory(8);
+        MemOperator.writeLong(address, pAddress);
         return new CIdPOINTER(address, lvl, type);
     }
 
@@ -180,13 +180,13 @@ public class CIdPOINTER implements Variable {
                     return new String(bytes, "UTF-32");
                 }
             } else {
-                return String.format("0x%x", MemOperator.readInt(addr));
+                return String.format("0x%x", MemOperator.readLong(addr));
             }
         } catch (CIdRuntimeException ignore) {
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }
-        return String.format("0x%x", MemOperator.readInt(addr));
+        return String.format("0x%x", MemOperator.readLong(addr));
     }
 
     @Override

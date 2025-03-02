@@ -80,11 +80,6 @@ public class CIdShell {
         exitLoop = true;
     }
 
-    public static void printf(CInterpreter cInterpreter, ValuedArgTreeNode arg) {
-        Variable var = arg.argMap.get("%0");
-        System.out.println(var.toString());
-    }
-
     public static void __typeof(CInterpreter cInterpreter, ValuedArgTreeNode args) {
         for(Variable var : args.argMap.values()) {
             System.out.println(var.getType().toString());
@@ -98,7 +93,7 @@ public class CIdShell {
         functions.funcList.put("exit", CIdType.Void);
         functions.nativeFunctions.put("exit", CIdShell::exit);
         functions.funcList.put("printf", CIdType.Void);
-        functions.nativeFunctions.put("printf", CIdShell::printf);
+        functions.nativeFunctions.put("printf", dev.duanyper.cidcore.libraries.CStdIO::printf);
         functions.funcList.put("__typeof", CIdType.Void);
         functions.nativeFunctions.put("__typeof", CIdShell::__typeof);
         CIdShell shell = new CIdShell(new Environment(functions, null, null), true);

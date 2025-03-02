@@ -74,6 +74,26 @@ public class GrammarProc {
         }
     }
 
+    private int skipPairs(int i, String currentPair) {
+        int bkpI = i, tmp = 0;
+        try {
+            do {
+                if (codeBlocks.get(i).equals("(") || codeBlocks.get(i).equals("{")) {
+                    if (codeBlocks.get(i).equals(currentPair))
+                        tmp++;
+                    else i = skipPairs(i, codeBlocks.get(i));
+                }
+                if (codeBlocks.get(i).equals(")") || codeBlocks.get(i).equals("}")) {
+                    tmp--;
+                }
+                i++;
+            } while (tmp > 0);
+            return i;
+        } catch (IndexOutOfBoundsException e) {
+            return bkpI;
+        }
+    }
+
     public void buildTree(TreeNode parentNode) throws CIdGrammarException {
         int l = parentNode.lIndex;
         int r = parentNode.rIndex;
@@ -113,7 +133,7 @@ public class GrammarProc {
             String str = codeBlocks.get(i);
             switch (TypeLookup.lookup(str, parentNode.vars, functions)) {
                 case TypeLookup.BASICTYPE -> {
-                    if (isMatch(codeBlocks.get(i + 1), IDENTIFIER)) {
+                    if (isMatch(codeBlocks.get(i + 1), IDENTIFIER) || codeBlocks.get(i + 1).matches("\\*+")) {
                         if (codeBlocks.get(i + 2).equals("(")) {
                             int funcBegin = i;
                             FunctionTreeNode functionTreeNode = new FunctionTreeNode(i, i + 2, parentNode);
@@ -154,6 +174,7 @@ public class GrammarProc {
                             i--;
                         } else {
                             int varStart = i;
+                            /*
                             int tmp = 0;
                             try {
                                 while (true) {
@@ -168,7 +189,29 @@ public class GrammarProc {
                                 }
                             } catch (IndexOutOfBoundsException ignore) {
                             }
+
+                             */
+                            int a = ++i;
+                            while (!codeBlocks.get(i).equals(";")) {
+                                i++;
+                            }
                             VarTreeNode varTreeNode = new VarTreeNode(varStart, i, parentNode);
+                            i = a;
+                            while (!codeBlocks.get(i).equals(";")) {
+                                if (codeBlocks.get(i).equals("{")) {
+                                    i = skipPairs(i, "{") - 1;
+                                }
+                                if (codeBlocks.get(i).equals(",")) {
+                                    StatementTreeNode statementTreeNode = new StatementTreeNode(a, i, varTreeNode);
+                                    buildTree(statementTreeNode);
+                                    varTreeNode.subNode.add(statementTreeNode);
+                                    a = i + 1;
+                                }
+                                i++;
+                            }
+                            StatementTreeNode statementTreeNode = new StatementTreeNode(a, i, varTreeNode);
+                            buildTree(statementTreeNode);
+                            varTreeNode.subNode.add(statementTreeNode);
                             buildTree(varTreeNode);
                             checkFunctionCall(varTreeNode);
                             parentNode.subNode.add(varTreeNode);
@@ -437,8 +480,8 @@ public class GrammarProc {
             codes = codes.replaceAll("\r\n", "\n");
         } catch (NullPointerException ignore) {
         }
-        Stack<Integer> parStack = new Stack<Integer>();//用于识别圆括号
-        Stack<Integer> xpnStack = new Stack<Integer>();//用于识别注释
+        Stack<Integer> parStack = new Stack<>();//用于识别圆括号
+        Stack<Integer> xpnStack = new Stack<>();//用于识别注释
         boolean bInQua = false,//在双引号内
                 bInPar = false;//在圆括号内
         List<String> statements = new ArrayList<String>();
@@ -585,8 +628,16 @@ public class GrammarProc {
                 } catch (IndexOutOfBoundsException ignore) {
                 }
             }
+            /*
             if (TypeLookup.lookup(statements.get(i), null, functions) == TypeLookup.BASICTYPE ||
                     TypeLookup.lookup(statements.get(i), null, functions) == TypeLookup.DECLARE_POINTER) {
+                while (statements.get(i + 1).equals("*")) {
+                    statements.set(i, statements.get(i) + "*");
+                    statements.remove(i + 1);
+                }
+            }
+             */
+            if (i > 0 && statements.get(i).equals("*") && TypeLookup.lookup(statements.get(i), null, functions) == TypeLookup.BASICTYPE) {
                 while (statements.get(i + 1).equals("*")) {
                     statements.set(i, statements.get(i) + "*");
                     statements.remove(i + 1);

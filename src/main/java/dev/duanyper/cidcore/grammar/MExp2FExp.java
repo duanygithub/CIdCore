@@ -10,8 +10,7 @@ import java.util.List;
 import java.util.Stack;
 import java.util.regex.Pattern;
 
-import static dev.duanyper.cidcore.Patterns.LEFTEQUAL_OR_RIGHTEQUAL;
-import static dev.duanyper.cidcore.Patterns.isMatch;
+import static dev.duanyper.cidcore.Patterns.*;
 
 public class MExp2FExp {
     public static List<String> convert(int l, int r, Environment env) throws CIdGrammarException {
@@ -28,8 +27,19 @@ public class MExp2FExp {
                 if (i == 0 || Operation.getValue(tmp.get(i - 1)) != 0 || tmp.get(i - 1).equals("(") || CIdType.keywords.contains(tmp.get(i - 1))) {
                     n = 'A' + n;
                     tmp.set(i, n);
-                    continue;
                 }
+            }
+        }
+        for (int i = 0; i < tmp.size(); i++) {
+            try {
+                if (tmp.get(i).equals("[") && tmp.get(i + 2).equals("]")) {
+                    if (isMatch(tmp.get(i + 1), NUMBER) || isMatch(tmp.get(i + 1), HEX_NUMBER)) {
+                        String index = tmp.remove(i + 1);
+                        tmp.remove(i + 1);
+                        tmp.set(i, "[" + index + "]");
+                    }
+                }
+            } catch (IndexOutOfBoundsException ignore) {
             }
         }
         for (int i = 0; i < tmp.size(); i++) {
