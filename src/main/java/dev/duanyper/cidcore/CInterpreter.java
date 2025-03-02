@@ -155,39 +155,39 @@ public class CInterpreter {
 
     public Variable execBlock(BlockTreeNode block) throws CIdGrammarException, CIdRuntimeException {
         if (block == null) return CIdINT.createINT(-1);
-        for (TreeNode node : block.subNode) {
+        for (TreeNode node : block.children) {
             if (gp.codeBlocks.get(node.lIndex).equals("return")) {
                 StatementTreeNode statementTreeNode = new StatementTreeNode(node.lIndex + 1, node.rIndex, node.parentNode);
                 gp.buildTree(statementTreeNode);
-                return calcExpression(/*statementTreeNode*/node.subNode.get(0));
+                return calcExpression(/*statementTreeNode*/node.children.get(0));
             } else if (node instanceof IfStatementTreeNode) {
-                if (calcExpression(node.subNode.get(0)).getValue().intValue() != 0) {
-                    Variable result = execBlock((BlockTreeNode) node.subNode.get(1));
+                if (calcExpression(node.children.get(0)).getValue().intValue() != 0) {
+                    Variable result = execBlock((BlockTreeNode) node.children.get(1));
                     if (result.getType() != CIdType.Void) {
                         return result;
                     }
                 }
             } else if (node instanceof WhileTreeNode) {
-                while (calcExpression(node.subNode.get(0)).getValue().intValue() != 0) {
-                    Variable result = execBlock((BlockTreeNode) node.subNode.get(1));
+                while (calcExpression(node.children.get(0)).getValue().intValue() != 0) {
+                    Variable result = execBlock((BlockTreeNode) node.children.get(1));
                     if (result.getType() != CIdType.Void) {
                         return result;
                     }
                 }
             } else if (node instanceof DoTreeNode) {
                 do {
-                    Variable result = execBlock((BlockTreeNode) node.subNode.get(1));
+                    Variable result = execBlock((BlockTreeNode) node.children.get(1));
                     if (result.getType() != CIdType.Void) {
                         return result;
                     }
-                } while (calcExpression(node.subNode.get(0)).getValue().intValue() != 0);
+                } while (calcExpression(node.children.get(0)).getValue().intValue() != 0);
             } else if (node instanceof ForTreeNode) {
-                TreeNode init = node.subNode.get(0).subNode.get(0);
-                TreeNode condition = node.subNode.get(0).subNode.get(1);
-                TreeNode it = node.subNode.get(0).subNode.get(2);
+                TreeNode init = node.children.get(0).children.get(0);
+                TreeNode condition = node.children.get(0).children.get(1);
+                TreeNode it = node.children.get(0).children.get(2);
                 calcExpression(init);
                 while (calcExpression(condition).getValue().intValue() != 0) {
-                    Variable result = execBlock((BlockTreeNode) node.subNode.get(1));
+                    Variable result = execBlock((BlockTreeNode) node.children.get(1));
                     if (result.getType() != CIdType.Void) {
                         return result;
                     }
@@ -202,7 +202,7 @@ public class CInterpreter {
         if (treeNode instanceof VarTreeNode) {
             Variable ret = null;
             String typeString = treeNode.codeBlocks.get(treeNode.lIndex);
-            for (var statementTreeNode : treeNode.subNode) {
+            for (var statementTreeNode : treeNode.children) {
                 String name = statementTreeNode.codeBlocks.get(statementTreeNode.lIndex);
                 if (name.matches("\\*+")) {
                     int pointerLevel = name.length();
@@ -241,7 +241,7 @@ public class CInterpreter {
             if (cur instanceof FunctionCallTreeNode) {
                 tempFuncCallMap.put(gp.codeBlocks.get(cur.lIndex), (FunctionCallTreeNode) cur);
             }
-            bfs.addAll(cur.subNode);
+            bfs.addAll(cur.children);
         }
         List<String> res = ((StatementTreeNode) treeNode).postfixExpression;
         if (res == null) {
@@ -255,13 +255,13 @@ public class CInterpreter {
                 String funcName = gp.codeBlocks.get(functionCallTreeNode.lIndex);
                 ArgTreeNode argTreeNode = functions.argIndex.get(funcName);
                 ValuedArgTreeNode valuedArgTreeNode = new ValuedArgTreeNode();
-                ArgTreeNode realArgTreeNode = (ArgTreeNode) functionCallTreeNode.subNode.get(0);
+                ArgTreeNode realArgTreeNode = (ArgTreeNode) functionCallTreeNode.children.get(0);
                 if (realArgTreeNode.lIndex < realArgTreeNode.rIndex) {
-                    for (int j = 0; j < realArgTreeNode.subNode.size(); j++) {
+                    for (int j = 0; j < realArgTreeNode.children.size(); j++) {
                         String argName;
                         if (argTreeNode == null) {
                             argName = "%" + j;
-                        } else argName = gp.codeBlocks.get(argTreeNode.subNode.get(j).lIndex + 1);
+                        } else argName = gp.codeBlocks.get(argTreeNode.children.get(j).lIndex + 1);
                         valuedArgTreeNode.argMap.put(argName, stack.pop());
                     }
                 }
@@ -396,6 +396,6 @@ public class CInterpreter {
     private boolean checkArg(ArgTreeNode callArg, ArgTreeNode funcArg) {
         ArrayList<CIdType> funcArgTypeArray = new ArrayList<>();
         ArrayList<CIdType> callArgTypeArray = new ArrayList<>();
-        return callArg.subNode.size() == funcArg.subNode.size();
+        return callArg.children.size() == funcArg.children.size();
     }
 }

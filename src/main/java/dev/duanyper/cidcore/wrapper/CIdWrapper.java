@@ -34,7 +34,7 @@ public class CIdWrapper {
         gp.root = new RootTreeNode(0, gp.codeBlocks.size(), null, gp.codeBlocks);
         BlockTreeNode block = new BlockTreeNode(gp.root.lIndex, gp.root.rIndex, gp.root);
         gp.buildTree(block);
-        gp.root.subNode.add(block);
+        gp.root.children.add(block);
         block.vars.putAll(env.variables);
         returnValue = cInterpreter.execBlock(block);
         return cInterpreter;

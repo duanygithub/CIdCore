@@ -51,7 +51,7 @@ public class CIdShell {
         if (gp.isComplex(gp.root)) {
             wrapper.executeTree(gp.root, env, ci);
         } else {
-            for (TreeNode treeNode : gp.root.subNode) {
+            for (TreeNode treeNode : gp.root.children) {
                 value = ci.calcExpression(treeNode);
                 if (gp.codeBlocks.get(treeNode.lIndex).equals("return")) {
                     break;

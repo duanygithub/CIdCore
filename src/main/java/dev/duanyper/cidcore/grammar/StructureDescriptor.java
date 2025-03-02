@@ -11,7 +11,7 @@ public class StructureDescriptor {
     public final String name;
 
     public StructureDescriptor(StructureTreeNode treeNode, List<String> codeBlocks) {
-        for (TreeNode cur : treeNode.subNode.get(0).subNode) {
+        for (TreeNode cur : treeNode.children.get(0).children) {
             CIdType type = CIdType.string2Type(codeBlocks.get(cur.lIndex));
             String name = codeBlocks.get(cur.lIndex + 1);
             if (type == CIdType.Struct) {
