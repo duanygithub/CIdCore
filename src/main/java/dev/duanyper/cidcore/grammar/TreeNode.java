@@ -27,8 +27,9 @@ public class TreeNode {
             this.vars = new Variables(parent.vars);
         } else if (!type().equals("root")) {
             vars = parent.vars;
-            codeBlocks = parent.codeBlocks;
         }
+        if (!(this instanceof RootTreeNode))
+            codeBlocks = parent.codeBlocks;
     }
 
     public TreeNode() {

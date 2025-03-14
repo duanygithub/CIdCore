@@ -174,23 +174,6 @@ public class GrammarProc {
                             i--;
                         } else {
                             int varStart = i;
-                            /*
-                            int tmp = 0;
-                            try {
-                                while (true) {
-                                    if (codeBlocks.get(i).equals("(")) tmp++;
-                                    else if (codeBlocks.get(i).equals(")")) {
-                                        tmp--;
-                                    } else if (TypeLookup.lookup(codeBlocks.get(i), parentNode.vars, functions) == TypeLookup.SPLITPOINT) {
-                                        if (tmp == 0) break;
-                                    }
-                                    if (tmp < 0) break;
-                                    i++;
-                                }
-                            } catch (IndexOutOfBoundsException ignore) {
-                            }
-
-                             */
                             int a = ++i;
                             while (!codeBlocks.get(i).equals(";")) {
                                 i++;
@@ -244,23 +227,15 @@ public class GrammarProc {
                 case TypeLookup.PROC_CONTROL -> {
                     switch (str) {
                         case "if" -> {
-                            int tmp = 0, ifBegin = i;
-                            do {
-                                i++;
-                                if (codeBlocks.get(i).equals("(")) tmp++;
-                                else if (codeBlocks.get(i).equals(")")) tmp--;
-                            } while (tmp != 0);
+                            int ifBegin = i;
+                            i = skipPairs(i, "(");
                             IfStatementTreeNode ifStatementTreeNode = new IfStatementTreeNode(ifBegin, i + 1, parentNode);
                             ArgTreeNode argTreeNode = new ArgTreeNode(ifBegin + 2, i, ifStatementTreeNode);
                             buildTree(argTreeNode);
                             ifStatementTreeNode.children.add(argTreeNode);
                             if (codeBlocks.get(i + 1).equals("{")) {
                                 int blockBegin = i + 2;
-                                do {
-                                    i++;
-                                    if (codeBlocks.get(i).equals("{")) tmp++;
-                                    else if (codeBlocks.get(i).equals("}")) tmp--;
-                                } while (tmp != 0);
+                                i = skipPairs(i, "{");
                                 BlockTreeNode blockTreeNode = new BlockTreeNode(blockBegin, i, ifStatementTreeNode);
                                 buildTree(blockTreeNode);
                                 ifStatementTreeNode.children.add(blockTreeNode);
@@ -277,12 +252,7 @@ public class GrammarProc {
                             if (parentNode.type().equals("do")) {
                                 i += 2;
                                 int conditionBegin = i + 2;
-                                int tmp = 1;
-                                while (tmp > 0) {
-                                    if (codeBlocks.get(i).equals("(")) tmp++;
-                                    else if (codeBlocks.get(i).equals(")")) tmp--;
-                                    i++;
-                                }
+                                i = skipPairs(i, "(");
                                 ArgTreeNode argTreeNode = new ArgTreeNode(conditionBegin, i - 1, parentNode);
                                 buildTree(argTreeNode);
                                 parentNode.children.add(argTreeNode);
@@ -290,31 +260,21 @@ public class GrammarProc {
                                 int whileBegin = i;
                                 i += 2;
                                 int conditionBegin = i, conditionEnd = 0, blockBegin = 0, blockEnd = 0;
-                                int tmp = 1;
-                                while (tmp > 0) {
-                                    if (codeBlocks.get(i).equals("(")) tmp++;
-                                    else if (codeBlocks.get(i).equals(")")) tmp--;
-                                    i++;
-                                }
+                                i = skipPairs(i - 1, "(");
                                 conditionEnd = i - 1;
-                                i++;
                                 if (codeBlocks.get(i).equals("{")) {
-                                    tmp = 1;
                                     i++;
                                     blockBegin = i;
-                                    while (tmp > 0) {
-                                        if (codeBlocks.get(i).equals("{")) tmp++;
-                                        else if (codeBlocks.get(i).equals("}")) tmp--;
-                                        i++;
-                                    }
-                                    blockEnd = i - 1;
+                                    i = skipPairs(i - 1, "{");
+                                    i--;
+                                    blockEnd = i;
                                 } else {
                                     blockBegin = i;
                                     //for (; !codeBlocks.get(i).equals(";"); i++) ;
                                     while (!codeBlocks.get(i).equals(";")) i++;
                                     blockEnd = i;
                                 }
-                                WhileTreeNode whileTreeNode = new WhileTreeNode(whileBegin, blockEnd + 2, parentNode);
+                                WhileTreeNode whileTreeNode = new WhileTreeNode(whileBegin, blockEnd + 1, parentNode);
                                 ArgTreeNode argTreeNode = new ArgTreeNode(conditionBegin, conditionEnd, whileTreeNode);
                                 buildTree(argTreeNode);
                                 whileTreeNode.children.add(argTreeNode);
@@ -322,7 +282,6 @@ public class GrammarProc {
                                 buildTree(blockTreeNode);
                                 whileTreeNode.children.add(blockTreeNode);
                                 parentNode.children.add(whileTreeNode);
-                                i++;
                             }
                         }
                         case "for" -> {
@@ -407,14 +366,9 @@ public class GrammarProc {
                 }
                 default -> {
                     int begin = i;
-                    boolean somethingUseful = false;
-                    for (; i < r && !codeBlocks.get(i).equals(";"); i++) {
-                        if (TypeLookup.lookup(codeBlocks.get(i), parentNode.vars, functions) == TypeLookup.FUNCTION) {
-                            somethingUseful = true;
-                        }
-                    }
+                    while (i < r && !codeBlocks.get(i).equals(";")) i++;
                     StatementTreeNode statementTreeNode = new StatementTreeNode(begin, i, parentNode);
-                    if (somethingUseful || !(parentNode instanceof StatementTreeNode)) buildTree(statementTreeNode);
+                    checkFunctionCall(statementTreeNode);
                     parentNode.children.add(statementTreeNode);
                 }
             }

@@ -21,6 +21,15 @@ public class CIdPOINTER implements Variable {
     public static CIdPOINTER createPOINTER(int lvl, long pAddress, CIdType type) throws CIdRuntimeException {
         long address = MemOperator.getPool().allocateMemory(8);
         MemOperator.writeLong(address, pAddress);
+        if (lvl > 1) {
+            CIdType it = type;
+            int originalLevel = lvl;
+            while (lvl > 1) {
+                it = CIdType.createPointerType(lvl - 1, it);
+                lvl--;
+            }
+            return new CIdPOINTER(address, originalLevel, it);
+        }
         return new CIdPOINTER(address, lvl, type);
     }
 

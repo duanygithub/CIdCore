@@ -168,7 +168,7 @@ public class CInterpreter {
                     }
                 }
             } else if (node instanceof WhileTreeNode) {
-                while (calcExpression(node.children.get(0)).getValue().intValue() != 0) {
+                while (calcExpression(node.children.get(0).children.get(0)).getValue().intValue() != 0) {
                     Variable result = execBlock((BlockTreeNode) node.children.get(1));
                     if (result.getType() != CIdType.Void) {
                         return result;
@@ -204,9 +204,12 @@ public class CInterpreter {
             String typeString = treeNode.codeBlocks.get(treeNode.lIndex);
             for (var statementTreeNode : treeNode.children) {
                 String name = statementTreeNode.codeBlocks.get(statementTreeNode.lIndex);
-                if (name.matches("\\*+")) {
-                    int pointerLevel = name.length();
-                    name = statementTreeNode.codeBlocks.get(statementTreeNode.lIndex + 1);
+                if (name.equals("*")) {
+                    int pointerLevel = 0;
+                    for (int i = statementTreeNode.lIndex; statementTreeNode.codeBlocks.get(i).equals("*"); i++) {
+                        pointerLevel++;
+                    }
+                    name = statementTreeNode.codeBlocks.get(statementTreeNode.lIndex + pointerLevel);
                     ret = switch (typeString) {
                         case "int" -> CIdPOINTER.createPOINTER(pointerLevel, 0, CIdType.Int);
                         case "float" -> CIdPOINTER.createPOINTER(pointerLevel, 0, CIdType.Float);
@@ -216,7 +219,7 @@ public class CInterpreter {
                         default -> throw new IllegalStateException("Unexpected value: " + typeString);
                     };
                     treeNode.vars.put(name, ret);
-                    ret = calcExpression(new StatementTreeNode(statementTreeNode.lIndex + 1, statementTreeNode.rIndex, treeNode));
+                    calcExpression(new StatementTreeNode(statementTreeNode.lIndex + pointerLevel, statementTreeNode.rIndex, treeNode));
                 } else {
                     ret = switch (typeString) {
                         case "int" -> CIdINT.createINT();
@@ -227,7 +230,7 @@ public class CInterpreter {
                         default -> throw new IllegalStateException("Unexpected value: " + typeString);
                     };
                     treeNode.vars.put(name, ret);
-                    ret = calcExpression(statementTreeNode);
+                    calcExpression(statementTreeNode);
                 }
             }
             assert ret != null;
@@ -307,7 +310,7 @@ public class CInterpreter {
                     } else if (pointer.getTargetType().equals(CIdType.Boolean)) {
                         stack.push(CIdBOOLEAN.createWithAllocatedAddress(addr));
                     } else if (pointer.getTargetType() instanceof CIdPointerType) {
-                        stack.push(CIdPOINTER.createWithAllocatedAddress(addr, pointer.getLevel() - 1, pointer.getTargetType()));
+                        stack.push(CIdPOINTER.createWithAllocatedAddress(addr, pointer.getLevel() - 1, ((CIdPointerType) pointer.getTargetType()).type));
                     }
                 }
             } else if (cur.equals("sizeof")) {

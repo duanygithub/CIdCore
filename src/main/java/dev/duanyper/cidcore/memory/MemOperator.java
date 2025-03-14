@@ -36,34 +36,24 @@ public class MemOperator {
         return memoryManager.write((int) addr, size, data);
     }
 
-    private static byte[] reverseByteArray(byte[] bytes, int n) {
-        byte[] res = new byte[n];
-        for (int i = 0; i < n; i++) {
-            res[n - 1 - i] = bytes[i];
-        }
-        return res;
-    }
-
     static public int writeInt(long addr, int i) throws CIdRuntimeException {
         byte[] bytes = ByteBuffer.allocate(4).putInt(i).array();
-        return write(addr, 4, reverseByteArray(bytes, 4));
+        return write(addr, 4, bytes);
     }
 
     public static int readInt(long addr) throws CIdRuntimeException {
         byte[] bytes = read(addr, 4);
-        byte[] intb = reverseByteArray(bytes, 4);
-        return ByteBuffer.wrap(intb).getInt();
+        return ByteBuffer.wrap(bytes).getInt();
     }
 
     static public int writeFloat(long addr, float f) throws CIdRuntimeException {
         byte[] bytes = ByteBuffer.allocate(4).putFloat(f).array();
-        return write(addr, 4, reverseByteArray(bytes, 4));
+        return write(addr, 4, bytes);
     }
 
     public static float readFloat(long addr) throws CIdRuntimeException {
         byte[] bytes = read(addr, 4);
-        byte[] floatb = reverseByteArray(bytes, 4);
-        return ByteBuffer.wrap(floatb).getFloat();
+        return ByteBuffer.wrap(bytes).getFloat();
     }
 
     static public int writeChar(long addr, char c) throws CIdRuntimeException {
@@ -87,13 +77,12 @@ public class MemOperator {
 
     public static long writeLong(long addr, long l) throws CIdRuntimeException {
         byte[] bytes = ByteBuffer.allocate(8).putLong(l).array();
-        return write(addr, 8, reverseByteArray(bytes, 8));
+        return write(addr, 8, bytes);
     }
 
     public static long readLong(long addr) throws CIdRuntimeException {
         byte[] bytes = read(addr, 8);
-        byte[] longb = reverseByteArray(bytes, 8);
-        return ByteBuffer.wrap(longb).getLong();
+        return ByteBuffer.wrap(bytes).getLong();
     }
 
     public static void set(long addr, int size, byte b) {

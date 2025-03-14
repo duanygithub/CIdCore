@@ -1,8 +1,7 @@
 package dev.duanyper.cidcore;
 
 import dev.duanyper.cidcore.exception.CIdGrammarException;
-import dev.duanyper.cidcore.grammar.GrammarProc;
-import dev.duanyper.cidcore.symbols.Functions;
+import dev.duanyper.cidcore.libraries.CStdIO;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
@@ -27,10 +26,9 @@ public class DbgStart {
         }
          */
     public static void main(String[] args) throws CIdGrammarException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        /*
+
         CInterpreter ci = CInterpreter.create("test.c", null, CStdIO.include());
         ci.start();
-         */
         /*
         GrammarProc gp = new GrammarProc(new Functions());
         List<String> code = gp.splitCodes("int ** a;");
@@ -55,8 +53,11 @@ public class DbgStart {
         System.out.println(parseSuffixExpression.invoke(null, code));
 
          */
+        /*
         GrammarProc gp = new GrammarProc(new Functions());
         int ret = gp.analyze("int *a = 0, b = 3, c[100] = {0, 1, 2, 3};");
         System.out.println(ret);
+
+         */
     }
 }
