@@ -26,16 +26,18 @@ public class DbgStart {
         }
          */
     public static void main(String[] args) throws CIdGrammarException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-
         CInterpreter ci = CInterpreter.create("test.c", null, CStdIO.include());
         ci.start();
         /*
         GrammarProc gp = new GrammarProc(new Functions());
-        List<String> code = gp.splitCodes("int ** a;");
+        List<String> code = gp.splitCodes("int a[100]");
         for (int i = 0; i < code.size(); i++)
         {
             if (code.get(i).equals("*")) code.set(i, "A*");
         }
+
+         */
+        /*
         for (int i = 0; i < code.size(); i++) {
             try {
                 if (code.get(i).equals("[") && code.get(i + 2).equals("]")) {

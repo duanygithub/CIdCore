@@ -5,6 +5,8 @@ import dev.duanyper.cidcore.exception.CIdGrammarException;
 import dev.duanyper.cidcore.exception.CIdRuntimeException;
 import dev.duanyper.cidcore.grammar.GrammarProc;
 import dev.duanyper.cidcore.grammar.TreeNode;
+import dev.duanyper.cidcore.libraries.CMemoryAPI;
+import dev.duanyper.cidcore.libraries.CStdIO;
 import dev.duanyper.cidcore.runtime.Environment;
 import dev.duanyper.cidcore.runtime.ValuedArgTreeNode;
 import dev.duanyper.cidcore.symbols.*;
@@ -92,10 +94,14 @@ public class CIdShell {
         Functions functions = new Functions();
         functions.funcList.put("exit", CIdType.Void);
         functions.nativeFunctions.put("exit", CIdShell::exit);
-        functions.funcList.put("printf", CIdType.Void);
-        functions.nativeFunctions.put("printf", dev.duanyper.cidcore.libraries.CStdIO::printf);
         functions.funcList.put("__typeof", CIdType.Void);
         functions.nativeFunctions.put("__typeof", CIdShell::__typeof);
+        try {
+            functions.merge(CStdIO.include());
+            functions.merge(CMemoryAPI.include());
+        } catch (CIdGrammarException e) {
+            e.printStackTrace();
+        }
         CIdShell shell = new CIdShell(new Environment(functions, null, null), true);
         while (!exitLoop) {
             String c = cin.readLine();

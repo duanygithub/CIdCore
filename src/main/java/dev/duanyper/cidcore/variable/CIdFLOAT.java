@@ -25,7 +25,7 @@ public class CIdFLOAT implements Variable {
         return new CIdFLOAT(MemOperator.getPool().allocateMemory(4));
     }
 
-    public static CIdFLOAT createWithAllocatedAddress(int address) {
+    public static CIdFLOAT createWithAllocatedAddress(long address) {
         return new CIdFLOAT(address);
     }
 

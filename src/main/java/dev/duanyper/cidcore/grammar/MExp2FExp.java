@@ -10,7 +10,8 @@ import java.util.List;
 import java.util.Stack;
 import java.util.regex.Pattern;
 
-import static dev.duanyper.cidcore.Patterns.*;
+import static dev.duanyper.cidcore.Patterns.LEFTEQUAL_OR_RIGHTEQUAL;
+import static dev.duanyper.cidcore.Patterns.isMatch;
 
 public class MExp2FExp {
     public static List<String> convert(int l, int r, Environment env) throws CIdGrammarException {
@@ -28,18 +29,6 @@ public class MExp2FExp {
                     n = 'A' + n;
                     tmp.set(i, n);
                 }
-            }
-        }
-        for (int i = 0; i < tmp.size(); i++) {
-            try {
-                if (tmp.get(i).equals("[") && tmp.get(i + 2).equals("]")) {
-                    if (isMatch(tmp.get(i + 1), NUMBER) || isMatch(tmp.get(i + 1), HEX_NUMBER)) {
-                        String index = tmp.remove(i + 1);
-                        tmp.remove(i + 1);
-                        tmp.set(i, "[" + index + "]");
-                    }
-                }
-            } catch (IndexOutOfBoundsException ignore) {
             }
         }
         for (int i = 0; i < tmp.size(); i++) {
@@ -96,27 +85,40 @@ public class MExp2FExp {
             // 处理操作数
             if (!Operation.isOperator(token)) {
                 postfix.add(token);
-                // 处理栈中的单目运算符（例如 A* A* p -> p A* A*）
+                // 处理栈中的单目运算符
                 while (!stack.isEmpty() && Operation.isPrefixOperator(stack.peek(), prevToken)) {
                     postfix.add(stack.pop());
                 }
             }
-            // 处理括号
-            else if (token.equals("(")) {
+            // 处理左括号或左方括号
+            else if (token.equals("(") || token.equals("[")) {
                 stack.push(token);
-            } else if (token.equals(")")) {
+            }
+            // 处理右括号
+            else if (token.equals(")")) {
                 while (!stack.isEmpty() && !stack.peek().equals("(")) {
                     postfix.add(stack.pop());
                 }
                 stack.pop(); // 弹出 '('
             }
-            // 处理运算符
+            // 处理右方括号（数组下标结束）
+            else if (token.equals("]")) {
+                // 弹出栈中元素直到遇到 '['
+                while (!stack.isEmpty() && !stack.peek().equals("[")) {
+                    postfix.add(stack.pop());
+                }
+                if (!stack.isEmpty()) {
+                    stack.pop();        // 弹出 '['
+                    postfix.add("[");   // 将 '[' 加入后缀表达式
+                }
+            }
+            // 处理普通运算符
             else {
-                // 单目运算符直接入栈（高优先级）
+                // 单目运算符直接入栈
                 if (Operation.isPrefixOperator(token, prevToken)) {
                     stack.push(token);
                 } else {
-                    // 普通运算符处理
+                    // 根据优先级和结合性处理栈顶
                     while (!stack.isEmpty() && comparePrecedence(stack.peek(), token) >= 0) {
                         postfix.add(stack.pop());
                     }
@@ -126,13 +128,15 @@ public class MExp2FExp {
             prevToken = token;
         }
 
-        // 弹出剩余运算符
+        // 弹出栈中剩余运算符
         while (!stack.isEmpty()) {
             postfix.add(stack.pop());
         }
 
         return postfix;
     }
+
+// 其他辅助方法保持不变
 
     // 比较运算符优先级和结合性
     private static int comparePrecedence(String stackOp, String currentOp) {
@@ -224,6 +228,7 @@ public class MExp2FExp {
                     result = 14; break;
                 case ".":
                 case "->":
+                case "[", "]":
                     result = 15; break;
                 default:
 //                    System.out.println("不存在该运算符");

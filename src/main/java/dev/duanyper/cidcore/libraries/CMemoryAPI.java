@@ -1,7 +1,8 @@
 package dev.duanyper.cidcore.libraries;
 
 import dev.duanyper.cidcore.CInterpreter;
-import dev.duanyper.cidcore.exception.CIdFunctionReturnException;
+import dev.duanyper.cidcore.exception.CIdFunctionReturnSignal;
+import dev.duanyper.cidcore.exception.CIdGrammarException;
 import dev.duanyper.cidcore.memory.MemOperator;
 import dev.duanyper.cidcore.runtime.ValuedArgTreeNode;
 import dev.duanyper.cidcore.symbols.CIdPointerType;
@@ -11,12 +12,15 @@ import dev.duanyper.cidcore.variable.CIdINT;
 import dev.duanyper.cidcore.variable.CIdPOINTER;
 
 public class CMemoryAPI {
-    public static void VirtualAlloc(CInterpreter cInterpreter, ValuedArgTreeNode args) throws CIdFunctionReturnException {
+    public static void VirtualAlloc(CInterpreter cInterpreter, ValuedArgTreeNode args) throws CIdFunctionReturnSignal, CIdGrammarException {
+        if (args.argMap.size() < 3) {
+            throw new CIdGrammarException("参数过少");
+        }
         long preferredAddress = ((CIdINT) args.argMap.get("%0")).getValue();
         int size = ((CIdINT) args.argMap.get("%1")).getValue();
         int protect = ((CIdINT) args.argMap.get("%2")).getValue();
         long addr = MemOperator.allocateMemory(preferredAddress, size, protect);
-        throw new CIdFunctionReturnException(CIdPOINTER.createPOINTER(1, addr, CIdType.Void));
+        throw new CIdFunctionReturnSignal(CIdPOINTER.createPOINTER(1, addr, CIdType.Void));
     }
 
     public static Functions include() {

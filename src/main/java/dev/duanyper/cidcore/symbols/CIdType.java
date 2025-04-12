@@ -104,7 +104,7 @@ public class CIdType {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("{Type: ");
-        if(this==Int) {
+        if (this == Int) {
             sb.append("int }");
         } else if (this == Float) {
             sb.append("float }");
@@ -112,6 +112,8 @@ public class CIdType {
             sb.append("bool }");
         } else if (this == Char) {
             sb.append("char }");
+        } else if (this == Void) {
+            sb.append("void }");
         } else if (this instanceof CIdPointerType) {
             sb.append("Pointer, Level: ");
             sb.append(((CIdPointerType) this).lvl);

@@ -75,23 +75,23 @@ public class GrammarProc {
     }
 
     private int skipPairs(int i, String currentPair) {
-        int bkpI = i, tmp = 0;
-        try {
-            do {
-                if (codeBlocks.get(i).equals("(") || codeBlocks.get(i).equals("{")) {
-                    if (codeBlocks.get(i).equals(currentPair))
-                        tmp++;
-                    else i = skipPairs(i, codeBlocks.get(i));
-                }
-                if (codeBlocks.get(i).equals(")") || codeBlocks.get(i).equals("}")) {
-                    tmp--;
-                }
-                i++;
-            } while (tmp > 0);
-            return i;
-        } catch (IndexOutOfBoundsException e) {
-            return bkpI;
+        String endPair = currentPair.equals("(") ? ")" : "}";
+        int tmp = 1;
+        i++;
+
+        while (i < codeBlocks.size() && tmp > 0) {
+            String block = codeBlocks.get(i);
+            if (block.equals(currentPair)) {
+                tmp++;
+            } else if (block.equals(endPair)) {
+                tmp--;
+            } else if (block.equals("(") || block.equals("{")) {
+                i = skipPairs(i, block);
+                continue;
+            }
+            i++;
         }
+        return i;
     }
 
     public void buildTree(TreeNode parentNode) throws CIdGrammarException {
@@ -116,15 +116,23 @@ public class GrammarProc {
         }
         if (parentNode instanceof ArgTreeNode) {
             int last = l;
+            int parCount = 0;
             for (int i = l; i < r; i++) {
-                if (TypeLookup.lookup(codeBlocks.get(i), parentNode.vars, functions) == TypeLookup.SPLITPOINT || i == r - 1) {
+                String current = codeBlocks.get(i);
+                if (current.equals("(")) {
+                    parCount++;
+                } else if (current.equals(")")) {
+                    parCount--;
+                }
+                if ((TypeLookup.lookup(current, parentNode.vars, functions) == TypeLookup.SPLITPOINT && parCount == 0) || (i == r - 1 && parCount == 0)) {
+                    int end = i;
                     if (i == r - 1) {
-                        i++;
+                        end++;
                     }
-                    StatementTreeNode node = new StatementTreeNode(last, i, parentNode);
+                    StatementTreeNode node = new StatementTreeNode(last, end, parentNode);
                     buildTree(node);
                     parentNode.children.add(node);
-                    last = i + 1;
+                    last = end + 1;
                 }
             }
             return;
@@ -133,18 +141,24 @@ public class GrammarProc {
             String str = codeBlocks.get(i);
             switch (TypeLookup.lookup(str, parentNode.vars, functions)) {
                 case TypeLookup.BASICTYPE -> {
+                    if (i + 1 >= codeBlocks.size()) {
+                        throw new CIdGrammarException("未预料到的代码终止");
+                    }
+                    int ptrIndex = i + 1;
+                    while (ptrIndex < codeBlocks.size() && codeBlocks.get(ptrIndex).matches("\\*+")) {
+                        ptrIndex++;
+                    }
+                    if (ptrIndex >= codeBlocks.size()) {
+                        throw new CIdGrammarException("无效的声明");
+                    }
                     if (isMatch(codeBlocks.get(i + 1), IDENTIFIER) || codeBlocks.get(i + 1).matches("\\*+")) {
-                        if (codeBlocks.get(i + 2).equals("(")) {
+                        if (ptrIndex + 1 < codeBlocks.size() && codeBlocks.get(ptrIndex + 1).equals("(")) {
                             int funcBegin = i;
                             FunctionTreeNode functionTreeNode = new FunctionTreeNode(i, i + 2, parentNode);
                             parentNode.children.add(functionTreeNode);
-                            i += 3;
+                            i = ptrIndex + 2;
                             int argStart = i;
-                            int tmp = 1;
-                            for (; tmp != 0; i++) {
-                                if (codeBlocks.get(i).equals("(")) tmp++;
-                                else if (codeBlocks.get(i).equals(")")) tmp--;
-                            }
+                            i = skipPairs(i - 1, "(");
                             ArgTreeNode argTreeNode = new ArgTreeNode(argStart, i - 1, functionTreeNode);
                             buildTree(argTreeNode);
                             functionTreeNode.children.add(argTreeNode);
@@ -156,13 +170,9 @@ public class GrammarProc {
                             }
                             formatString.append(')');
                             functionTreeNode.format = formatString.toString();
-                            tmp = 1;
                             int blockStart = i;
                             i++;
-                            for (; tmp != 0; i++) {
-                                if (codeBlocks.get(i).equals("{")) tmp++;
-                                else if (codeBlocks.get(i).equals("}")) tmp--;
-                            }
+                            i = skipPairs(i - 1, "{");
                             BlockTreeNode blockTreeNode = new BlockTreeNode(blockStart + 1, i - 1, functionTreeNode);
                             buildTree(blockTreeNode);
                             functionTreeNode.children.add(blockTreeNode);
@@ -174,15 +184,19 @@ public class GrammarProc {
                             i--;
                         } else {
                             int varStart = i;
-                            int a = ++i;
-                            while (!codeBlocks.get(i).equals(";")) {
+                            int a = ++i, pointerLevel = 0;
+                            if (codeBlocks.get(i).equals("*")) {
+                                pointerLevel++;
                                 i++;
                             }
-                            VarTreeNode varTreeNode = new VarTreeNode(varStart, i, parentNode);
+                            while (!codeBlocks.get(i).equals(";") && i < r) {
+                                i++;
+                            }
+                            VarTreeNode varTreeNode = new VarTreeNode(varStart, i, parentNode, codeBlocks.get(a + pointerLevel));
                             i = a;
-                            while (!codeBlocks.get(i).equals(";")) {
-                                if (codeBlocks.get(i).equals("{")) {
-                                    i = skipPairs(i, "{") - 1;
+                            while (i < parentNode.rIndex && !codeBlocks.get(i).equals(";")) {
+                                if (codeBlocks.get(i).equals("{") || codeBlocks.get(i).equals("(")) {
+                                    i = skipPairs(i, codeBlocks.get(i)) - 1;
                                 }
                                 if (codeBlocks.get(i).equals(",")) {
                                     StatementTreeNode statementTreeNode = new StatementTreeNode(a, i, varTreeNode);
@@ -203,11 +217,10 @@ public class GrammarProc {
                 }
                 case TypeLookup.FUNCTION -> {
                     int funcCallStart = i;
-                    if (!codeBlocks.get(++i).equals("(")) {
-                        System.out.println("不标准的函数调用");
-                        break;
+                    if (i + 1 >= codeBlocks.size() || !codeBlocks.get(i + 1).equals("(")) {
+                        throw new CIdGrammarException("不标准的函数调用");
                     }
-                    i++;
+                    i += 2;
                     int parCnt = 1;
                     while (parCnt != 0) {
                         if (codeBlocks.get(i).equals("(")) {
@@ -228,15 +241,15 @@ public class GrammarProc {
                     switch (str) {
                         case "if" -> {
                             int ifBegin = i;
-                            i = skipPairs(i, "(");
-                            IfStatementTreeNode ifStatementTreeNode = new IfStatementTreeNode(ifBegin, i + 1, parentNode);
-                            ArgTreeNode argTreeNode = new ArgTreeNode(ifBegin + 2, i, ifStatementTreeNode);
+                            i = skipPairs(i + 1, "(");
+                            IfStatementTreeNode ifStatementTreeNode = new IfStatementTreeNode(ifBegin, i, parentNode);
+                            ArgTreeNode argTreeNode = new ArgTreeNode(ifBegin + 2, i - 1, ifStatementTreeNode);
                             buildTree(argTreeNode);
                             ifStatementTreeNode.children.add(argTreeNode);
-                            if (codeBlocks.get(i + 1).equals("{")) {
-                                int blockBegin = i + 2;
+                            if (codeBlocks.get(i).equals("{")) {
+                                int blockBegin = i + 1;
                                 i = skipPairs(i, "{");
-                                BlockTreeNode blockTreeNode = new BlockTreeNode(blockBegin, i, ifStatementTreeNode);
+                                BlockTreeNode blockTreeNode = new BlockTreeNode(blockBegin, i - 1, ifStatementTreeNode);
                                 buildTree(blockTreeNode);
                                 ifStatementTreeNode.children.add(blockTreeNode);
                             } else {
@@ -259,6 +272,9 @@ public class GrammarProc {
                             } else {
                                 int whileBegin = i;
                                 i += 2;
+                                if (i + 1 >= codeBlocks.size()) {
+                                    throw new CIdGrammarException("不完整的while语句");
+                                }
                                 int conditionBegin = i, conditionEnd = 0, blockBegin = 0, blockEnd = 0;
                                 i = skipPairs(i - 1, "(");
                                 conditionEnd = i - 1;
@@ -285,6 +301,9 @@ public class GrammarProc {
                             }
                         }
                         case "for" -> {
+                            if (i + 2 >= codeBlocks.size()) {
+                                throw new CIdGrammarException("不完整的for语句");
+                            }
                             i += 2;
                             int conditionBegin = i, conditionEnd, blockBegin, blockEnd;
                             int tmp = 1;
@@ -332,7 +351,7 @@ public class GrammarProc {
                     }
                     StatementTreeNode returnTreeNode = new StatementTreeNode(returnBegin, i, parentNode);
                     StatementTreeNode statementTreeNode = new StatementTreeNode(returnBegin + 1, i, returnTreeNode);
-                    buildTree(statementTreeNode);
+                    checkFunctionCall(statementTreeNode);
                     returnTreeNode.children.add(statementTreeNode);
                     parentNode.children.add(returnTreeNode);
                 }
@@ -352,7 +371,7 @@ public class GrammarProc {
                     StructureTreeNode structureTreeNode = new StructureTreeNode(structBegin, i, parentNode);
                     BlockTreeNode blockTreeNode = new BlockTreeNode(blockBegin, blockEnd, structureTreeNode);
                     buildTree(blockTreeNode);
-                    structureTreeNode.children.add(structureTreeNode);
+                    structureTreeNode.children.add(blockTreeNode);
                 }
                 case TypeLookup.BLOCK_START -> {
                     int tmp = 0, blockStart = i + 1;
@@ -365,6 +384,8 @@ public class GrammarProc {
                     parentNode.children.add(blockTreeNode);
                 }
                 default -> {
+                    if (parentNode instanceof StatementTreeNode)
+                        continue;
                     int begin = i;
                     while (i < r && !codeBlocks.get(i).equals(";")) i++;
                     StatementTreeNode statementTreeNode = new StatementTreeNode(begin, i, parentNode);
@@ -377,29 +398,29 @@ public class GrammarProc {
 
     private void checkFunctionCall(TreeNode parentNode) throws CIdGrammarException {
         for (int i = parentNode.lIndex; i < parentNode.rIndex; i++) {
+            if (i >= codeBlocks.size()) break;
             if (TypeLookup.lookup(codeBlocks.get(i), parentNode.vars, functions) != TypeLookup.FUNCTION) {
                 continue;
             }
             int funcCallStart = i;
-            if (!codeBlocks.get(++i).equals("(")) {
+            if (i + 1 >= codeBlocks.size() || !codeBlocks.get(i + 1).equals("(")) {
                 System.out.println("不标准的函数调用");
                 break;
             }
-            i++;
+            i += 2;
             int parCnt = 1;
-            while (parCnt != 0) {
-                if (codeBlocks.get(i).equals("(")) {
-                    parCnt++;
-                } else if (codeBlocks.get(i).equals(")")) {
-                    parCnt--;
-                }
+            while (i < codeBlocks.size() && parCnt != 0) {
+                if (codeBlocks.get(i).equals("(")) parCnt++;
+                else if (codeBlocks.get(i).equals(")")) parCnt--;
                 i++;
+            }
+            if (parCnt != 0) {
+                throw new CIdGrammarException("函数调用括号不匹配");
             }
             FunctionCallTreeNode functionCallTreeNode = new FunctionCallTreeNode(funcCallStart, i, parentNode);
             ArgTreeNode argTreeNode = new ArgTreeNode(funcCallStart + 2, i - 1, parentNode);
             buildTree(argTreeNode);
             functionCallTreeNode.children.add(argTreeNode);
-            buildTree(functionCallTreeNode);
             parentNode.children.add(functionCallTreeNode);
         }
     }
@@ -517,7 +538,7 @@ public class GrammarProc {
             } else if (c == '\"' && pre != '\\') {
                 //记录字符串的开始与终止
                 bInQua = !bInQua;
-            } else if ((c == '}' || c == '{' || c == ',') && !bInQua && !bInPar) {
+            } else if ((c == '}' || c == '{' || c == ',') && !bInQua) {
                 //大括号和逗号分开来放好像更方便
                 statements.add(sb.toString());
                 sb.delete(0, sb.length());
@@ -537,6 +558,8 @@ public class GrammarProc {
                 bInPar = !parStack.empty();
                 statements.add(sb.toString());
                 sb.delete(0, sb.length());
+                statements.add(")");
+                continue;
             } else if (c == '#' && !bInQua) {
                 //TODO: 这里原来检查预处理指令的，检查到了这行就不用换行了
             } else if (MExp2FExp.Operation.getValue(String.valueOf(c)) != 0 && !bInQua) {
@@ -549,10 +572,13 @@ public class GrammarProc {
                         statements.add("*");
                     } while (c == '*');
                 } else {
-                    while (MExp2FExp.Operation.getValue(String.valueOf(c)) != 0) {
-                        c = codes.charAt(i);
-                        if (MExp2FExp.Operation.getValue(String.valueOf(c)) != 0) sb.append(c);
-                        i++;
+                    try {
+                        while (MExp2FExp.Operation.getValue(String.valueOf(c)) != 0) {
+                            c = codes.charAt(i);
+                            if (MExp2FExp.Operation.getValue(String.valueOf(c)) != 0) sb.append(c);
+                            i++;
+                        }
+                    } catch (StringIndexOutOfBoundsException ignore) {
                     }
                     statements.add(sb.toString());
                     sb.delete(0, sb.length());
