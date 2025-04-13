@@ -380,7 +380,21 @@ public class GrammarProc {
                         if (codeBlocks.get(i).equals("}")) tmp--;
                         i++;
                     } while (tmp != 0);
-                    BlockTreeNode blockTreeNode = new BlockTreeNode(blockStart, i - 2, parentNode);
+                    BlockTreeNode blockTreeNode = new BlockTreeNode(blockStart, i - 1, parentNode);
+                    if (parentNode.parentNode instanceof VarTreeNode) {
+                        int statementStart = blockStart;
+                        for (int j = blockStart; j < i - 1; j++) {
+                            if (codeBlocks.get(j).equals("(") || codeBlocks.get(j).equals("{")) {
+                                j = skipPairs(j, codeBlocks.get(j));
+                            }
+                            if (j == i - 2 || codeBlocks.get(j + 1).equals(",")) {
+                                StatementTreeNode statementTreeNode = new StatementTreeNode(statementStart, j + 1, blockTreeNode);
+                                statementStart += 2;
+                                buildTree(statementTreeNode);
+                                blockTreeNode.children.add(statementTreeNode);
+                            }
+                        }
+                    } else buildTree(blockTreeNode);
                     parentNode.children.add(blockTreeNode);
                 }
                 default -> {
