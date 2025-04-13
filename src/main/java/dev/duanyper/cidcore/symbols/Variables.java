@@ -24,7 +24,7 @@ public class Variables extends HashMap<String, Variable> {
 
     @Override
     public Variable put(String key, Variable value) {
-        if (size() < parent.size()) {
+        if (parent != null && size() < parent.size()) {
             for (var i : parent.entrySet()) {
                 putIfAbsent(i.getKey(), i.getValue());
             }
