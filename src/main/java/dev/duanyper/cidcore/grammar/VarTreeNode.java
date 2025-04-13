@@ -1,9 +1,6 @@
 package dev.duanyper.cidcore.grammar;
 
 public class VarTreeNode extends StatementTreeNode {
-    String name;
-    int pointerLevel;
-
     @Override
     public String type() {
         return "var";

@@ -8,18 +8,27 @@ import java.util.List;
 
 public class Variables extends HashMap<String, Variable> {
     private final List<Variables> inheritors = new ArrayList<>();
+    private final Variables parent;
 
     public Variables(Variables vars) {
+        super();
         this.putAll(vars);
         vars.inheritors.add(this);
+        parent = vars;
     }
 
     public Variables() {
         super();
+        parent = null;
     }
 
     @Override
     public Variable put(String key, Variable value) {
+        if (size() < parent.size()) {
+            for (var i : parent.entrySet()) {
+                putIfAbsent(i.getKey(), i.getValue());
+            }
+        }
         for (var inheritors : inheritors) {
             inheritors.put(key, value);
         }

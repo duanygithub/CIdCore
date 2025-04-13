@@ -285,7 +285,7 @@ public class CInterpreter {
                         if (argTreeNode == null) {
                             argName = "%" + j;
                         } else {
-                            int nameIndex = argTreeNode.children.get(j).lIndex + 1;
+                            int nameIndex = argTreeNode.children.get(argTreeNode.children.size() - j - 1).lIndex + 1;
                             while (gp.codeBlocks.get(nameIndex).equals("*")) nameIndex++;
                             argName = gp.codeBlocks.get(nameIndex);
                         }
@@ -382,6 +382,12 @@ public class CInterpreter {
             } else if (cur.equals("[")) {
                 Variable varOp2 = stack.pop();
                 Variable varOp1 = stack.pop();
+                if (varOp2 instanceof CIdPOINTER) {
+                    Variable tmp;
+                    tmp = varOp2;
+                    varOp2 = varOp1;
+                    varOp1 = tmp;
+                }
                 if (varOp2.getType() != CIdType.Int || !(varOp1 instanceof CIdPOINTER)) {
                     throw new CIdGrammarException("索引\"" + varOp2 + "\"不是下标!");
                 }
