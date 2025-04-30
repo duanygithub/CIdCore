@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>dev.duanyper</groupId>
   <artifactId>cidcore</artifactId>
-  <version>1.0-SNAPSHOT</version>
+  <version>pre0.1.0</version>
   <name>CInterpreterCore</name>
   <url>http://maven.apache.org</url>
   <properties>
