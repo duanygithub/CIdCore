@@ -13,7 +13,9 @@ import dev.duanyper.cidcore.variable.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Stack;
 
 public class CInterpreter {
     static int tot = 0;
@@ -256,16 +258,6 @@ public class CInterpreter {
             assert ret != null;
             return ret;
         }
-        Map<String, FunctionCallTreeNode> tempFuncCallMap = new HashMap<>();
-        Queue<TreeNode> bfs = new ArrayDeque<>();
-        bfs.add(treeNode);
-        while (!bfs.isEmpty()) {
-            TreeNode cur = bfs.poll();
-            if (cur instanceof FunctionCallTreeNode) {
-                tempFuncCallMap.put(gp.codeBlocks.get(cur.lIndex), (FunctionCallTreeNode) cur);
-            }
-            bfs.addAll(cur.children);
-        }
         List<String> res = ((StatementTreeNode) treeNode).postfixExpression;
         if (res == null) {
             res = ((StatementTreeNode) treeNode).postfixExpression = MExp2FExp.convert(treeNode.lIndex, treeNode.rIndex, new Environment(functions, treeNode.codeBlocks));
@@ -273,19 +265,18 @@ public class CInterpreter {
         Stack<Variable> stack = new Stack<>();
         for (int i = 0; i < res.size(); i++) {
             String cur = res.get(i);
-            if (TypeLookup.lookup(cur, treeNode.vars, functions) == TypeLookup.FUNCTION) {
-                FunctionCallTreeNode functionCallTreeNode = tempFuncCallMap.get(cur);
-                String funcName = gp.codeBlocks.get(functionCallTreeNode.lIndex);
+            if (cur.matches("\\([0-9]+")) {
+                String funcName = res.get(i - 1);
+                int argCount = Integer.parseInt(cur.substring(1));
                 ArgTreeNode argTreeNode = functions.argIndex.get(funcName);
                 ValuedArgTreeNode valuedArgTreeNode = new ValuedArgTreeNode();
-                ArgTreeNode realArgTreeNode = (ArgTreeNode) functionCallTreeNode.children.get(0);
-                if (realArgTreeNode.lIndex < realArgTreeNode.rIndex) {
-                    for (int j = 0; j < realArgTreeNode.children.size(); j++) {
+                if (argCount > 0) {
+                    for (int j = 0; j < argCount; j++) {
                         String argName;
                         if (argTreeNode == null) {
-                            argName = "%" + j;
+                            argName = "%" + (argCount - j - 1);
                         } else {
-                            int nameIndex = argTreeNode.children.get(argTreeNode.children.size() - j - 1).lIndex + 1;
+                            int nameIndex = argTreeNode.children.get(argCount - j - 1).lIndex + 1;
                             while (gp.codeBlocks.get(nameIndex).equals("*")) nameIndex++;
                             argName = gp.codeBlocks.get(nameIndex);
                         }
@@ -293,6 +284,10 @@ public class CInterpreter {
                     }
                 }
                 stack.push(callFunction(funcName, valuedArgTreeNode));
+            } else if (cur.equals("-_unary") || cur.equals("+_unary")) {
+                if (cur.charAt(0) == '-') {
+                    stack.push(CIdINT.createINT(0).procOperation(stack.pop(), "-"));
+                }
             } else if (cur.matches("\"([^\"]*)\"")) {
                 String str = cur.substring(1, cur.length() - 1);
                 str = str.replace("\\n", "\n");
@@ -308,10 +303,12 @@ public class CInterpreter {
                 MemOperator.set(addr + strb.length, 4, (byte) 0);
                 MemOperator.write(addr, strb.length, strb);
                 stack.push(CIdPOINTER.createPOINTER(1, addr, CIdType.Char));
+            } else if (cur.matches("sizeof(_unary)?")) {
+                stack.push(CIdINT.createINT(stack.pop().sizeOf()));
             } else if (cur.matches("(A&)|(A\\*)")) {
                 if (cur.equals("A&")) {
                     Variable varOp1 = stack.pop();
-                    if (!treeNode.vars.containsValue(varOp1))
+                    if (varOp1 instanceof CIdVOID)
                         throw new CIdGrammarException("取地址对象必须为变量");
                     stack.push(CIdPOINTER.createPOINTER(
                             varOp1.getType() instanceof CIdPointerType ? ((CIdPOINTER) varOp1).getLevel() + 1 : 1,
@@ -409,7 +406,9 @@ public class CInterpreter {
                 Variable varOp2 = stack.pop();
                 Variable varOp1 = stack.pop();
                 stack.push(varOp1.procOperation(varOp2, cur));
-            } else stack.push(string2Variable(cur, treeNode.vars));
+            } else if (!functions.funcList.containsKey(cur)) {
+                stack.push(string2Variable(cur, treeNode.vars));
+            }
         }
         return stack.empty() ? null : stack.pop();
     }
@@ -427,6 +426,9 @@ public class CInterpreter {
             }
             case TypeLookup.BOOLEAN -> {
                 return CIdBOOLEAN.createBOOLEAN(str.equals("true"));
+            }
+            case TypeLookup.FUNCTION -> {
+                return CIdVOID.createVOID();
             }
             default -> throw new CIdGrammarException("未声明的符号: " + str);
         }

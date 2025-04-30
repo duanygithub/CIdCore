@@ -2,7 +2,6 @@ package dev.duanyper.cidcore.grammar;
 
 import dev.duanyper.cidcore.DbgStart;
 import dev.duanyper.cidcore.exception.CIdGrammarException;
-import dev.duanyper.cidcore.runtime.Environment;
 import dev.duanyper.cidcore.symbols.CIdType;
 import dev.duanyper.cidcore.symbols.Functions;
 import dev.duanyper.cidcore.symbols.TypeLookup;
@@ -99,18 +98,9 @@ public class GrammarProc {
         int r = parentNode.rIndex;
         if (r <= l) return;
         if (parentNode instanceof StatementTreeNode) {
-            if (parentNode instanceof FunctionCallTreeNode) {
-                String funcName = codeBlocks.get(parentNode.lIndex);
-                List<String> postfixExpression = new ArrayList<>();
-                for (var args : parentNode.children.get(0).children) {
-                    postfixExpression.addAll(0, ((StatementTreeNode) args).postfixExpression);
-                }
-                postfixExpression.add(funcName);
-                ((FunctionCallTreeNode) parentNode).postfixExpression = postfixExpression;
-                return;
-            }
-            ((StatementTreeNode) parentNode).postfixExpression = MExp2FExp.convert(l, r, new Environment(functions, codeBlocks));
-            if (parentNode instanceof VarTreeNode) {
+            //if (!(parentNode instanceof VarTreeNode))
+            //    ((StatementTreeNode) parentNode).postfixExpression = MExp2FExp.convert(l, r, new Environment(functions, codeBlocks));
+            if (parentNode instanceof VarTreeNode || parentNode instanceof FunctionCallTreeNode) {
                 return;
             }
         }
@@ -174,13 +164,13 @@ public class GrammarProc {
                             i++;
                             i = skipPairs(i - 1, "{");
                             BlockTreeNode blockTreeNode = new BlockTreeNode(blockStart + 1, i - 1, functionTreeNode);
-                            buildTree(blockTreeNode);
-                            functionTreeNode.children.add(blockTreeNode);
                             CIdType keywordType = CIdType.string2Type(str);
                             String name = codeBlocks.get(funcBegin + 1);
                             functions.funcList.put(name, keywordType);
                             functions.codeIndex.put(name, blockTreeNode);
                             functions.argIndex.put(name, argTreeNode);
+                            buildTree(blockTreeNode);
+                            functionTreeNode.children.add(blockTreeNode);
                             i--;
                         } else {
                             int varStart = i;
@@ -252,6 +242,7 @@ public class GrammarProc {
                                 BlockTreeNode blockTreeNode = new BlockTreeNode(blockBegin, i - 1, ifStatementTreeNode);
                                 buildTree(blockTreeNode);
                                 ifStatementTreeNode.children.add(blockTreeNode);
+                                i--;
                             } else {
                                 int blockBegin = i + 1;
                                 while (!codeBlocks.get(i).equals(";")) i++;
@@ -519,7 +510,7 @@ public class GrammarProc {
                     }
                     continue;
                 }
-            } else if (c == '.') {
+            } else if (c == '.' && !bInQua) {
                 if (isMatch(String.valueOf(nxt), NUMBER)) {
                     if (isMatch(String.valueOf(pre), NUMBER) || pre == ' ' || MExp2FExp.Operation.getValue(String.valueOf(pre)) != 0) {
                         sb.append(c);
@@ -538,9 +529,7 @@ public class GrammarProc {
                 //遇到分号和逗号提交一次
                 statements.add(sb.toString());
                 sb.delete(0, sb.length());
-                sb.append(c);
-                statements.add(sb.toString());
-                sb.delete(0, sb.length());
+                statements.add(String.valueOf(c));
                 continue;
             } else if (c == ' ' && !bInQua/* && !bInPar*/) {
                 if (!sb.isEmpty() && !disableSpace) {
@@ -552,7 +541,7 @@ public class GrammarProc {
             } else if (c == '\"' && pre != '\\') {
                 //记录字符串的开始与终止
                 bInQua = !bInQua;
-            } else if ((c == '}' || c == '{' || c == ',') && !bInQua) {
+            } else if ((c == '}' || c == '{') && !bInQua) {
                 //大括号和逗号分开来放好像更方便
                 statements.add(sb.toString());
                 sb.delete(0, sb.length());
@@ -607,35 +596,6 @@ public class GrammarProc {
             if (statements.get(i).isEmpty()) {
                 statements.remove(i);
                 i--;
-            }
-        }
-        for (int i = 0; i < statements.size(); i++) {
-            if (isMatch(statements.get(i), SIGN)) {
-                try {
-                    if (MExp2FExp.Operation.getValue(statements.get(i - 1)) != 0 && MExp2FExp.Operation.getValue(statements.get(i + 1)) == 0) {
-                        if (statements.get(i).equals("-")) {
-                            statements.set(i, "-" + statements.get(i + 1));
-                        } else statements.set(i, statements.get(i + 1));
-                        statements.remove(i + 1);
-                        i--;
-                    }
-                } catch (IndexOutOfBoundsException ignore) {
-                }
-            }
-            /*
-            if (TypeLookup.lookup(statements.get(i), null, functions) == TypeLookup.BASICTYPE ||
-                    TypeLookup.lookup(statements.get(i), null, functions) == TypeLookup.DECLARE_POINTER) {
-                while (statements.get(i + 1).equals("*")) {
-                    statements.set(i, statements.get(i) + "*");
-                    statements.remove(i + 1);
-                }
-            }
-             */
-            if (i > 0 && statements.get(i).equals("*") && TypeLookup.lookup(statements.get(i), null, functions) == TypeLookup.BASICTYPE) {
-                while (statements.get(i + 1).equals("*")) {
-                    statements.set(i, statements.get(i) + "*");
-                    statements.remove(i + 1);
-                }
             }
         }
         return statements;

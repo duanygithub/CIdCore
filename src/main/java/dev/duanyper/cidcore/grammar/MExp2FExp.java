@@ -8,7 +8,6 @@ import dev.duanyper.cidcore.symbols.Functions;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
-import java.util.regex.Pattern;
 
 import static dev.duanyper.cidcore.Patterns.LEFTEQUAL_OR_RIGHTEQUAL;
 import static dev.duanyper.cidcore.Patterns.isMatch;
@@ -31,150 +30,286 @@ public class MExp2FExp {
                 }
             }
         }
-        for (int i = 0; i < tmp.size(); i++) {
-            //修改函数调用方便解析
-            //printf(a+b) -> (a+b)printf
-            String n = tmp.get(i);
-            try {
-                if (n.equals("(")) {
-                    if (functions.funcList.get(tmp.get(i - 1)) != null) {
-                        int stack = 1;
-                        while (stack > 0) {
-                            n = tmp.get(i);
-                            if (n.equals("(")) {
-                                func.push(tmp.get(i - 1));
-                                tmp.remove(i - 1);
-                                i--;
-                                tmp.remove(i);
-                                i--;
-                                stack++;
-                            }
-                            if (n.equals(")")) {
-                                String peekStr = func.pop();
-                                if (functions.funcList.get(peekStr) != null) {
-                                    tmp.remove(i);
-                                    i--;
-                                    tmp.add(i + 1, peekStr);
-                                }
-                                stack--;
-                            }
-                            if (n.equals(",")) {
-                                tmp.remove(i);
-                                i--;
-                            }
-                            i++;
-                        }
-                        i--;
-                    } else func.push("");
-                }
-            }catch(IndexOutOfBoundsException ignore){}
-        }
         return parseSuffixExpression(tmp);
     }
 
     private static List<String> parseSuffixExpression(List<String> tokens) throws CIdGrammarException {
-        Stack<String> stack = new Stack<>();
-        List<String> postfix = new ArrayList<>();
-
-        String prevToken = null;
-        for (int i = 0; i < tokens.size(); i++) {
-            String token = tokens.get(i);
-
-            if (token.isBlank()) continue;
-
-            // 处理操作数
-            if (!Operation.isOperator(token)) {
-                postfix.add(token);
-                // 处理栈中的单目运算符
-                while (!stack.isEmpty() && Operation.isPrefixOperator(stack.peek(), prevToken)) {
-                    postfix.add(stack.pop());
-                }
-            }
-            // 处理左括号或左方括号
-            else if (token.equals("(") || token.equals("[")) {
-                stack.push(token);
-            }
-            // 处理右括号
-            else if (token.equals(")")) {
-                while (!stack.isEmpty() && !stack.peek().equals("(")) {
-                    postfix.add(stack.pop());
-                }
-                stack.pop(); // 弹出 '('
-            }
-            // 处理右方括号（数组下标结束）
-            else if (token.equals("]")) {
-                // 弹出栈中元素直到遇到 '['
-                while (!stack.isEmpty() && !stack.peek().equals("[")) {
-                    postfix.add(stack.pop());
-                }
-                if (!stack.isEmpty()) {
-                    stack.pop();        // 弹出 '['
-                    postfix.add("[");   // 将 '[' 加入后缀表达式
-                }
-            }
-            // 处理普通运算符
-            else {
-                // 单目运算符直接入栈
-                if (Operation.isPrefixOperator(token, prevToken)) {
-                    stack.push(token);
-                } else {
-                    // 根据优先级和结合性处理栈顶
-                    while (!stack.isEmpty() && comparePrecedence(stack.peek(), token) >= 0) {
-                        postfix.add(stack.pop());
-                    }
-                    stack.push(token);
-                }
-            }
-            prevToken = token;
-        }
-
-        // 弹出栈中剩余运算符
-        while (!stack.isEmpty()) {
-            postfix.add(stack.pop());
-        }
-
-        return postfix;
+        InfixToPostfixParser parser = new InfixToPostfixParser(tokens);
+        return parser.parse();
     }
 
-// 其他辅助方法保持不变
+    public static class InfixToPostfixParser {
+        private final List<String> tokens;
+        private int pos;
+        private final List<String> output = new ArrayList<>();
 
-    // 比较运算符优先级和结合性
-    private static int comparePrecedence(String stackOp, String currentOp) {
-        int stackPrec = Operation.getValue(stackOp);
-        int currentPrec = Operation.getValue(currentOp);
-
-        // 右结合运算符（如 =）仅在栈顶优先级严格大于当前优先级时弹出
-        if (Operation.isRightAssociative(currentOp)) {
-            return (stackPrec > currentPrec) ? 1 : -1;
+        public InfixToPostfixParser(List<String> tokens) {
+            this.tokens = tokens;
+            this.pos = 0;
         }
-        // 左结合运算符（如 +, A*）在栈顶优先级 >= 当前优先级时弹出
-        else {
-            return Integer.compare(stackPrec, currentPrec);
+
+        public List<String> parse() {
+            expression();
+            if (!eof())
+                throw new RuntimeException("Unexpected token: " + peek());
+            return output;
+        }
+
+        private String peek() {
+            return pos < tokens.size() ? tokens.get(pos) : null;
+        }
+
+        private String next() {
+            return pos < tokens.size() ? tokens.get(pos++) : null;
+        }
+
+        private boolean eof() {
+            return pos >= tokens.size();
+        }
+
+        private boolean match(String token) {
+            if (pos < tokens.size() && tokens.get(pos).equals(token)) {
+                pos++;
+                return true;
+            }
+            return false;
+        }
+
+        private boolean isOperator(String t, String... ops) {
+            if (t == null) return false;
+            for (String op : ops) if (t.equals(op)) return true;
+            return false;
+        }
+
+        private boolean isUnaryOperator(String t) {
+            return isOperator(t, "+", "-", "!", "~", "A*", "A&", "sizeof", "++", "--");
+        }
+
+        private void expression() {
+            assignment();
+        }
+
+        private void assignment() {
+            logicalOr();
+            while (isOperator(peek(), "=", "+=", "-=", "*=", "/=", "%=", "<<=", ">>=", "&=", "^=", "|=")) {
+                String op = next();
+                logicalOr();
+                output.add(op);
+            }
+        }
+
+        private void logicalOr() {
+            logicalAnd();
+            while (isOperator(peek(), "||")) {
+                String op = next();
+                logicalAnd();
+                output.add(op);
+            }
+        }
+
+        private void logicalAnd() {
+            bitwiseOr();
+            while (isOperator(peek(), "&&")) {
+                String op = next();
+                bitwiseOr();
+                output.add(op);
+            }
+        }
+
+        private void bitwiseOr() {
+            bitwiseXor();
+            while (isOperator(peek(), "|")) {
+                String op = next();
+                bitwiseXor();
+                output.add(op);
+            }
+        }
+
+        private void bitwiseXor() {
+            bitwiseAnd();
+            while (isOperator(peek(), "^")) {
+                String op = next();
+                bitwiseAnd();
+                output.add(op);
+            }
+        }
+
+        private void bitwiseAnd() {
+            equality();
+            while (isOperator(peek(), "&")) {
+                String op = next();
+                equality();
+                output.add(op);
+            }
+        }
+
+        private void equality() {
+            relational();
+            while (isOperator(peek(), "==", "!=")) {
+                String op = next();
+                relational();
+                output.add(op);
+            }
+        }
+
+        private void relational() {
+            shift();
+            while (isOperator(peek(), "<", ">", "<=", ">=")) {
+                String op = next();
+                shift();
+                output.add(op);
+            }
+        }
+
+        private void shift() {
+            additive();
+            while (isOperator(peek(), "<<", ">>")) {
+                String op = next();
+                additive();
+                output.add(op);
+            }
+        }
+
+        private void additive() {
+            multiplicative();
+            while (isOperator(peek(), "+", "-")) {
+                String op = next();
+                multiplicative();
+                output.add(op);
+            }
+        }
+
+        private void multiplicative() {
+            cast();
+            while (isOperator(peek(), "*", "/", "%")) {
+                String op = next();
+                cast();
+                output.add(op);
+            }
+        }
+
+        private void cast() {
+            if (peek() != null && isType(peek()) && nextIs("(", 1)) {
+                String type = next();
+                next();
+                expression();
+                expect(")");
+                output.add(type);
+            } else if (peek() != null && peek().equals("(")) {
+                int saved = pos;
+                next();
+                if (peek() != null && isType(peek()) && nextIs(")", 1)) {
+                    String type = next();
+                    next();
+                    unary();
+                    output.add(type);
+                } else {
+                    pos = saved;
+                    unary();
+                }
+            } else {
+                unary();
+            }
+        }
+
+        private void unary() {
+            String t = peek();
+            if (isUnaryOperator(t)) {
+                String op = next();
+                if (op.equals("sizeof") && peek().equals("(")) {
+                    next();
+                    expression();
+                    expect(")");
+                    output.add("sizeof");
+                }
+                if (op.equals("++") || op.equals("--")) {
+                    op = tokens.get(pos - 1);
+                    unary();
+                    String var = output.remove(output.size() - 1);
+
+                    output.add(var);
+                    output.add("1");
+                    output.add(op.equals("++") ? "+" : "-");
+                    output.add(var);
+                    output.add("=");
+
+                    output.add(var);
+                } else {
+                    unary();
+                    output.add(op + "_unary");
+                }
+            } else {
+                postfix();
+            }
+        }
+
+        private void postfix() {
+            primary();
+            while (true) {
+                if (peek() != null && peek().equals("(")) {
+                    String funcName = tokens.get(pos - 1);
+                    output.remove(output.size() - 1);
+                    next();
+                    List<String> args = new ArrayList<>();
+                    int argc = 0;
+                    if (!peek().equals(")")) {
+                        do {
+                            expression();
+                            argc++;
+                        } while (isOperator(peek(), ",") && next() != null);
+                    }
+                    expect(")");
+                    output.add(funcName);
+                    output.add("(" + argc);
+                } else if (peek() != null && peek().equals("[")) {
+                    next();
+                    expression();
+                    expect("]");
+                    output.add("[");
+                } else if (match("++") || match("--")) {
+                    String op = tokens.get(pos - 1);
+                    String var = output.remove(output.size() - 1);
+                    output.add(var);  // 原值先留着用
+
+                    // 副作用表达式追加
+                    output.add(var);
+                    output.add("1");
+                    output.add(op.equals("++") ? "+" : "-");
+                    output.add(var);
+                    output.add("=");
+                } else {
+                    break;
+                }
+            }
+        }
+
+        private void primary() {
+            String t = peek();
+            if (t == null) throw new RuntimeException("Unexpected end of input");
+            if (t.equals("(")) {
+                next();
+                expression();
+                expect(")");
+            } else {
+                output.add(next());
+            }
+        }
+
+        private void expect(String s) {
+            if (!s.equals(next()))
+                throw new RuntimeException("Expected '" + s + "'");
+        }
+
+        private boolean nextIs(String val, int offset) {
+            return (pos + offset < tokens.size()) && tokens.get(pos + offset).equals(val);
+        }
+
+        private boolean isType(String t) {
+            return isOperator(t, "int", "float", "char", "double", "short", "long", "signed", "unsigned", "void");
         }
     }
 
     public static class Operation {
-        //判断是否为运算符
-        public static boolean isOperator(String str) {
-            return getValue(str) != 0;
-        }
-
-        //判断右结合性
-        static final Pattern pattern = Pattern.compile("(\\+\\+)|(--)|!|(A&)|~|(A\\*)|(sizeof)");
-        private static boolean isRightAssociative(String operator) {
-            return isMatch(operator, pattern);
-        }
-
-        // 判断是否是后缀运算符
-        private static boolean isPostfixOperator(String token, String nextToken) {
-            return ("++".equals(token) || "--".equals(token)) && (nextToken == null || isOperator(nextToken));
-        }
-
-        // 判断是否是前缀运算符
-        private static boolean isPrefixOperator(String token, String prevToken) {
-            return isMatch(token, pattern) && (prevToken == null || isOperator(prevToken));
-        }
-
         //返回对应优先级的数字
         public static int getValue(String operation) {
             int result = 0;

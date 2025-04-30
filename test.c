@@ -1,10 +1,7 @@
-int add(int a, int b)
-{
-    printf("a=%d b=%d\n", a, b);
-    return a + b;
-}
 int main()
 {
-    printf("%d", add(1, 2));
+    int a[10] = {1, 2, 3, 4, 5};
+    int i = 2;
+    printf("%d %d", a[i], a[i+1]);
     return 0;
 }

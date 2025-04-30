@@ -13,7 +13,7 @@ public class Patterns {
     public static Pattern FLOAT_NUMBER = Pattern.compile("^([0-9]+[.][0-9]*)$");
     public static Pattern COMMA_OR_SEMICOLON = Pattern.compile("[,;]");
     public static Pattern DECLARE_POINTER = Pattern.compile("\\w+\\*+");
-    public static Pattern BASIC_TYPE = Pattern.compile("(int|char|float|void)\\**");
+    public static Pattern BASIC_TYPE = Pattern.compile("(int|char|float|void|bool)\\**");
     public static Pattern STRING = Pattern.compile("\"([^\"]*)\"");
     public static Pattern PROC_CONTROL = Pattern.compile("(for)|(while)|(if)|(do)|(goto)");
     public static Pattern BOOLEAN = Pattern.compile("(true)|(false)");
