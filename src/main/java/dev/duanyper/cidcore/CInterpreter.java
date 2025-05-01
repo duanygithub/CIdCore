@@ -5,6 +5,8 @@ import dev.duanyper.cidcore.exception.CIdGrammarException;
 import dev.duanyper.cidcore.exception.CIdRuntimeException;
 import dev.duanyper.cidcore.grammar.*;
 import dev.duanyper.cidcore.memory.MemOperator;
+import dev.duanyper.cidcore.runtime.CIdRuntimeStack;
+import dev.duanyper.cidcore.runtime.CIdRuntimeStackFrame;
 import dev.duanyper.cidcore.runtime.Environment;
 import dev.duanyper.cidcore.runtime.ValuedArgTreeNode;
 import dev.duanyper.cidcore.symbols.*;
@@ -203,6 +205,7 @@ public class CInterpreter {
     }
 
     public Variable calcExpression(TreeNode treeNode) throws CIdGrammarException, CIdRuntimeException {
+        CIdRuntimeStack.getCurrent().push(new CIdRuntimeStackFrame(treeNode.vars, treeNode, gp));
         if (treeNode instanceof VarTreeNode) {
             Variable ret = null;
             String typeString = treeNode.codeBlocks.get(treeNode.lIndex);
@@ -349,7 +352,7 @@ public class CInterpreter {
                     }
                 }
                 stack.push(varOp1.procOperation(varOp2, cur));
-            } else if (cur.matches("(\\+\\+)|(--)|~")) {
+            } else if (cur.matches("~")) {
                 Variable varOp1 = stack.pop();
                 if (varOp1.getType() == CIdType.Int || (varOp1.getType() instanceof CIdPointerType)) {
                     stack.push(varOp1.procOperation(null, cur));
@@ -407,13 +410,15 @@ public class CInterpreter {
                 Variable varOp1 = stack.pop();
                 stack.push(varOp1.procOperation(varOp2, cur));
             } else if (!functions.funcList.containsKey(cur)) {
-                stack.push(string2Variable(cur, treeNode.vars));
+                stack.push(string2Variable(cur));
             }
         }
+        CIdRuntimeStack.getCurrent().pop();
         return stack.empty() ? null : stack.pop();
     }
 
-    private Variable string2Variable(String str, Variables vars) throws CIdGrammarException {
+    private Variable string2Variable(String str) throws CIdGrammarException {
+        Variables vars = CIdRuntimeStack.getCurrent().peek().getVariables();
         switch (TypeLookup.lookup(str, vars, functions)) {
             case TypeLookup.INTEGER -> {
                 return CIdINT.createINT(str);
