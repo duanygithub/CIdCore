@@ -11,10 +11,12 @@ public class DbgStart {
     static public List<String> codeBlocks;
 
     public static void main(String[] args) throws CIdGrammarException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        if (args.length != 0) {
+            CInterpreter ci = CInterpreter.create(args[0], null, CStdIO.include());
+            ci.start();
+            return;
+        }
         CInterpreter ci = CInterpreter.create("bubblesort.c", null, CStdIO.include());
         ci.start();
-        //List<String> tokens = Arrays.asList("b", "=", "a", "++");
-        //MExp2FExp.InfixToPostfixParser parser = new MExp2FExp.InfixToPostfixParser(tokens);
-        //System.out.println(parser.parse());
     }
 }
