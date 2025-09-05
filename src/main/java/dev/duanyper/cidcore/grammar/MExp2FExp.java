@@ -1,6 +1,7 @@
 package dev.duanyper.cidcore.grammar;
 
 import dev.duanyper.cidcore.exception.CIdGrammarException;
+import dev.duanyper.cidcore.exception.CIdRuntimeException;
 import dev.duanyper.cidcore.runtime.Environment;
 import dev.duanyper.cidcore.symbols.CIdType;
 import dev.duanyper.cidcore.symbols.Functions;
@@ -51,7 +52,7 @@ public class MExp2FExp {
         public List<String> parse() {
             expression();
             if (!eof())
-                throw new RuntimeException("Unexpected token: " + peek());
+                throw new CIdRuntimeException("Unexpected token: " + peek());
             return output;
         }
 

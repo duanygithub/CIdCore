@@ -20,15 +20,55 @@ import java.util.List;
 import java.util.Stack;
 
 public class CInterpreter {
-    static int tot = 0;
-    String codes;
-    GrammarProc gp;
-    Functions functions;
+    static int tot = 0; // 静态计数器，用于跟踪实例数量
+    String codes;       // 源代码字符串
+    GrammarProc gp;     // 语法处理器，用于构建AST
+    Functions functions; // 函数符号表
 
+    /**
+     * 报告用户友好的错误信息
+     * @param e 异常对象
+     * @param context 错误上下文描述
+     */
+    private void reportError(Exception e, String context) {
+        System.err.println("\u001B[31m错误: " + context + "\u001B[0m");
+        
+        if (e instanceof CIdGrammarException) {
+            System.err.println("\u001B[33m语法错误: " + e.getMessage() + "\u001B[0m");
+        } else if (e instanceof CIdRuntimeException) {
+            System.err.println("\u001B[33m运行时错误: " + e.getMessage() + "\u001B[0m");
+        } else if (e instanceof NullPointerException) {
+            System.err.println("\u001B[33m空指针异常: 可能的原因包括未初始化的变量或函数");
+        } else {
+            System.err.println("\u001B[33m内部错误: " + e.getClass().getSimpleName() + " - " + e.getMessage() + "\u001B[0m");
+        }
+        
+        // 显示源代码位置信息（如果可用）
+        if (gp != null && gp.codeBlocks != null && !gp.codeBlocks.isEmpty()) {
+            System.err.println("\u001B[90m错误发生在代码分析阶段\u001B[0m");
+        }
+        
+        // 对于调试目的，可以选择性显示堆栈跟踪
+        if (System.getProperty("debug.mode") != null) {
+            System.err.println("\u001B[90m--- 调试信息 ---");
+            e.printStackTrace(System.err);
+            System.err.println("\u001B[90m---------------\u001B[0m");
+        }
+    }
+
+    /**
+     * 使用现有函数符号表创建解释器
+     * @param functions 函数符号表
+     */
     private CInterpreter(Functions functions) {
         this.functions = functions;
     }
 
+    /**
+     * 从文件创建解释器
+     * @param file 源代码文件
+     * @throws IOException 文件读取异常
+     */
     private CInterpreter(File file) throws IOException {
         if (!file.exists()) {
             System.out.println("Cannot read file completely!");
@@ -47,14 +87,29 @@ public class CInterpreter {
         }
     }
 
+    /**
+     * 从字符串创建解释器
+     * @param s 源代码字符串
+     */
     private CInterpreter(String s) {
         codes = s;
     }
 
+    /**
+     * 设置函数符号表
+     * @param functions 函数符号表
+     */
     public void setFunctions(Functions functions) {
         this.functions = functions;
     }
 
+    /**
+     * 工厂方法：创建解释器实例
+     * @param file 文件路径（可为null）
+     * @param codes 源代码字符串（可为null）
+     * @param functions 函数符号表（可为null）
+     * @return 解释器实例，创建失败返回null
+     */
     public static CInterpreter create(String file, String codes, Functions functions) {
         if ((file != null && codes != null)) {
             return null;
@@ -77,10 +132,19 @@ public class CInterpreter {
         return ci;
     }
 
+    /**
+     * 创建空解释器
+     * @return 空解释器实例
+     */
     public static CInterpreter createEmpty() {
         return CInterpreter.create(null, null, null);
     }
 
+    /**
+     * 启动解释器执行
+     * @return 程序退出码（main函数返回值）
+     * @throws CIdGrammarException 语法分析异常
+     */
     public int start() throws CIdGrammarException {
         if (functions == null)
             functions = new Functions();
@@ -95,7 +159,7 @@ public class CInterpreter {
                 return 0;
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            reportError(e, "程序执行过程中");
         }
         return -1;
     }
@@ -115,7 +179,7 @@ public class CInterpreter {
                 return 0;
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            reportError(e, "函数调用过程中");
         }
         return -1;
     }
@@ -126,13 +190,29 @@ public class CInterpreter {
         functions = null;
     }
 
+    /**
+     * 设置语法处理器
+     * @param grammarProc 语法处理器实例
+     */
     public void setGrammarProc(GrammarProc grammarProc) {
         gp = grammarProc;
     }
 
+    /**
+     * 扫描并注册所有函数定义
+     * 当前为空实现，预留功能
+     */
     private void scanFunction() {
     }
 
+    /**
+     * 调用函数
+     * @param funcName 函数名
+     * @param args 参数节点
+     * @return 函数返回值
+     * @throws CIdGrammarException 函数调用异常
+     * @throws CIdRuntimeException 运行时异常
+     */
     public Variable callFunction(String funcName, ValuedArgTreeNode args) throws CIdGrammarException, CIdRuntimeException {
         if (functions.funcList.get(funcName) == null) {
             throw new CIdGrammarException("找不到函数 " + funcName + " 的声明");
@@ -204,6 +284,13 @@ public class CInterpreter {
         return CIdVOID.createVOID();
     }
 
+    /**
+     * 计算表达式值
+     * @param treeNode 表达式AST节点
+     * @return 表达式计算结果
+     * @throws CIdGrammarException 表达式计算异常
+     * @throws CIdRuntimeException 运行时异常
+     */
     public Variable calcExpression(TreeNode treeNode) throws CIdGrammarException, CIdRuntimeException {
         CIdRuntimeStack.getCurrent().push(new CIdRuntimeStackFrame(treeNode.vars, treeNode, gp));
         if (treeNode instanceof VarTreeNode) {
@@ -308,8 +395,8 @@ public class CInterpreter {
                 stack.push(CIdPOINTER.createPOINTER(1, addr, CIdType.Char));
             } else if (cur.matches("sizeof(_unary)?")) {
                 stack.push(CIdINT.createINT(stack.pop().sizeOf()));
-            } else if (cur.matches("(A&)|(A\\*)")) {
-                if (cur.equals("A&")) {
+            } else if (cur.matches("(A&)|(A\\*)|(A&_unary)|(A\\*_unary)")) {
+                if (cur.equals("A&") || cur.equals("A&_unary")) {
                     Variable varOp1 = stack.pop();
                     if (varOp1 instanceof CIdVOID)
                         throw new CIdGrammarException("取地址对象必须为变量");
@@ -318,7 +405,7 @@ public class CInterpreter {
                             varOp1.getAddress(),
                             varOp1.getType()
                     ));
-                } else if (cur.equals("A*")) {
+                } else if (cur.equals("A*") || cur.equals("A*_unary")) {
                     Variable varOp1 = stack.pop();
                     if (!(varOp1.getType() instanceof CIdPointerType)) {
                         throw new CIdGrammarException("取值对象必须为指针变量");
@@ -417,6 +504,12 @@ public class CInterpreter {
         return stack.empty() ? null : stack.pop();
     }
 
+    /**
+     * 将字符串转换为变量值
+     * @param str 字符串（可以是数字、变量名、字符串字面量等）
+     * @return 对应的变量值
+     * @throws CIdGrammarException 未声明的符号异常
+     */
     private Variable string2Variable(String str) throws CIdGrammarException {
         Variables vars = CIdRuntimeStack.getCurrent().peek().getVariables();
         switch (TypeLookup.lookup(str, vars, functions)) {
@@ -439,6 +532,12 @@ public class CInterpreter {
         }
     }
 
+    /**
+     * 检查函数调用参数匹配
+     * @param callArg 调用参数节点
+     * @param funcArg 函数定义参数节点
+     * @return 参数是否匹配（目前只检查参数数量）
+     */
     private boolean checkArg(ArgTreeNode callArg, ArgTreeNode funcArg) {
         ArrayList<CIdType> funcArgTypeArray = new ArrayList<>();
         ArrayList<CIdType> callArgTypeArray = new ArrayList<>();

@@ -6,6 +6,10 @@ import java.io.IOException;
 
 public class Start {
     public static void main(String[] args) throws IOException {
-        CIdShell.loop();
+        if (args.length == 0) {
+            CIdShell.loop();
+            return;
+        }
+        CInterpreter interpreter = CInterpreter.create(args[0], null, null);
     }
 }
