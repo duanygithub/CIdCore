@@ -25,8 +25,34 @@ public class CIdShell {
     boolean printPrompt;
     static boolean exitLoop = false;
 
+    /**
+     * 报告用户友好的错误信息
+     * @param e 异常对象
+     * @param context 错误上下文描述
+     */
+    private static void reportError(Exception e, String context) {
+        System.out.println("\u001B[31m错误: " + context + "\u001B[0m");
+        
+        if (e instanceof CIdGrammarException) {
+            System.out.println("\u001B[33m语法错误: " + e.getMessage() + "\u001B[0m");
+        } else if (e instanceof CIdRuntimeException) {
+            System.out.println("\u001B[33m运行时错误: " + e.getMessage() + "\u001B[0m");
+        } else {
+            System.out.println("\u001B[33m内部错误: " + e.getClass().getSimpleName() + " - " + e.getMessage() + "\u001B[0m");
+        }
+        
+        // 对于调试目的，可以选择性显示堆栈跟踪
+        if (System.getProperty("debug.mode") != null) {
+            System.out.println("\u001B[90m--- 调试信息 ---");
+            e.printStackTrace(System.out);
+            System.out.println("\u001B[90m---------------\u001B[0m");
+        }
+
+        System.out.flush();
+    }
+
     public CIdShell() {
-        ci = CInterpreter.create(null, null, null);
+        ci = CInterpreter.createEmpty();
     }
 
     public CIdShell(Environment env, boolean printPrompt) {
@@ -38,9 +64,6 @@ public class CIdShell {
             this.env = new Environment(new Functions(), new Variables(), new HashMap<>());
             ci.setFunctions(this.env.functions);
         } else ci = CInterpreter.create(null, null, env.functions);
-        if (this.printPrompt) {
-            System.out.print(">>> ");
-        }
     }
 
     public void exec(String s) throws CIdRuntimeException, CIdGrammarException {
@@ -74,7 +97,6 @@ public class CIdShell {
                     System.out.println("\"" + value + "\"");
                 } else System.out.println(value);
             }
-            System.out.print(">>> ");
         }
     }
 
@@ -100,15 +122,30 @@ public class CIdShell {
             functions.merge(CStdIO.include());
             functions.merge(CMemoryAPI.include());
         } catch (CIdGrammarException e) {
-            e.printStackTrace();
+            reportError(e, "库函数加载过程中");
         }
         CIdShell shell = new CIdShell(new Environment(functions, null, null), true);
+
+        if (shell.printPrompt) {
+            System.out.print(">>> ");
+            System.out.flush();
+        }
+        
         while (!exitLoop) {
             String c = cin.readLine();
             try {
                 shell.exec(c);
-            } catch (CIdRuntimeException | CIdGrammarException e) {
-                e.printStackTrace();
+
+                if (shell.printPrompt) {
+                    System.out.print(">>> ");
+                    System.out.flush();
+                }
+            } catch (Exception e) {
+                reportError(e, "命令执行过程中");
+                if (shell.printPrompt) {
+                    System.out.print(">>> ");
+                    System.out.flush();
+                }
             }
         }
     }
