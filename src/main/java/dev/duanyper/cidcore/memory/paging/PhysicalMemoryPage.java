@@ -1,7 +1,5 @@
 package dev.duanyper.cidcore.memory.paging;
 
-import dev.duanyper.cidcore.exception.CIdFatalException;
-
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.LinkedList;
